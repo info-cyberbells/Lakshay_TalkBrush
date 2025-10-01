@@ -1,0 +1,26 @@
+/* index.css */
+
+/* Reset styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Offside&family=Poppins:wght@400;700&display=swap'); */
+
+/* :root {
+  --primary-color: #FFD760;
+  --secondary-color: #594D5B33;
+  --text-color: white;
+} */
