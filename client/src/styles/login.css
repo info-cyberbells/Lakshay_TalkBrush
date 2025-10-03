@@ -30,6 +30,7 @@
 .inner-container {
   margin: 50px auto;
   max-width: 1200px;
+  
   width: 90%;
   display: flex;
   justify-content: space-between;
