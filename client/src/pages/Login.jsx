@@ -1,14 +1,36 @@
 import React, { useState } from 'react';
 import '../styles/login.css'
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../features/userSlice';
 
 export default function App() {
+
+  const dispatch = useDispatch();
+
   
   const [isLogin, setIsLogin] = useState(true);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
   };
 
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    if(isLogin){
+      const result = await dispatch(login({email, password}));
+      if(login.fulfilled.match(result)){
+        alert("Login successfull")
+      }
+      else{
+         alert(result.payload || "Login failed");
+      }
+    }
+  }
   
 
   return (
@@ -18,8 +40,9 @@ export default function App() {
         <div className='inner-container'>
         <div className="left-panel">
             <div className="left-panel-container">
-            <h1>TalkBrush</h1>
-            <p>Paint your voice with the right accent</p>
+            <img src="/logo.png" alt="" />
+
+            <p>To make an accent suitable for an audience or purpose</p>
         </div>
 
             </div>
@@ -39,9 +62,9 @@ export default function App() {
             </p>
             
 
-            <div className="or-divider">Or</div>
+      
 
-            <form autoComplete='off' onSubmit={(e) => e.preventDefault()}>
+            <form autoComplete='off' onSubmit={handleSubmit}>
               {!isLogin && (
                 <div className="input-wrapper">
                   <input type="text" placeholder="Full Name" className="input-field" autoComplete='off' name='userName' />
@@ -49,11 +72,11 @@ export default function App() {
                 </div>
               )}
               <div className="input-wrapper">
-                <input type="email" placeholder="Email Address" className="input-field" autoComplete='off' name='userEmail' />
+                <input type="email" placeholder="Email Address" className="input-field" autoComplete='off' name='userEmail' value={email} onChange={(e)=>setEmail(e.target.value)}/>
                 <i className="fas fa-envelope input-icon"></i>
               </div>
               <div className="input-wrapper">
-                <input type="password" placeholder="Password" className="input-field" autoComplete='off' name="userPassword"/>
+                <input type="password" placeholder="Password" className="input-field" autoComplete='off' name="userPassword" value={password} onChange={(e)=>setPassword(e.target.value)}/>
                 <i className="fas fa-lock input-icon"></i>
               </div>
               {!isLogin &&
@@ -66,8 +89,11 @@ export default function App() {
 
               {isLogin && (
                 <div className="remember-me">
-                  <input type="radio" id="remember" />
-                  <label htmlFor="remember">Remember Me</label>
+                  <div className="remember-left">
+                    <input type="radio" id="remember" />
+                    <label htmlFor="remember">Remember Me</label>
+                  </div>
+                  <button className="forgetPassword">Forget Password</button>
                 </div>
               )}
 
@@ -83,7 +109,14 @@ export default function App() {
               <button type="submit" className="submit-btn">
                 {isLogin ? 'LOGIN' : 'SIGNUP'}
               </button>
+            {isLogin && <div className="DDHA"> <div className='DHA'>
+              Don't have an account?<button className='DHAS' onClick={() => setIsLogin(false)}>SignUp</button>
+              </div> </div>}
+              {!isLogin && <div className="DDHA"> <div className='DHA'>
+                Already have an account?<button className='DHAS' onClick={() => setIsLogin(true)}>Login</button>
+              </div> </div>}
             </form>
+
           </div>
         </div>
       </div>
