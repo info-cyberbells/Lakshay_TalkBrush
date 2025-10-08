@@ -28,7 +28,7 @@
 }
 
 .inner-container {
-  margin: 50px auto;
+  margin: 35px auto;
   max-width: 1200px;
   width: 90%;
   display: flex;
@@ -53,16 +53,16 @@
 .left-panel {
   flex: 1.2;
   display: flex;
-  justify-content: center;   /* center vertically within parent if needed */
-  align-items: center;       /* center horizontally within parent */
+  justify-content: center;  
+  align-items: center; 
   padding-right: 8%;
   box-sizing: border-box;
 }
 
 .left-panel-container {
   display: flex;
-  flex-direction: column;     /* stack logo and text vertically */
-  align-items: center;        /* center horizontally */
+  flex-direction: column;    
+  align-items: center; 
   text-align: center;
   border: none;
 }
@@ -70,7 +70,7 @@
 .left-panel-container img {
   width: 290px;
   height: 250px;
-  object-fit: contain;        /* keeps aspect ratio */
+  object-fit: contain;       
 }
 
 .right-panel {
@@ -161,13 +161,13 @@
   top: 50%;
   right: 20px;
   transform: translateY(-50%);
-  color: #fff;
+  color: #ffffff;
 }
 
 .T-C {
   display: flex;
   margin-top: 5px;
-  color: #ccc;
+  color: #ffd760;
   font-size: 10px;
 
 }
@@ -176,7 +176,7 @@
   margin-right: 10px;
   width: 16px;
   height: 16px;
-  accent-color: #ffc107;
+  accent-color: #ffffff;
 
 }
 
@@ -256,6 +256,7 @@
   background: none;
   border: none;
   cursor: pointer;
+  margin-left: 3px;
 }
 
 @media (max-width: 992px) {
