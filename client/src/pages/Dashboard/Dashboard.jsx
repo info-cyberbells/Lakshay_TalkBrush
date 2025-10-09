@@ -3,7 +3,7 @@ import {React, useEffect
 } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
-import { logout, verify } from '../features/userSlice';
+import { logout, verify } from '../../features/userSlice';
 
 const dashboard = () => {
     

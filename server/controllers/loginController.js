@@ -30,7 +30,7 @@ export const loginUser = async (req, res) => {
         res.cookie("authToken", token, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax", 
+            sameSite: "strict", 
             maxAge: 7 * 24 * 60 * 60 * 1000, 
         })
         .status(200)
@@ -63,10 +63,10 @@ export const verifyToken = async (req, res) => {
             return res.status(401).json({ message: "User not found" });
         }
 
-        const { _id, name, email, type } = user;
+        // const { _id, name, email, type } = user;
         res.json({
             message: "Token verified",
-            user: { id: _id, name, email, type }
+            // user: { id: _id, name, email, type }
         });
 
     } catch (error) {

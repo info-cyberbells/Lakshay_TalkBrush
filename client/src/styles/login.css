@@ -2,6 +2,7 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap');
 
+
 .talkbrush-container {
   font-family: 'Poppins', sans-serif;
   color: white;
@@ -20,8 +21,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(0, 0, 0, 0.6),
-      rgba(0, 0, 0, 0.6)), url('/loginbg.jpg') no-repeat center center;
+  /* background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 30, 0.85) 100%), 
+              url('/bgimg.jpg') no-repeat center center; */
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 15, 0.95) 100%),
+    url('/bgimg.jpg') no-repeat center center;
   background-size: cover;
   opacity: 90%;
   z-index: -1;
@@ -53,24 +56,28 @@
 .left-panel {
   flex: 1.2;
   display: flex;
-  justify-content: center;  
-  align-items: center; 
+  justify-content: center;
+  align-items: center;
   padding-right: 8%;
   box-sizing: border-box;
 }
 
 .left-panel-container {
   display: flex;
-  flex-direction: column;    
-  align-items: center; 
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   border: none;
+  transform: translateY(-50px);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
 }
 
 .left-panel-container img {
   width: 290px;
   height: 250px;
-  object-fit: contain;       
+  object-fit: contain;
+
 }
 
 .right-panel {
@@ -82,13 +89,12 @@
   box-sizing: border-box;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(10, 10, 10, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: rgba(40, 40, 45, 0.85); 
+  box-shadow: 0 8px 32px 0 rgba(38, 37, 37, 0.37);
   border-radius: 20px;
 }
 
 .form-container {
-
   padding: 40px 60px;
   width: 100%;
   max-width: 420px;
@@ -102,7 +108,6 @@
 }
 
 .form-toggle h2 {
-  cursor: pointer;
   color: #ffd760;
   font-family: Poppins;
   font-weight: 300;
@@ -131,7 +136,7 @@
 
 .input-field {
   width: 100%;
-  padding: 18px 40px 18px 40px;
+  padding: 18px 40px 18px 10px;
   background: #ffd7601a;
   border: 1px solid #ffd760;
   border-radius: 8px;
@@ -156,6 +161,24 @@
   box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3);
 }
 
+.input-field:-webkit-autofill,
+.input-field:-webkit-autofill:hover,
+.input-field:-webkit-autofill:focus,
+.input-field:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffd7601a inset !important;
+  box-shadow: 0 0 0 1000px #ffd7601a inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: #ffd7601a !important;
+  background-image: none !important;
+  border: 1px solid #ffd760 !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+.input-field:-moz-autofill {
+  background-color: #ffd7601a !important;
+  color: #ffffff !important;
+}
+
 .input-icon {
   position: absolute;
   top: 50%;
@@ -170,6 +193,7 @@
   color: #ffd760;
   font-size: 10px;
 
+
 }
 
 .T-C input {
@@ -177,6 +201,7 @@
   width: 16px;
   height: 16px;
   accent-color: #ffffff;
+  cursor: pointer;
 
 }
 
@@ -193,13 +218,15 @@
 .remember-left {
   display: flex;
   align-items: center;
-  gap: 10px; /* space between radio and label */
+  gap: 10px;
+  /* space between radio and label */
 }
 
 .remember-left input {
   width: 16px;
   height: 16px;
   accent-color: #FFFFFF;
+  cursor: pointer;
 }
 
 .forgetPassword {
@@ -217,7 +244,7 @@
   padding: 16px 50px;
   border: none;
   border-radius: 8px;
-  background-color: #ffd760;
+  background-color: #FAB713;
   color: #ffffff;
   font-family: Poppins;
   font-size: 10px;
@@ -236,7 +263,7 @@
   transform: scale(0.98);
 }
 
-.DDHA{
+.DDHA {
   font-family: Poppins;
   font-size: 12px;
   display: flex;
@@ -246,12 +273,12 @@
 
 }
 
-.DHA{
+.DHA {
   display: flex;
   color: #FFFFFF;
 }
 
-.DHAS{
+.DHAS {
   color: #ffca2c;
   background: none;
   border: none;

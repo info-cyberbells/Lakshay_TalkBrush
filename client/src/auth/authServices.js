@@ -1,6 +1,7 @@
 import axios from "axios";
 import authRoutes from "./authRoutes";
 
+//Login
 const login = async (userData) => {
   const response = await axios.post(authRoutes.LOGIN, userData, {
     withCredentials: true, 

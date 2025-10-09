@@ -1,21 +1,24 @@
 import React, { useState } from "react";
-import "../styles/login.css";
+import "../../styles/login.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login } from "../features/userSlice";
+import { login } from "../../features/userSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [isLogin, setIsLogin] = useState(true);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const toggleForm = () => {
-    setIsLogin(!isLogin);
+  const switchForm = (loginState) => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setIsLogin(loginState);
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,14 +51,14 @@ export default function Login() {
               <div className="form-toggle">
                 <h2
                   className={isLogin ? "active" : ""}
-                  onClick={() => setIsLogin(true)}
+                // onClick={() => setIsLogin(true)}
                 >
                   Login
                 </h2>
                 <h2 style={{ color: "white", fontWeight: 200 }}>|</h2>
                 <h2
                   className={!isLogin ? "active" : ""}
-                  onClick={() => setIsLogin(false)}
+                // onClick={() => setIsLogin(false)}
                 >
                   Signup
                 </h2>
@@ -68,13 +71,25 @@ export default function Login() {
 
               {isLogin && (
                 <form autoComplete="off" onSubmit={handleSubmit}>
+                  <input
+                    type="text"
+                    name="fake_email"
+                    style={{ position: 'absolute', top: '-9999px' }}
+                    tabIndex={-1}
+                  />
+                  <input
+                    type="password"
+                    name="fake_password"
+                    style={{ position: 'absolute', top: '-9999px' }}
+                    tabIndex={-1}
+                  />
                   <div className="input-wrapper">
                     <input
                       type="email"
                       placeholder="Email Address"
                       className="input-field"
-                      autoComplete="off"
-                      name="userEmail"
+                      autoComplete="new-email"
+                      name="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -85,8 +100,8 @@ export default function Login() {
                       type="password"
                       placeholder="Password"
                       className="input-field"
-                      autoComplete="off"
-                      name="userPassword"
+                      autoComplete="new-password"
+                      name="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -112,8 +127,9 @@ export default function Login() {
                     <div className="DHA">
                       Don't have an Account?
                       <button
+                        type="button"
                         className="DHAS"
-                        onClick={() => setIsLogin(false)}
+                        onClick={() => switchForm(false)}
                       >
                         SignUp
                       </button>
@@ -123,7 +139,7 @@ export default function Login() {
               )}
 
               {!isLogin && (
-                <form>
+                <form onSubmit={(e) => e.preventDefault()}>
                   <div className="input-wrapper">
                     <input
                       type="text"
@@ -140,8 +156,8 @@ export default function Login() {
                       type="email"
                       placeholder="Email Address"
                       className="input-field"
-                      autoComplete="off"
-                      name="userEmail"
+                      autoComplete="new-email"
+                      name="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -152,8 +168,8 @@ export default function Login() {
                       type="password"
                       placeholder="Password"
                       className="input-field"
-                      autoComplete="off"
-                      name="userPassword"
+                      autoComplete="new-password"
+                      name="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -167,6 +183,8 @@ export default function Login() {
                       className="input-field"
                       autoComplete="off"
                       name="userPasswordc"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                     />
                     <i className="fas fa-lock input-icon"></i>
                   </div>
@@ -207,7 +225,11 @@ export default function Login() {
                     {" "}
                     <div className="DHA">
                       Already have an Account?
-                      <button className="DHAS" onClick={() => setIsLogin(true)}>
+                      <button
+                        type="button"
+                        className="DHAS"
+                        onClick={() => switchForm(true)}
+                      >
                         Login
                       </button>
                     </div>{" "}
