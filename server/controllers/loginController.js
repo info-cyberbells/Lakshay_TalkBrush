@@ -27,14 +27,20 @@ export const loginUser = async (req, res) => {
         );
 
         // Return user info + token
-        res.status(200).json({
-            token,
+        res.cookie("authToken", token, {
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax", 
+            maxAge: 7 * 24 * 60 * 60 * 1000, 
+        })
+        .status(200)
+        .json({
             user: {
-                name: user.name,
-                email: user.email,
-                type: user.type,
-            }
-        });
+            name: user.name,
+            email: user.email,
+            type: user.type,
+        },
+      });
 
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

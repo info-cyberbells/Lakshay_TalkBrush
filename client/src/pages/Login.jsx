@@ -1,94 +1,223 @@
-import React, { useState } from 'react';
-import '../styles/login.css'
+import React, { useState } from "react";
+import "../styles/login.css";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../features/userSlice";
 
-export default function App() {
-  
+export default function Login() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [isLogin, setIsLogin] = useState(true);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
   };
 
-  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (isLogin) {
+      const result = await dispatch(login({ email, password }));
+      if (login.fulfilled.match(result)) {
+        alert("Login successfull");
+        navigate("/dashboard");
+      } else {
+        alert(result.payload || "Login failed");
+        console.log(result.payload || "Login failed");
+      }
+    }
+  };
 
   return (
     <>
-   
       <div className="talkbrush-container">
-        <div className='inner-container'>
-        <div className="left-panel">
+        <div className="inner-container">
+          <div className="left-panel">
             <div className="left-panel-container">
-            <h1>TalkBrush</h1>
-            <p>Paint your voice with the right accent</p>
-        </div>
+              <img src="/logo.png" alt="" />
 
+              <p>To make an accent suitable for an audience or purpose</p>
             </div>
-        <div className="right-panel">
-          <div className="form-container">
-            <div className="form-toggle">
-              <h2 className={isLogin ? 'active' : ''} onClick={() => setIsLogin(true)}>
-                Login
-              </h2>
-              <h2 style={{color: 'white', fontWeight: 200,}}>|</h2>
-              <h2 className={!isLogin ? 'active' : ''} onClick={() => setIsLogin(false)}>
-                Signup
-              </h2>
-            </div>
-            <p className="form-description">
-              {isLogin ? 'Log in to Personalize the English accent you listen to' : 'Register Now to Personalize the English accent you listen to'}
-            </p>
-            
-
-            <div className="or-divider">Or</div>
-
-            <form autoComplete='off' onSubmit={(e) => e.preventDefault()}>
-              {!isLogin && (
-                <div className="input-wrapper">
-                  <input type="text" placeholder="Full Name" className="input-field" autoComplete='off' name='userName' />
-                   <i className="fas fa-user input-icon"></i>
-                </div>
-              )}
-              <div className="input-wrapper">
-                <input type="email" placeholder="Email Address" className="input-field" autoComplete='off' name='userEmail' />
-                <i className="fas fa-envelope input-icon"></i>
+          </div>
+          <div className="right-panel">
+            <div className="form-container">
+              <div className="form-toggle">
+                <h2
+                  className={isLogin ? "active" : ""}
+                  onClick={() => setIsLogin(true)}
+                >
+                  Login
+                </h2>
+                <h2 style={{ color: "white", fontWeight: 200 }}>|</h2>
+                <h2
+                  className={!isLogin ? "active" : ""}
+                  onClick={() => setIsLogin(false)}
+                >
+                  Signup
+                </h2>
               </div>
-              <div className="input-wrapper">
-                <input type="password" placeholder="Password" className="input-field" autoComplete='off' name="userPassword"/>
-                <i className="fas fa-lock input-icon"></i>
-              </div>
-              {!isLogin &&
-              
-              <div className="input-wrapper">
-                <input type="password" placeholder="Password" className="input-field" autoComplete='off' name='userPasswordc' />
-                <i className="fas fa-lock input-icon"></i>
-              </div>
-              }
+              <p className="form-description">
+                {isLogin
+                  ? "Log in to Personalize the English accent you listen to"
+                  : "Register Now to Personalize the English accent you listen to"}
+              </p>
 
               {isLogin && (
-                <div className="remember-me">
-                  <input type="radio" id="remember" />
-                  <label htmlFor="remember">Remember Me</label>
-                </div>
+                <form autoComplete="off" onSubmit={handleSubmit}>
+                  <div className="input-wrapper">
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userEmail"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <i className="fas fa-envelope input-icon"></i>
+                  </div>
+                  <div className="input-wrapper">
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userPassword"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <i className="fas fa-lock input-icon"></i>
+                  </div>
+
+                  <div className="remember-me">
+                    <div className="remember-left">
+                      <input type="radio" id="remember" />
+                      <label htmlFor="remember">Remember Me</label>
+                    </div>
+                    <button className="forgetPassword" disabled>
+                      Forget Password
+                    </button>
+                  </div>
+
+                  <button type="submit" className="submit-btn">
+                    LOGIN
+                  </button>
+
+                  <div className="DDHA">
+                    {" "}
+                    <div className="DHA">
+                      Don't have an Account?
+                      <button
+                        className="DHAS"
+                        onClick={() => setIsLogin(false)}
+                      >
+                        SignUp
+                      </button>
+                    </div>{" "}
+                  </div>
+                </form>
               )}
 
               {!isLogin && (
-                        
-                            <label className='T-C' >
-                               <input type="radio" name="T&C
-                               "  /> I agree to the privacy policy & Terms and conditions.
-                            </label>
-                        
-                    )}
-              
-              <button type="submit" className="submit-btn">
-                {isLogin ? 'LOGIN' : 'SIGNUP'}
-              </button>
-            </form>
+                <form>
+                  <div className="input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userName"
+                    />
+                    <i className="fas fa-user input-icon"></i>
+                  </div>
+
+                  <div className="input-wrapper">
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userEmail"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <i className="fas fa-envelope input-icon"></i>
+                  </div>
+                  <div className="input-wrapper">
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userPassword"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <i className="fas fa-lock input-icon"></i>
+                  </div>
+
+                  <div className="input-wrapper">
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userPasswordc"
+                    />
+                    <i className="fas fa-lock input-icon"></i>
+                  </div>
+
+                  <label className="T-C">
+                    <input
+                      type="radio"
+                      name="T&C
+                               "
+                    />{" "}
+                    I agree to the{" "}
+                    <p
+                      style={{
+                        color: "white",
+                        paddingLeft: 2,
+                        paddingRight: 2,
+                      }}
+                    >
+                      privacy policy{" "}
+                    </p>{" "}
+                    &{" "}
+                    <p
+                      style={{
+                        color: "white",
+                        paddingLeft: 2,
+                        paddingRight: 2,
+                      }}
+                    >
+                      Terms and conditions.{" "}
+                    </p>
+                  </label>
+
+                  <button type="submit" className="submit-btn">
+                    SIGNUP
+                  </button>
+
+                  <div className="DDHA">
+                    {" "}
+                    <div className="DHA">
+                      Already have an Account?
+                      <button className="DHAS" onClick={() => setIsLogin(true)}>
+                        Login
+                      </button>
+                    </div>{" "}
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </>
   );
 }
-
