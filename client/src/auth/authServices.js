@@ -1,30 +1,27 @@
 import axios from "axios";
-import authRoutes from "./authRoutes";
+import USER_ENDPOINTS from "./authRoutes";
 
-//Login
-const login = async (userData) => {
-  const response = await axios.post(authRoutes.LOGIN, userData, {
-    withCredentials: true, 
-  });
-  return response.data;
-};
-
-const verify = async () => {
-  const response = await axios.get(authRoutes.VERIFY, {
+//Login user
+export const loginService = async (userData) => {
+  const response = await axios.post(USER_ENDPOINTS.LOGIN_USER, userData, {
     withCredentials: true,
   });
   return response.data;
 };
 
-const logout = async () => {
-  const response = await axios.post(authRoutes.LOGOUT, {}, {
+//Verify user
+export const verifyService = async () => {
+  const response = await axios.get(USER_ENDPOINTS.VERIFY_USER, {
     withCredentials: true,
   });
   return response.data;
 };
 
-export default {
-  login,
-  verify,
-  logout,
+//Logout User
+export const logoutService = async () => {
+  const response = await axios.post(USER_ENDPOINTS.LOGOUT_USER, {}, {
+    withCredentials: true,
+  });
+  return response.data;
 };
+

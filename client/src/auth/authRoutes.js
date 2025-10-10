@@ -1,11 +1,11 @@
-const BASE_URL = import.meta.env.VITE_API_URL.endsWith("/")
-  ? import.meta.env.VITE_API_URL
-  : import.meta.env.VITE_API_URL + "/";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const authRoutes = {
-  LOGIN: `${BASE_URL}login`,
-  VERIFY: `${BASE_URL}verifyToken`,
-  LOGOUT: `${BASE_URL}logout`,
+
+export const USER_ENDPOINTS = {
+  LOGIN_USER: `${API_BASE_URL}/login`,
+  VERIFY_USER: `${API_BASE_URL}/verifyToken`,
+  LOGOUT_USER: `${API_BASE_URL}/logout`,
 };
 
-export default authRoutes;
+
+export default USER_ENDPOINTS;

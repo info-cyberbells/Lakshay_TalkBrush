@@ -13,6 +13,9 @@ export default function Login() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [toastMsg, setToastMsg] = useState('');
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignPassword, setShowSignPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
   const switchForm = (loginState) => {
@@ -33,7 +36,7 @@ export default function Login() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      showToast('Please fill in all required fields.');
+      showToast('Please fill in all required fields');
       return;
     }
 
@@ -44,9 +47,12 @@ export default function Login() {
       const result = await dispatch(login({ email, password }));
       if (login.fulfilled.match(result)) {
         showToast('Signup successful!');
-        navigate("/dashboard");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500);
+
       } else {
-        showToast('Invalid credentials.');
+        showToast('Invalid credentials');
         console.log(result.payload || "Login failed");
       }
     }
@@ -118,21 +124,36 @@ export default function Login() {
                       autoComplete="new-email"
                       name="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (errors.email) {
+                          setErrors((prev) => ({ ...prev, email: false }));
+                        }
+                      }}
                     />
                     <i className="fas fa-envelope input-icon"></i>
                   </div>
                   <div className="input-wrapper">
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="Password"
                       className={`input-field ${errors.password ? 'error' : ''}`}
                       autoComplete="new-password"
                       name="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (errors.password) {
+                          setErrors((prev) => ({ ...prev, password: false }));
+                        }
+                      }}
+
                     />
                     <i className="fas fa-lock input-icon"></i>
+                    <i
+                      className={`fas ${showPassword ? "fa-eye" : "fa-eye-slash"} toggle-icon`}
+                      onClick={() => setShowPassword(!showPassword)}
+                    ></i>
                   </div>
 
                   <div className="remember-me">
@@ -192,7 +213,7 @@ export default function Login() {
                   </div>
                   <div className="input-wrapper">
                     <input
-                      type="password"
+                      type={showSignPassword ? "text" : "password"}
                       placeholder="Password"
                       className="input-field"
                       autoComplete="new-password"
@@ -201,11 +222,15 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <i className="fas fa-lock input-icon"></i>
+                    <i
+                      className={`fas ${showSignPassword ? "fa-eye" : "fa-eye-slash"} toggle-icon`}
+                      onClick={() => setShowSignPassword(!showSignPassword)}
+                    ></i>
                   </div>
 
                   <div className="input-wrapper">
                     <input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       placeholder="Password"
                       className="input-field"
                       autoComplete="off"
@@ -214,6 +239,10 @@ export default function Login() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
                     <i className="fas fa-lock input-icon"></i>
+                    <i
+                      className={`fas ${showConfirmPassword ? "fa-eye" : "fa-eye-slash"} toggle-icon`}
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    ></i>
                   </div>
 
                   <label className="T-C">
