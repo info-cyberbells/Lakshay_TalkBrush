@@ -87,11 +87,12 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(40, 40, 45, 0.85); 
+  backdrop-filter: blur(49px);
+  -webkit-backdrop-filter: blur(49px);
+  background: #594D5B33;
   box-shadow: 0 8px 32px 0 rgba(38, 37, 37, 0.37);
   border-radius: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
 }
 
 .form-container {
@@ -123,9 +124,15 @@
 
 .form-description {
   text-align: center;
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.7);
   margin-bottom: 25px;
   font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+
+}
+
+.form-description.register {
+  color: #ECE4FF;
 }
 
 
@@ -285,6 +292,78 @@
   cursor: pointer;
   margin-left: 3px;
 }
+
+.custom-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(236, 228, 255, 0.15);
+  color: #ECE4FF;
+  border: 1px solid rgba(236, 228, 255, 0.4);
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  animation: slideIn 0.4s ease, fadeOut 0.4s ease 2.6s;
+  z-index: 9999;
+}
+
+/* Highlight missing input fields */
+.input-field.error {
+  border: 1px solid #ff4d4f !important;
+  background: rgba(255, 77, 79, 0.08);
+  transition: border 0.3s ease;
+}
+
+/* Better looking toast */
+.custom-toast {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  background: rgba(40, 40, 60, 0.9);
+  color: #ECE4FF;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeSlideIn 0.4s ease;
+  z-index: 9999;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 
 @media (max-width: 992px) {
   .talkbrush-container {

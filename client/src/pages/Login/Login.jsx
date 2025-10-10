@@ -11,6 +11,9 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [toastMsg, setToastMsg] = useState('');
+  const [errors, setErrors] = useState({});
+
 
   const switchForm = (loginState) => {
     setEmail('');
@@ -23,20 +26,44 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const newErrors = {};
+
+    if (!email) newErrors.email = true;
+    if (!password) newErrors.password = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showToast('Please fill in all required fields.');
+      return;
+    }
+
+    setErrors({});
+
+
     if (isLogin) {
       const result = await dispatch(login({ email, password }));
       if (login.fulfilled.match(result)) {
-        alert("Login successfull");
+        showToast('Signup successful!');
         navigate("/dashboard");
       } else {
-        alert(result.payload || "Login failed");
+        showToast('Invalid credentials.');
         console.log(result.payload || "Login failed");
       }
     }
   };
 
+  const showToast = (message) => {
+    setToastMsg(message);
+    clearTimeout(showToast.timeout);
+    showToast.timeout = setTimeout(() => {
+      setToastMsg('');
+    }, 2500);
+  };
+
+
   return (
     <>
+      {toastMsg && <div className="custom-toast">{toastMsg}</div>}
       <div className="talkbrush-container">
         <div className="inner-container">
           <div className="left-panel">
@@ -55,7 +82,7 @@ export default function Login() {
                 >
                   Login
                 </h2>
-                <h2 style={{ color: "white", fontWeight: 200 }}>|</h2>
+                <h2 style={{ color: "rgba(255, 255, 255, 0.5)", fontWeight: 200 }}>|</h2>
                 <h2
                   className={!isLogin ? "active" : ""}
                 // onClick={() => setIsLogin(false)}
@@ -63,10 +90,10 @@ export default function Login() {
                   Signup
                 </h2>
               </div>
-              <p className="form-description">
+              <p className={`form-description ${!isLogin ? "register" : ""}`}>
                 {isLogin
-                  ? "Log in to Personalize the English accent you listen to"
-                  : "Register Now to Personalize the English accent you listen to"}
+                  ? <>Log in to Personalize the English<br />accent you listen to</>
+                  : <>Register Now to Personalize the <br /> English accent you listen to</>}
               </p>
 
               {isLogin && (
@@ -87,7 +114,7 @@ export default function Login() {
                     <input
                       type="email"
                       placeholder="Email Address"
-                      className="input-field"
+                      className={`input-field ${errors.email ? 'error' : ''}`}
                       autoComplete="new-email"
                       name="email"
                       value={email}
@@ -99,7 +126,7 @@ export default function Login() {
                     <input
                       type="password"
                       placeholder="Password"
-                      className="input-field"
+                      className={`input-field ${errors.password ? 'error' : ''}`}
                       autoComplete="new-password"
                       name="password"
                       value={password}
@@ -114,7 +141,7 @@ export default function Login() {
                       <label htmlFor="remember">Remember Me</label>
                     </div>
                     <button className="forgetPassword" disabled>
-                      Forget Password
+                      Forgot Password?
                     </button>
                   </div>
 
