@@ -1,45 +1,19 @@
-import {React, useEffect
+import React from 'react';
+import PageHeader from '../../hooks/PageHeader/PageHeader';
+import './Dashboard.css';
 
-} from 'react'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom';
-import { logout, verify } from '../../features/userSlice';
 
-const dashboard = () => {
-    
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    // useEffect(() => {
-    //   dispatch(verify());
-    // }, [])
+const Dashboard = () => {
 
-    useEffect(() => {
-    const verifyUser = async () => {
-      const result = await dispatch(verify());
-      // If verification fails, redirect to login
-      if (verify.rejected.match(result)) {
-        navigate('/');
-      }
-    };
-    verifyUser();
-  }, [dispatch, navigate]);
-
-  const handleLogout = async () => {
-    await dispatch(logout());
-    navigate('/');
-  };
-    
-
-    const handleClick = () => {
-        dispatch(logout());
-        navigate('/');
-    }
-  
-    return (
-    <div>
-        <button onClick={handleClick}>logout</button>
+  return (
+    <div className="dashboard-container">
+      <main className="main-content">
+        <PageHeader />
+        <h1>Welcome to your Dashboard</h1>
+        <p>This is the main content area.</p>
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default dashboard
+export default Dashboard;

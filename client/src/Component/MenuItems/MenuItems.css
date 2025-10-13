@@ -1,0 +1,28 @@
+.menu-items {
+    list-style: none;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.menu-items li {
+    padding: 12px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background-color 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.menu-items li:hover {
+    padding-left: 5px;
+}
+
+.menu-items li.active {
+    background-color: #05141f;
+    border-left: 4px solid #1976d2;
+    padding-left: 8px;
+    font-weight: 600;
+}

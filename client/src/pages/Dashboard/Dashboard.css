@@ -1,0 +1,11 @@
+.dashboard-container {
+    margin-left: 240px;
+    width: calc(100% - 240px);
+    padding: 20px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+    background-color: #ecf0f1;
+}
