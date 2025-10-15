@@ -1,6 +1,6 @@
 import express from "express";
 import { signupUser } from "../controllers/userController.js";
-import { loginUser, verifyToken, logoutUser } from "../controllers/loginController.js";
+import { loginUser, verifyToken, logoutUser, updateProfile } from "../controllers/loginController.js";
 
 export const userRouter = express.Router();
 
@@ -15,3 +15,6 @@ userRouter.get("/verifyToken", verifyToken);
 
 //Logout user
 userRouter.post("/logout", logoutUser);
+
+//Update profile
+userRouter.put("/updateProfile", updateProfile);

@@ -25,3 +25,18 @@ export const logoutService = async () => {
   return response.data;
 };
 
+//signup user
+export const signupService = async (userData) => {
+  const response = await axios.post(USER_ENDPOINTS.SIGNUP_USER, userData, {
+    withCredentials: true,
+  });
+  return response.data;
+}
+
+//update profile
+export const updateProfileService = async (userData) => {
+  const response = await axios.put(USER_ENDPOINTS.UPDATEPROFILE_USER, userData,{
+    withCredentials: true,
+  });
+  return response.data;
+}

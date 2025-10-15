@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    name: {
+    fullName: {
         type: String,
         required: true,
     },
@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    number: {
+    phoneNumber: {
         type: String,
         required: true,
     },

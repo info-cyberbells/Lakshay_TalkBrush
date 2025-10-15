@@ -4,7 +4,7 @@ import { User } from "../models/userModel.js";
 // User Signup Controller
 export const signupUser = async (req, res) => {
     try {
-        const { name, email, password, number, location, type } = req.body;
+        const { fullName, email, password, phoneNumber, location, type } = req.body;
 
         // Check if email already exists
         const existingUser = await User.findOne({ email });
@@ -17,12 +17,12 @@ export const signupUser = async (req, res) => {
 
         // Create new user
         const user = new User({
-            name,
+            fullName,
+            phoneNumber,
             email,
             password: hashedPassword,
-            number,
-            location,
-            type,
+            // location,
+            // type,
         });
 
         await user.save();
@@ -31,11 +31,12 @@ export const signupUser = async (req, res) => {
             message: "User registered successfully",
             user: {
                 id: user._id,
-                name: user.name,
+                fullName: user.fullName,
+                phoneNumber: user.phoneNumber,
                 email: user.email,
-                number: user.number,
-                location: user.location,
-                type: user.type,
+                // number: user.number,
+                // location: user.location,
+                // type: user.type,
             },
         });
 
