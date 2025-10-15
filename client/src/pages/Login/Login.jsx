@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login } from "../../features/userSlice";
+import { login, signUp } from "../../features/userSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,6 +24,8 @@ export default function Login() {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setFullName('');
+    setPhoneNumber('');
     setIsLogin(loginState);
   };
 
@@ -31,8 +35,9 @@ export default function Login() {
 
     const newErrors = {};
 
-    if (!email) newErrors.email = true;
-    if (!password) newErrors.password = true;
+    if (isLogin && !email) newErrors.email = true;
+    if (isLogin && !password) newErrors.password = true;
+
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -46,7 +51,7 @@ export default function Login() {
     if (isLogin) {
       const result = await dispatch(login({ email, password }));
       if (login.fulfilled.match(result)) {
-        showToast('Signup successful!');
+        showToast('Login successful!');
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
@@ -54,6 +59,27 @@ export default function Login() {
       } else {
         showToast('Invalid credentials');
         console.log(result.payload || "Login failed");
+      }
+    }
+    // handle signup logic here
+    if(!isLogin){
+      if(!fullName || !phoneNumber || !email || !password || !confirmPassword){
+        showToast('Please fill in all fields');
+        return;
+      }
+      if(password !== confirmPassword){
+        showToast('Passwords do not match');
+        return;
+      }
+      const result = await dispatch(signUp({ fullName, phoneNumber, email, password, confirmPassword}));
+      if(signUp.fulfilled.match(result)){
+        showToast('SignUp successfull!');
+        setTimeout(()=>{
+          switchForm(true);
+        }, 1000);
+      } else {
+        showToast(result.payload || "SignUp failed");
+        console.log(result.payload || "SignUp failed")
       }
     }
   };
@@ -187,7 +213,7 @@ export default function Login() {
               )}
 
               {!isLogin && (
-                <form onSubmit={(e) => e.preventDefault()}>
+                <form onSubmit={handleSubmit}>
                   <div className="input-wrapper">
                     <input
                       type="text"
@@ -195,8 +221,23 @@ export default function Login() {
                       className="input-field"
                       autoComplete="off"
                       name="userName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
                     />
                     <i className="fas fa-user input-icon"></i>
+                  </div>
+
+                  <div className="input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="Phone Number"
+                      className="input-field"
+                      autoComplete="off"
+                      name="userPhoneNumber"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
+                    <i className="fas fa-phone input-icon"></i>
                   </div>
 
                   <div className="input-wrapper">
@@ -231,7 +272,7 @@ export default function Login() {
                   <div className="input-wrapper">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Password"
+                      placeholder="Confirm Password"
                       className="input-field"
                       autoComplete="off"
                       name="userPasswordc"
