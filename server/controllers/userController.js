@@ -22,7 +22,7 @@ export const signupUser = async (req, res) => {
             email,
             password: hashedPassword,
             // location,
-            // type,
+            type,
         });
 
         await user.save();
@@ -36,7 +36,7 @@ export const signupUser = async (req, res) => {
                 email: user.email,
                 // number: user.number,
                 // location: user.location,
-                // type: user.type,
+                type: user.type,
             },
         });
 
