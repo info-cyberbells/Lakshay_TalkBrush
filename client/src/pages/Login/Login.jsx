@@ -52,6 +52,7 @@ export default function Login() {
       const result = await dispatch(login({ email, password }));
       if (login.fulfilled.match(result)) {
         showToast('Login successful!');
+        localStorage.setItem("role", result.payload.user.type); // 👈 Store user role
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
