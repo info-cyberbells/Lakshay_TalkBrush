@@ -28,20 +28,20 @@ export const loginUser = async (req, res) => {
 
         // Return user info + token
         res.cookie("authToken", token, {
-            httpOnly: true, 
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict", 
-            maxAge: 7 * 24 * 60 * 60 * 1000, 
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         })
-        .status(200)
-        .json({
-            user: {
-            fullName: user.fullName,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            type: user.type,
-        },
-      });
+            .status(200)
+            .json({
+                user: {
+                    fullName: user.fullName,
+                    email: user.email,
+                    phoneNumber: user.phoneNumber,
+                    type: user.type,
+                },
+            });
 
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
@@ -87,36 +87,38 @@ export const logoutUser = async (req, res) => {
 
 
 //Update profile 
-export const updateProfile = async(req, res) => {
-    try{
-    const token = req.cookies?.authToken;
-    if(!token){
-        return res.status(401).json({ message: "No token provided"});
-    }
+export const updateProfile = async (req, res) => {
+    try {
+        const token = req.cookies?.authToken;
+        if (!token) {
+            return res.status(401).json({ message: "No token provided" });
+        }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
 
-    if(!user){
-        return res.status(401).json({ message: "User not found"});
-    }
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
+        }
 
-    const {fullName, email, phoneNumber} = req.body;
+        const { fullName, email, phoneNumber } = req.body;
 
-    if(fullName) user.fullName = fullName;
-    if(email) user.email = email;
-    if(phoneNumber) user.phoneNumber = phoneNumber;
+        if (fullName) user.fullName = fullName;
+        if (email) user.email = email;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
 
-    await user.save();
+        await user.save();
 
-    res.json({ message: "Profile updated successfully", user: {
-        id:  user._id,
-        fullName:  user.fullName,
-        email: user.email,
-        phoneNumber: user.phoneNumber
-    }})
-    }catch(error){
+        res.json({
+            message: "Profile updated successfully", user: {
+                id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber
+            }
+        })
+    } catch (error) {
         console.error("Update Profile failed: ", error);
-        res.status(500).json({message: "Server error", error: error.message});
-}
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
 }
