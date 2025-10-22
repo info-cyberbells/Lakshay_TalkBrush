@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import { verify } from './features/userSlice';
 import Profile from './pages/Profile/Profile'
 import './App.css';
+import ManageAdmins from './pages/ManageAdmins/ManageAdmins';
+import ManageUsers from './pages/ManageUsers/ManageUsers';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -42,9 +44,11 @@ function AppContent() {
     <div className="app-container">
       {showNavbar && <Navbar />}
       <Routes>
-        <Route path="/" element={<Login />}></Route>
-        <Route path="/dashboard" element={<Dashboard />}></Route>
-        <Route path='/profile' element={<Profile />}></Route>
+        <Route path="/" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path='/profile' element={<Profile />} />
+        <Route path='/manage-admins' element={<ManageAdmins />} />
+        <Route path='/manage-users' element={<ManageUsers />} />
       </Routes>
     </div >
   );

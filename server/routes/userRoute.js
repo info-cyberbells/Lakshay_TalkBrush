@@ -1,6 +1,6 @@
 import express from "express";
-import { signupUser } from "../controllers/userController.js";
-import { loginUser, verifyToken, logoutUser, updateProfile } from "../controllers/loginController.js";
+import { signupUser, getUsersByType, updateProfile } from "../controllers/userController.js";
+import { loginUser, verifyToken, logoutUser } from "../controllers/loginController.js";
 
 export const userRouter = express.Router();
 
@@ -16,5 +16,10 @@ userRouter.get("/verifyToken", verifyToken);
 //Logout user
 userRouter.post("/logout", logoutUser);
 
+//get all users by type
+userRouter.get("/getAllUsersByType", getUsersByType);
+
 //Update profile
 userRouter.put("/updateProfile", updateProfile);
+
+
