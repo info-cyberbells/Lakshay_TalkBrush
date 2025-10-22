@@ -40,3 +40,8 @@ export const updateProfileService = async (userData) => {
   });
   return response.data;
 }
+
+export const getAllusersByType = async (type) => {
+  const response = await axios.get(`${USER_ENDPOINTS.GETALLUSERS}?type=${type}`)
+   return response.data.users; 
+}

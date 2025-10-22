@@ -23,13 +23,8 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
     type: {
-    type: Number,  // or String if you’re using role names
-    enum: [1, 2, 3], // optional, helps restrict to valid values
-    default: 3,     // 👈 sets default role as Type 3
-    },
-    // type: {
-    //     type: String,
-    // }
+        type: String,
+    }
 }, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);

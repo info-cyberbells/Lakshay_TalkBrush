@@ -7,6 +7,7 @@ export const USER_ENDPOINTS = {
   LOGOUT_USER: `${API_BASE_URL}/users/logout`,
   SIGNUP_USER: `${API_BASE_URL}/users/signup`,
   UPDATEPROFILE_USER: `${API_BASE_URL}/users/updateProfile`,
+  GETALLUSERS: `${API_BASE_URL}/users/getAllUsersByType`,
 };
 
 
