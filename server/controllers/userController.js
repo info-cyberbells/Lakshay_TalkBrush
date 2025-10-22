@@ -48,27 +48,70 @@ export const signupUser = async (req, res) => {
 
 
 // Get all users filtered by type
+// export const getUsersByType = async (req, res) => {
+//     try {
+//         const { type } = req.query; 
+
+//         if (!type) {
+//             return res.status(400).json({ message: "Type is required" });
+//         }
+
+//         const users = await User.find({ type });
+
+//         if (users.length === 0) {
+//             return res.status(404).json({ message: "No users found for this type" });
+//         }
+
+//         res.status(200).json({
+//             message: `Users fetched successfully for type ${type}`,
+//             count: users.length,
+//             users,
+//         });
+//     } catch (error) {
+//         console.error("Error fetching users by type:", error);
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// };
+
+// Get all users filtered by type with pagination and sorting
 export const getUsersByType = async (req, res) => {
     try {
-        const { type } = req.query; // or req.body depending on your frontend call
+        const { type } = req.query;
 
         if (!type) {
             return res.status(400).json({ message: "Type is required" });
         }
 
-        const users = await User.find({ type });
+        // Get parameters from frontend (with defaults)
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const sortBy = req.query.sortBy || 'createdAt';
+        const sortOrder = req.query.sortOrder || 'desc';
 
-        if (users.length === 0) {
-            return res.status(404).json({ message: "No users found for this type" });
-        }
+        const skip = (page - 1) * limit;
+
+        // Sort options
+        const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+
+        // Get total count
+        const totalUsers = await User.countDocuments({ type });
+
+        // Fetch users
+        const users = await User.find({ type })
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .select('-password');
 
         res.status(200).json({
-            message: `Users fetched successfully for type ${type}`,
-            count: users.length,
+            message: "Users fetched successfully",
+            currentPage: page,
+            totalPages: Math.ceil(totalUsers / limit),
+            totalUsers,
             users,
         });
     } catch (error) {
-        console.error("Error fetching users by type:", error);
+        console.error("Error fetching users:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

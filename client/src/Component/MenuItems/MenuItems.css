@@ -26,9 +26,9 @@
     padding-left: 8px;
     font-weight: 600;
 } */
- 
 
-/* Modern and Vibrant Menu Items Design */
+
+
 .menu-items {
     list-style: none;
     padding: 0;
@@ -50,45 +50,31 @@
     transition: all 0.3s ease;
     letter-spacing: 0.5px;
     border-radius: 12px;
-    color: #cfd8dc; /* light gray */
+    color: #cfd8dc;
     position: relative;
-    background-color: #111827; /* dark background */
+    background-color: #111827;
 }
 
 .menu-items li:hover {
-    background-color: #1e293b; /* lighter dark */
+    background-color: #1e293b;
     transform: translateX(4px);
     padding-left: 10px;
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .menu-items li.active {
     background-color: #1f2937;
     color: #ffffff;
     font-weight: 600;
-    padding-left: 20px;
+    padding-left: 5px;
     border-left: none;
-    box-shadow: 0 0 6px rgba(0,0,0,0.4);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }
-
-/* Animated dot indicator for active menu */
-/* .menu-items li.active::before {
-    content: '';
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    background-color: #ffffff;
-    border-radius: 50%;
-} */
 
 .menu-items li svg {
     min-width: 20px;
     height: 20px;
-    /* fill: currentColor; */
     transition: transform 0.3s ease, color 0.3s ease;
 }
 

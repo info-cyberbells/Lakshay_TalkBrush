@@ -6,6 +6,14 @@ const user = JSON.parse(localStorage.getItem("User"));
 const initialState = {
     user: user || null,
     allUsers: [],
+    pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        totalUsers: 0,
+        limit: 20,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+    },
     isLoading: false,
     isError: false,
     isSuccess: false,
@@ -60,25 +68,27 @@ export const updateProfile = createAsyncThunk("auth/updateProfile",
 )
 
 export const getAllUsersByType = createAsyncThunk("auth/getAllUsersByType",
-    async (_, thunkAPI) => {
+    async (params = {}, thunkAPI) => {
         try {
-            return await getAllusersByType(2);
+            const { page, limit, sortBy, sortOrder } = params;
+            return await getAllusersByType(2, page, limit, sortBy, sortOrder);
         } catch (error) {
             return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
         }
     }
 )
-
 
 export const getAllUsersByTypeThree = createAsyncThunk("auth/getAllUsersByTypeThree",
-    async (_, thunkAPI) => {
+    async (params = {}, thunkAPI) => {
         try {
-            return await getAllusersByType(3);
+            const { page, limit, sortBy, sortOrder } = params;
+            return await getAllusersByType(3, page, limit, sortBy, sortOrder);
         } catch (error) {
             return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
         }
     }
 )
+
 
 const authSlice = createSlice({
     name: "auth",
@@ -90,7 +100,14 @@ const authSlice = createSlice({
             state.isError = false;
             state.message = "";
         },
+        setPaginationConfig: (state, action) => {
+            state.pagination = {
+                ...state.pagination,
+                ...action.payload
+            };
+        }
     },
+
     extraReducers: (builder) => {
         builder
             //Login user
@@ -152,7 +169,15 @@ const authSlice = createSlice({
             })
             .addCase(getAllUsersByType.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.allUsers = action.payload.users || action.payload;
+                state.allUsers = action.payload.users || [];
+                state.pagination = {
+                    currentPage: action.payload.currentPage,
+                    totalPages: action.payload.totalPages,
+                    totalUsers: action.payload.totalUsers,
+                    limit: state.pagination.limit,
+                    sortBy: state.pagination.sortBy,
+                    sortOrder: state.pagination.sortOrder
+                };
             })
             .addCase(getAllUsersByType.rejected, (state, action) => {
                 state.isLoading = false;
@@ -166,7 +191,15 @@ const authSlice = createSlice({
             })
             .addCase(getAllUsersByTypeThree.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.allUsers = action.payload.users || action.payload;
+                state.allUsers = action.payload.users || [];
+                state.pagination = {
+                    currentPage: action.payload.currentPage,
+                    totalPages: action.payload.totalPages,
+                    totalUsers: action.payload.totalUsers,
+                    limit: state.pagination.limit,
+                    sortBy: state.pagination.sortBy,
+                    sortOrder: state.pagination.sortOrder
+                };
             })
             .addCase(getAllUsersByTypeThree.rejected, (state, action) => {
                 state.isLoading = false;
@@ -177,5 +210,5 @@ const authSlice = createSlice({
     }
 })
 
-export const { reset } = authSlice.actions;
+export const { reset, setPaginationConfig } = authSlice.actions;
 export default authSlice.reducer;

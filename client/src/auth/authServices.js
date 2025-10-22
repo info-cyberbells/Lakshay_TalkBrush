@@ -35,13 +35,20 @@ export const signupService = async (userData) => {
 
 //update profile
 export const updateProfileService = async (userData) => {
-  const response = await axios.put(USER_ENDPOINTS.UPDATEPROFILE_USER, userData,{
+  const response = await axios.put(USER_ENDPOINTS.UPDATEPROFILE_USER, userData, {
     withCredentials: true,
   });
   return response.data;
 }
 
-export const getAllusersByType = async (type) => {
-  const response = await axios.get(`${USER_ENDPOINTS.GETALLUSERS}?type=${type}`)
-   return response.data.users; 
+export const getAllusersByType = async (type, page, limit, sortBy, sortOrder) => {
+  const params = new URLSearchParams({ type });
+
+  if (page) params.append('page', page);
+  if (limit) params.append('limit', limit);
+  if (sortBy) params.append('sortBy', sortBy);
+  if (sortOrder) params.append('sortOrder', sortOrder);
+
+  const response = await axios.get(`${USER_ENDPOINTS.GETALLUSERS}?${params.toString()}`);
+  return response.data;
 }
