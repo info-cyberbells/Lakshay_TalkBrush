@@ -9,6 +9,7 @@ import Profile from './pages/Profile/Profile'
 import './App.css';
 import ManageAdmins from './pages/ManageAdmins/ManageAdmins';
 import ManageUsers from './pages/ManageUsers/ManageUsers';
+import Event from './pages/Events/Event';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -49,6 +50,7 @@ function AppContent() {
         <Route path='/profile' element={<Profile />} />
         <Route path='/manage-admins' element={<ManageAdmins />} />
         <Route path='/manage-users' element={<ManageUsers />} />
+        <Route path='/manage-event' element={<Event />} />
       </Routes>
     </div >
   );

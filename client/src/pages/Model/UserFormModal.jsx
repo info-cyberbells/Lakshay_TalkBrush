@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
-const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
+import { useDispatch } from "react-redux";
+import { signUp } from "../../features/userSlice";
+
+const UserFormModal = ({ isOpen, onClose, onSubmit, type }) => {
     if (!isOpen) return null;
+
+    const dispatch = useDispatch();
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -13,17 +18,67 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const [ AddErrors, setAddErrors] = useState({})
+    const [toastMsg, setToastMsg] = useState('');
+
+
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (formData.password !== formData.confirmPassword) {
             alert("Passwords do not match");
             return;
         }
+
+        const { fullName, email, phoneNumber, password, confirmPassword } = formData;
+
+            //   const newErrors = {};
+            //   if (!fullName) newErrors.fullName = true;
+            //   if (!phoneNumber) newErrors.phoneNumber = true;
+            //   if (!email) newErrors.email = true;
+            //   if (!password) newErrors.password = true;
+            //   if (!confirmPassword) newErrors.confirmPassword = true;
+        
+            //   if (password !== confirmPassword) {
+            //     newErrors.confirmPassword = true;
+            //   }
+        
+            //   if (Object.keys(newErrors).length > 0) {
+            //     setAddErrors(newErrors);
+            //     showToast('Please fill in all fields');
+            //     return;
+            //   }
+
+            //   setAddErrors({});
+
+            try {
+                const userType = type === "admin" ? "2" : "3";
+
+                const result = await dispatch(signUp({ fullName, phoneNumber, email, type : userType, password, confirmPassword}));
+                if (signUp.fulfilled.match(result)) {
+                    // showToast("SignUp successful!");
+                    setFormData({
+                        fullName: "",
+                        email: "",
+                        phoneNumber: "",
+                        password: "",
+                        confirmPassword: "",
+                    });
+                    onClose();
+                } else {
+                    // showToast(result.payload || "Failed to Add");
+                    console.log(result.payload || "Failed to Add")
+                }              
+            } catch (error) {
+                console.error(error);
+                // showToast('Something wents wrong!!!');
+            }  
+            
         onSubmit(formData);
     };
 
@@ -33,7 +88,9 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
     const buttonText = isManageUsersPage ? "Add User" : "Add Admin";
 
     return (
-        <div className="fixed inset-0 left-0 right-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]">
+        <>
+    
+        <div className="fixed inset-0 left-0 right-0 flex items-center justify-center bg-black/70 bg-opacity-50 z-[9999]">
             <div className="bg-white w-[480px] rounded-xl shadow-2xl p-8 relative">
                 <button
                     onClick={onClose}
@@ -162,6 +219,7 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
                 </form>
             </div>
         </div>
+        </>
     );
 };
 

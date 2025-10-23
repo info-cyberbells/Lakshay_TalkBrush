@@ -6,13 +6,21 @@ const routeConfig = {
         title: 'Dashboard',
         icon: Home
     },
-    '/profile': {
-        title: 'Manage Profile',
-        icon: User
+    '/manage-admins': {
+        title: 'Admin Mangement',
+        // icon: User
     },
-    '/settings': {
-        title: 'Privacy Policy',
-        icon: Settings
+    '/manage-users': {
+        title: 'User Management',
+        // icon: Settings
+    },
+    '/manage-event': {
+        title: 'Events',
+        // icon: Settings
+    },
+    '/analytics': {
+        title: 'Analytics',
+        // icon: Settings
     },
 };
 

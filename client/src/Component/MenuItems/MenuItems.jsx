@@ -171,14 +171,14 @@ const MenuItems = () => {
             { name: "User Management", icon: <Icon>{icons.UserSearch}</Icon>, path: "/manage-users" },
             // { name: "Privacy Policy", icon: <Settings size={20} />, path: "/settings" },
             // { name: "Privacy Policy",icon: <Icon>{icons.FileText}</Icon>, path: "/settings" },
-            { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-events" },
+            { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-event" },
             { name: "Analytics", icon: <Icon>{icons.BarAnalytics}</Icon>, path: "/analytics" },
         ],
         admin: [
             { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
             { name: "Manage Users", icon: <Users size={20} />, path: "/manage-users" },
             // { name: "Privacy Policy", icon: <Settings size={20} />, path: "/settings" },
-            { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-events" },
+            { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-event" },
         ],
         user: [
             { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
