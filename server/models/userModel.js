@@ -24,7 +24,10 @@ const userSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-    }
+    },
+    lastLogin: {
+        type: Date,
+    },
 }, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);
