@@ -37,22 +37,6 @@ const UserFormModal = ({ isOpen, onClose, onSubmit, type }) => {
 
         const { fullName, email, phoneNumber, password, confirmPassword } = formData;
 
-            //   const newErrors = {};
-            //   if (!fullName) newErrors.fullName = true;
-            //   if (!phoneNumber) newErrors.phoneNumber = true;
-            //   if (!email) newErrors.email = true;
-            //   if (!password) newErrors.password = true;
-            //   if (!confirmPassword) newErrors.confirmPassword = true;
-        
-            //   if (password !== confirmPassword) {
-            //     newErrors.confirmPassword = true;
-            //   }
-        
-            //   if (Object.keys(newErrors).length > 0) {
-            //     setAddErrors(newErrors);
-            //     showToast('Please fill in all fields');
-            //     return;
-            //   }
 
             //   setAddErrors({});
 

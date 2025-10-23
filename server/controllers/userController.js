@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
@@ -154,5 +155,34 @@ export const updateProfile = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
+
+
+// Delete Multiple Users /Single user
+export const deleteUser = async (req, res) => {
+    try {
+        const { ids } = req.body; // Expecting an array of user IDs
+
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: "Please provide an array of user IDs" });
+        }
+
+        const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+
+        if (validIds.length === 0) {
+            return res.status(400).json({ message: "No valid IDs provided" });
+        }
+        const objectIds = validIds.map(id => new mongoose.Types.ObjectId(id));
+
+        const result = await User.deleteMany({ _id: { $in: objectIds } });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "No users found with the provided IDs" });
+        }
+
+        res.status(200).json({ message: `${result.deletedCount} user(s) deleted successfully` });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
 
 

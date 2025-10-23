@@ -1,5 +1,5 @@
 import express from "express";
-import { signupUser, getUsersByType, updateProfile } from "../controllers/userController.js";
+import { signupUser, getUsersByType, updateProfile, deleteUser } from "../controllers/userController.js";
 import { loginUser, verifyToken, logoutUser } from "../controllers/loginController.js";
 
 export const userRouter = express.Router();
@@ -21,5 +21,9 @@ userRouter.get("/getAllUsersByType", getUsersByType);
 
 //Update profile
 userRouter.put("/updateProfile", updateProfile);
+
+//delete Users/user
+userRouter.delete("/deleteUsers", deleteUser);
+
 
 
