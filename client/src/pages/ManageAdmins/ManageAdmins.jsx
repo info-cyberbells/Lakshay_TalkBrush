@@ -119,8 +119,16 @@ const ManageAdmins = () => {
 
   const handleAddAdmin = (data) => {
     console.log("New Admin:", data);
-    // dispatch action here if needed
     setIsModalOpen(false);
+
+    dispatch(
+      getAllUsersByType({
+        page: pagination.currentPage,
+        limit: pagination.limit,
+        sortBy: pagination.sortBy,
+        sortOrder: pagination.sortOrder,
+      })
+    );
   };
 
   const handleSelectAdmin = (adminId) => {
@@ -144,20 +152,20 @@ const ManageAdmins = () => {
 
   const handleDelete = () => {
     if (selectedAdmins.length === 0) return;
-  
+
     dispatch(deleteUsers(selectedAdmins))
       .unwrap()
       .then(() => {
         setSelectedAdmins([]);
         // Refetch users after deletion
         dispatch(
-      getAllUsersByType({
-        page: pagination.currentPage,
-        limit: pagination.limit,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
-      })
-    );
+          getAllUsersByType({
+            page: pagination.currentPage,
+            limit: pagination.limit,
+            sortBy: pagination.sortBy,
+            sortOrder: pagination.sortOrder,
+          })
+        );
       })
       .catch((error) => console.error("Delete failed:", error));
   };
@@ -190,21 +198,20 @@ const ManageAdmins = () => {
           </thead>
           <tbody>
             ${allUsers
-              .map(
-                (user) => `
+        .map(
+          (user) => `
               <tr>
                 <td>${user.fullName}</td>
                 <td>${user.email}</td>
                 <td>${user.phoneNumber || "N/A"}</td>
-                <td>${
-                  user.lastLogin
-                    ? new Date(user.lastLogin).toLocaleString()
-                    : "Never"
-                }</td>
+                <td>${user.lastLogin
+              ? new Date(user.lastLogin).toLocaleString()
+              : "Never"
+            }</td>
               </tr>
             `
-              )
-              .join("")}
+        )
+        .join("")}
           </tbody>
         </table>
       </body>
@@ -248,11 +255,10 @@ const ManageAdmins = () => {
               <button
                 onClick={() => setDeleteModel(true)}
                 disabled={selectedAdmins.length === 0} // disable if nothing selected
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${
-                  selectedAdmins.length > 0
-                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
-                    : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
+                  ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+                  }`}
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
@@ -286,85 +292,69 @@ const ManageAdmins = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden w-full">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500">Loading...</div>
-          ) : (
-            <table className="min-w-full w-full table-fixed">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left w-12">
-                    <input
-                      type="checkbox"
-                      checked={
-                        allUsers?.length > 0 &&
-                        selectedAdmins.length === allUsers?.length
-                      }
-                      onChange={handleSelectAll}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                      onClick={() => handleSort("fullName")}
-                    >
-                      Name
-                      {sortConfig.column === "fullName" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
+        <div className="bg-white rounded-lg shadow overflow-hidden w-full relative">
+          {isLoading && (
+            <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
+              <div className="spinner"></div>
+            </div>
+          )}
+          <table className="min-w-full w-full table-fixed">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left w-12">
+                  <input
+                    type="checkbox"
+                    checked={
+                      allUsers?.length > 0 &&
+                      selectedAdmins.length === allUsers?.length
+                    }
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    onClick={() => handleSort("fullName")}
+                  >
+                    Name
+                    {sortConfig.column === "fullName" ? (
+                      sortConfig.order === "asc" ? (
+                        <ChevronUp />
                       ) : (
-                        <ChevronDown className="opacity-50" />
-                      )}
-                    </div>
-                  </th>
+                        <ChevronDown />
+                      )
+                    ) : (
+                      <ChevronDown className="opacity-50" />
+                    )}
+                  </div>
+                </th>
 
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                      onClick={() => handleSort("email")}
-                    >
-                      Email
-                      {sortConfig.column === "email" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    onClick={() => handleSort("email")}
+                  >
+                    Email
+                    {sortConfig.column === "email" ? (
+                      sortConfig.order === "asc" ? (
+                        <ChevronUp />
                       ) : (
-                        <ChevronDown className="opacity-50" />
-                      )}
-                    </div>
-                  </th>
+                        <ChevronDown />
+                      )
+                    ) : (
+                      <ChevronDown className="opacity-50" />
+                    )}
+                  </div>
+                </th>
 
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                      // onClick={() => handleSort("createdAt")}
-                    >
-                      Phone No.
-                      {/* {sortConfig.column === "createdAt" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
-                      ) : (
-                        <ChevronDown className="opacity-50" />
-                      )} */}
-                    </div>
-                  </th>
-
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                      // onClick={() => handleSort("createdAt")}
-                    >
-                      Last Login
-                      {/* {sortConfig.column === "createdAt" ? (
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
+                  // onClick={() => handleSort("createdAt")}
+                  >
+                    Phone No.
+                    {/* {sortConfig.column === "createdAt" ? (
                         sortConfig.order === "asc" ? (
                           <ChevronUp />
                         ) : (
@@ -373,61 +363,78 @@ const ManageAdmins = () => {
                       ) : (
                         <ChevronDown className="opacity-50" />
                       )} */}
-                    </div>
-                  </th>
+                  </div>
+                </th>
 
-                  <th className="px-6 py-3 w-16"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {allUsers && allUsers.length > 0 ? (
-                  allUsers.map((admin) => (
-                    <tr
-                      key={admin._id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedAdmins.includes(admin._id)}
-                          onChange={() => handleSelectAdmin(admin._id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                        {admin.fullName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {admin.email}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {admin.phoneNumber || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {admin.lastLogin
-                          ? new Date(admin.lastLogin).toLocaleString()
-                          : "Never"}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      No admins found
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
+                  // onClick={() => handleSort("createdAt")}
+                  >
+                    Last Login
+                    {/* {sortConfig.column === "createdAt" ? (
+                        sortConfig.order === "asc" ? (
+                          <ChevronUp />
+                        ) : (
+                          <ChevronDown />
+                        )
+                      ) : (
+                        <ChevronDown className="opacity-50" />
+                      )} */}
+                  </div>
+                </th>
+
+                <th className="px-6 py-3 w-16"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {allUsers && allUsers.length > 0 ? (
+                allUsers.map((admin) => (
+                  <tr
+                    key={admin._id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedAdmins.includes(admin._id)}
+                        onChange={() => handleSelectAdmin(admin._id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      {admin.fullName}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {admin.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {admin.phoneNumber || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {admin.lastLogin
+                        ? new Date(admin.lastLogin).toLocaleString()
+                        : "Never"}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
+                    No admins found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
           {pagination && pagination.totalPages > 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
               {/* Info */}
