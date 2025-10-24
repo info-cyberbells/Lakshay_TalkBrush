@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Navbar from './Component/Navbar/Navbar';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
@@ -19,8 +19,15 @@ function AppContent() {
 
   useEffect(() => {
     const verifyUser = async () => {
+      const hasVerified = localStorage.getItem('tokenVerified');
+      if (hasVerified === 'true') {
+        setIsVerifying(false);
+        return;
+      }
       setIsVerifying(true);
       const result = await dispatch(verify());
+      localStorage.setItem('tokenVerified', 'true');
+
       if (verify.rejected.match(result) && location.pathname !== '/') {
         navigate('/');
       } else if (verify.fulfilled.match(result) && location.pathname === '/') {
@@ -29,7 +36,7 @@ function AppContent() {
       setIsVerifying(false);
     };
     verifyUser();
-  }, [dispatch, navigate, location.pathname]);
+  }, []);
 
   if (isVerifying) {
     return (
