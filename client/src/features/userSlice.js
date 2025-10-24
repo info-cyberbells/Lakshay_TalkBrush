@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginService, verifyService, logoutService, signupService, updateProfileService, getAllusersByType, deleteUsersService } from "../auth/authServices";
+import { loginService, verifyService, logoutService, signupService, updateProfileService, getAllusersByType, deleteUsersService, editUserDetails } from "../auth/authServices";
 
 const user = JSON.parse(localStorage.getItem("User"));
 
@@ -101,6 +101,19 @@ export const deleteUsers = createAsyncThunk(
     }
 );
 
+export const updateUser = createAsyncThunk(
+  "users/updateUser",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await editUserDetails(id, data);
+      return response.user; // return updated user object
+    } catch (error) {
+      // Provide readable error message
+      const message = error.response?.data?.message || error.message || "Failed to update user";
+      return rejectWithValue(message);
+    }
+  }
+);
 
 const authSlice = createSlice({
     name: "auth",
@@ -232,7 +245,25 @@ const authSlice = createSlice({
             .addCase(deleteUsers.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = action.payload;
-            });
+            })
+            .addCase(updateUser.pending, (state) => {
+                state.isLoading = true;
+                state.isError = null;
+            })
+            .addCase(updateUser.fulfilled, (state, action) => {
+                state.isLoading = false;
+                // update the specific user in the allUsers array
+                const index = state.allUsers.findIndex(
+                (user) => user._id === action.payload.id
+                );
+                if (index !== -1) {
+                state.allUsers[index] = action.payload;
+                }
+            })
+            .addCase(updateUser.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = action.payload;
+            })
 
     }
 })

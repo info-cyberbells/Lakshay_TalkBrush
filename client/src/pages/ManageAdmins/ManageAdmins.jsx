@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import {
   getAllUsersByType,
-  setPaginationConfig, deleteUsers
+  setPaginationConfig, deleteUsers, updateUser
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
 
@@ -185,6 +185,22 @@ const onEdit = (user) => {
   setOpenMenuId(null); // close the dropdown
 };
 
+const handleUpdateUser = (userData) => {
+  const { _id, createdAt, updatedAt, ...updateData } = userData;
+
+  dispatch(updateUser({ id: _id, data: updateData }))
+    .unwrap()
+    .then(() => {
+      setIsEditOpen(false);
+      // alert("User updated successfully");
+    })
+    .catch((err) => {
+      console.error("Update failed:", err);
+      // alert(err || "Failed to update user");
+    });
+};
+
+
 
 
   const handleExport = () => {
@@ -315,7 +331,7 @@ const onEdit = (user) => {
           {isLoading ? (
             <div className="p-8 text-center text-gray-500">Loading...</div>
           ) : (
-            <table className="min-w-full w-full table-fixed">
+            <table className="min-w-full w-full table-fixed ">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left w-12">
@@ -342,7 +358,7 @@ const onEdit = (user) => {
                           <ChevronDown />
                         )
                       ) : (
-                        <ChevronDown className="opacity-50" />
+                        <ChevronDown className="opacity-50 " />
                       )}
                     </div>
                   </th>
@@ -439,19 +455,22 @@ const onEdit = (user) => {
                         </button> */}
                         <button
                               onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
-                              className="text-gray-400 hover:text-gray-600 transition-colors relative"
+                              className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
                             >
                               <MoreVertical className="w-5 h-5" />
                             </button>
 
                             {openMenuId === admin._id && (
-                              <div className="absolute right-6 top-8 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
+                              <>
+                              {/* Transparent overlay inside the table cell */}
+    
+                              <div className="absolute right-6 mb-3 -top-9 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
                                 {/* Cross icon to close */}
                                 <div className="flex items-center px-3 py-2 justify-between p-1">
                                   <span className="text-sm font-semibold text-gray-700" >More Options</span>
                                   <button
                                     onClick={() => setOpenMenuId(null)}
-                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
@@ -462,7 +481,7 @@ const onEdit = (user) => {
                                     onView(admin);
                                     setOpenMenuId(null);
                                   }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
                                 >
                                   <Eye className="w-4 h-4 mr-2" /> View Details
                                 </button>
@@ -471,11 +490,12 @@ const onEdit = (user) => {
                                     onEdit(admin);
                                     setOpenMenuId(null);
                                   }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg"
+                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded-b-lg"
                                 >
                                   <Edit className="w-4 h-4 mr-2" /> Edit Details
                                 </button>
                               </div>
+                              </>
                             )}
                             
                       </td>

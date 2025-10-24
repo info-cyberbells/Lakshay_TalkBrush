@@ -66,3 +66,16 @@ export const deleteUsersService = async (ids) => {
 
   return response.data;
 };
+
+export const editUserDetails = async (id, data) => {
+  if (!id) throw new Error("User ID is required");
+  if (!data || typeof data !== "object") throw new Error("Data object is required");
+
+  const response = await axios.put(
+    `${USER_ENDPOINTS.EDIT_USER}/${id}`,
+    data,
+    { withCredentials: true }
+  );
+
+  return response.data; // response.data contains { message, user }
+};

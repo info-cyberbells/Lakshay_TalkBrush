@@ -9,12 +9,16 @@ import {
   Plus,
   MoreVertical,
   ChevronDown,
-  ChevronUp, Eye, Edit, X
+  ChevronUp,
+  Eye,
+  Edit,
+  X,
 } from "lucide-react";
 import {
   getAllUsersByTypeThree,
   setPaginationConfig,
-  deleteUsers
+  deleteUsers,
+  updateUser,
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
 
@@ -38,10 +42,10 @@ const ManageUsers = () => {
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
 
   const [openMenuId, setOpenMenuId] = useState(null);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
-    const [editUser, setEditUser] = useState(null);
-    const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   // useEffect(() => {
   //     dispatch(getAllUsersByType());
@@ -127,41 +131,55 @@ const ManageUsers = () => {
     );
   };
 
-// handledelete api call
+  // handledelete api call
   const handleDelete = () => {
-  if (selectedUsers.length === 0) return;
+    if (selectedUsers.length === 0) return;
 
-  dispatch(deleteUsers(selectedUsers))
-    .unwrap()
-    .then(() => {
-      setSelectedUsers([]);
-      // Refetch users after deletion
-      dispatch(
-        getAllUsersByTypeThree({
-          page: pagination.currentPage,
-          limit: pagination.limit,
-          sortBy: pagination.sortBy,
-          sortOrder: pagination.sortOrder,
-        })
-      );
-    })
-    .catch((error) => console.error("Delete failed:", error));
-};
+    dispatch(deleteUsers(selectedUsers))
+      .unwrap()
+      .then(() => {
+        setSelectedUsers([]);
+        // Refetch users after deletion
+        dispatch(
+          getAllUsersByTypeThree({
+            page: pagination.currentPage,
+            limit: pagination.limit,
+            sortBy: pagination.sortBy,
+            sortOrder: pagination.sortOrder,
+          })
+        );
+      })
+      .catch((error) => console.error("Delete failed:", error));
+  };
 
- // view details
+  // view details
   const onView = (user) => {
-  setSelectedUser(user);
-  setIsUserDetailOpen(true);
-  setOpenMenuId(null); // close the dropdown
-};
+    setSelectedUser(user);
+    setIsUserDetailOpen(true);
+    setOpenMenuId(null); // close the dropdown
+  };
 
-// edit details
-const onEdit = (user) => {
-  setEditUser(user);
-  setIsEditOpen(true);
-  setOpenMenuId(null); // close the dropdown
-};
+  // edit details
+  const onEdit = (user) => {
+    setEditUser(user);
+    setIsEditOpen(true);
+    setOpenMenuId(null); // close the dropdown
+  };
 
+  const handleUpdateUser = (userData) => {
+    const { _id, createdAt, updatedAt, ...updateData } = userData;
+
+    dispatch(updateUser({ id: _id, data: updateData }))
+      .unwrap()
+      .then(() => {
+        setIsEditOpen(false);
+        // alert("User updated successfully");
+      })
+      .catch((err) => {
+        console.error("Update failed:", err);
+        // alert(err || "Failed to update user");
+      });
+  };
 
   const handleAddUsers = (data) => {
     console.log("New User:", data);
@@ -190,8 +208,6 @@ const onEdit = (user) => {
       alert("No data to export");
       return;
     }
-
-    
 
     // Create Excel-compatible HTML table
     const tableHTML = `
@@ -445,47 +461,52 @@ const onEdit = (user) => {
                           <MoreVertical className="w-5 h-5" />
                         </button> */}
 
-                          <button
-                                                        onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
-                                                        className="text-gray-400 hover:text-gray-600 transition-colors relative"
-                                                      >
-                                                        <MoreVertical className="w-5 h-5" />
-                                                      </button>
-                          
-                                                      {openMenuId === admin._id && (
-                                                        <div className="absolute right-6 top-8 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
-                                                          {/* Cross icon to close */}
-                                                          <div className="flex items-center px-3 py-2 justify-between p-1">
-                                                            <span className="text-sm font-semibold text-gray-700" >More Options</span>
-                                                            <button
-                                                              onClick={() => setOpenMenuId(null)}
-                                                              className="text-gray-400 hover:text-gray-600 transition-colors"
-                                                            >
-                                                              <X className="w-4 h-4" />
-                                                            </button>
-                                                          </div>
-                          
-                                                          <button
-                                                            onClick={() => {
-                                                              onView(admin);
-                                                              setOpenMenuId(null);
-                                                            }}
-                                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
-                                                          >
-                                                            <Eye className="w-4 h-4 mr-2" /> View Details
-                                                          </button>
-                                                          <button
-                                                            onClick={() => {
-                                                              onEdit(admin);
-                                                              setOpenMenuId(null);
-                                                            }}
-                                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg"
-                                                          >
-                                                            <Edit className="w-4 h-4 mr-2" /> Edit Details
-                                                          </button>
-                                                        </div>
-                                                      )}
+                        <button
+                          onClick={() =>
+                            setOpenMenuId(
+                              openMenuId === admin._id ? null : admin._id
+                            )
+                          }
+                          className="text-gray-400 hover:text-gray-600 transition-colors relative"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
 
+                        {openMenuId === admin._id && (
+                          <div className="absolute right-6 top-8 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
+                            {/* Cross icon to close */}
+                            <div className="flex items-center px-3 py-2 justify-between p-1">
+                              <span className="text-sm font-semibold text-gray-700">
+                                More Options
+                              </span>
+                              <button
+                                onClick={() => setOpenMenuId(null)}
+                                className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                onView(admin);
+                                setOpenMenuId(null);
+                              }}
+                              className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                            >
+                              <Eye className="w-4 h-4 mr-2" /> View Details
+                            </button>
+                            <button
+                              onClick={() => {
+                                onEdit(admin);
+                                setOpenMenuId(null);
+                              }}
+                              className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg"
+                            >
+                              <Edit className="w-4 h-4 mr-2" /> Edit Details
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -585,11 +606,9 @@ const onEdit = (user) => {
         />
       )}
 
-
-          {isUserDetailOpen && selectedUser && (
+      {isUserDetailOpen && selectedUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
-      
             {/* Close button */}
             <button
               onClick={() => setIsUserDetailOpen(false)}
@@ -597,16 +616,20 @@ const onEdit = (user) => {
             >
               <X className="w-5 h-5" />
             </button>
-      
+
             {/* Header */}
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">User's Detail</h2>
-              <p className="text-sm text-gray-500 mt-1">Information about the selected User</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                User's Detail
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Information about the selected User
+              </p>
             </div>
-      
+
             {/* Divider */}
             <div className="border-b border-gray-200 mb-4"></div>
-      
+
             {/* Content */}
             <div className="space-y-4 text-gray-700">
               <div className="flex justify-between">
@@ -619,7 +642,9 @@ const onEdit = (user) => {
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-600">Phone:</span>
-                <span className="text-gray-900">{selectedUser.phoneNumber || "N/A"}</span>
+                <span className="text-gray-900">
+                  {selectedUser.phoneNumber || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-600">Type:</span>
@@ -629,14 +654,18 @@ const onEdit = (user) => {
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-600">Created At:</span>
-                <span className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</span>
+                <span className="text-gray-900">
+                  {new Date(selectedUser.createdAt).toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-600">Updated At:</span>
-                <span className="text-gray-900">{new Date(selectedUser.updatedAt).toLocaleString()}</span>
+                <span className="text-gray-900">
+                  {new Date(selectedUser.updatedAt).toLocaleString()}
+                </span>
               </div>
             </div>
-      
+
             {/* Footer */}
             {/* <div className="mt-6 flex justify-end">
               <button
@@ -649,11 +678,10 @@ const onEdit = (user) => {
           </div>
         </div>
       )}
-      
+
       {isEditOpen && editUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
-      
             {/* Close button */}
             <button
               onClick={() => setIsEditOpen(false)}
@@ -661,13 +689,15 @@ const onEdit = (user) => {
             >
               <X className="w-5 h-5" />
             </button>
-      
+
             {/* Header */}
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Edit User</h2>
-              <p className="text-sm text-gray-500 mt-1">Update user information below</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Update user information below
+              </p>
             </div>
-      
+
             {/* Form */}
             <form
               onSubmit={(e) => {
@@ -677,7 +707,9 @@ const onEdit = (user) => {
               className="space-y-4"
             >
               <div>
-                <label className="block text-gray-600 text-sm mb-1">Full Name</label>
+                <label className="block text-gray-600 text-sm mb-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   value={editUser.fullName}
@@ -687,9 +719,11 @@ const onEdit = (user) => {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 />
               </div>
-      
+
               <div>
-                <label className="block text-gray-600 text-sm mb-1">Email</label>
+                <label className="block text-gray-600 text-sm mb-1">
+                  Email
+                </label>
                 <input
                   type="email"
                   value={editUser.email}
@@ -699,9 +733,11 @@ const onEdit = (user) => {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 />
               </div>
-      
+
               <div>
-                <label className="block text-gray-600 text-sm mb-1">Phone Number</label>
+                <label className="block text-gray-600 text-sm mb-1">
+                  Phone Number
+                </label>
                 <input
                   type="text"
                   value={editUser.phoneNumber || ""}
@@ -711,14 +747,14 @@ const onEdit = (user) => {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 />
               </div>
-      
+
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 font-medium text-sm">Type:</span>
                 <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
                   {editUser.type === "2" ? "Admin" : "User"}
                 </span>
               </div>
-      
+
               {/* Footer buttons */}
               <div className="mt-6 flex justify-end gap-3">
                 <button
@@ -739,8 +775,6 @@ const onEdit = (user) => {
           </div>
         </div>
       )}
-
-
     </div>
   );
 };
