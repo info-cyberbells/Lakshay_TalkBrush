@@ -90,7 +90,7 @@ const RightComponent = () => {
                     <li className="activity-item">
                         <img src="https://placehold.co/32x32/E2E8F0/475569?text=R" alt="user" />
                         <p>Released a new version.</p>
-                        <small>59 minutes ago</small>
+                        <small> 5 min. ago</small>
                     </li>
                      <li className="activity-item">
                         <img src="https://placehold.co/32x32/E2E8F0/475569?text=S" alt="user" />
@@ -100,12 +100,12 @@ const RightComponent = () => {
                      <li className="activity-item">
                         <img src="https://placehold.co/32x32/E2E8F0/475569?text=M" alt="user" />
                         <p>Modified A data in Page X.</p>
-                        <small>Today, 11:59 AM</small>
+                        <small>Feb 1</small>
                     </li>
                      <li className="activity-item">
                         <img src="https://placehold.co/32x32/E2E8F0/475569?text=D" alt="user" />
                         <p>Deleted a page in Project X.</p>
-                        <small>Feb 2, 2023</small>
+                        <small>Feb 2</small>
                     </li>
                 </ul>
             </div>

@@ -13,6 +13,7 @@ export default {
             fontFamily: {
                 poppins: ['Poppins', 'sans-serif'],
                 nunito: ['Nunito', 'sans-serif'],
+                inter: ['Inter', 'sans-serif'],
             },
             keyframes: {
                 fadeSlideIn: {

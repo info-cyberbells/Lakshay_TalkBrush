@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 
 import { connectDB } from "./config/db.js";
 import { userRouter } from "./routes/userRoute.js";
+import { eventRouter } from "./routes/eventRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -19,6 +20,7 @@ app.use(cors({
 
 // Routes
 app.use("/api/users", userRouter);
+app.use("/api/event", eventRouter);
 
 // Connect to DB
 connectDB();
