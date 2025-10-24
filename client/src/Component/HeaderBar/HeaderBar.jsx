@@ -2,9 +2,11 @@ import React from "react";
 import "./HeaderBar.css";
 import { FaHome, FaBell, FaUserCircle, FaCog, FaSearch } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const Header = () => {
 
+  const {title} = usePageTitle();
     
 
   return (
@@ -16,7 +18,7 @@ const Header = () => {
           <li className="menu-item "> <span className="menu-text">TalkBrush</span></li>
           <li className="menu-item"> <span className="menu-text">/</span></li>
 
-          <li className="menu-item active"> <span className="menu-text">Default</span></li>
+          <li className="menu-item active"> <span className="menu-text">{title}</span></li>
 
         </ul>
       </div>
