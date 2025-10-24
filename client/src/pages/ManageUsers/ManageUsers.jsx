@@ -14,6 +14,7 @@ import {
 import {
   getAllUsersByTypeThree,
   setPaginationConfig,
+  deleteUsers
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
 
@@ -120,6 +121,27 @@ const ManageUsers = () => {
     );
   };
 
+// handledelete api call
+  const handleDelete = () => {
+  if (selectedUsers.length === 0) return;
+
+  dispatch(deleteUsers(selectedUsers))
+    .unwrap()
+    .then(() => {
+      setSelectedUsers([]);
+      // Refetch users after deletion
+      dispatch(
+        getAllUsersByTypeThree({
+          page: pagination.currentPage,
+          limit: pagination.limit,
+          sortBy: pagination.sortBy,
+          sortOrder: pagination.sortOrder,
+        })
+      );
+    })
+    .catch((error) => console.error("Delete failed:", error));
+};
+
   const handleAddUsers = (data) => {
     console.log("New User:", data);
     // dispatch action here if needed
@@ -147,6 +169,8 @@ const ManageUsers = () => {
       alert("No data to export");
       return;
     }
+
+    
 
     // Create Excel-compatible HTML table
     const tableHTML = `
@@ -494,7 +518,7 @@ const ManageUsers = () => {
       {isDeleteModelOpen && (
         <DeleteModal
           onClose={() => setDeleteModel(false)}
-          // onDelete={handleDelete}
+          onDelete={handleDelete}
         />
       )}
     </div>

@@ -52,3 +52,17 @@ export const getAllusersByType = async (type, page, limit, sortBy, sortOrder) =>
   const response = await axios.get(`${USER_ENDPOINTS.GETALLUSERS}?${params.toString()}`);
   return response.data;
 }
+
+
+export const deleteUsersService = async (ids) => {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new Error("Please provide an array of user IDs");
+  }
+
+  const response = await axios.delete(USER_ENDPOINTS.DELETE_USERS, {
+    data: { ids },
+    withCredentials: true, 
+  });
+
+  return response.data;
+};
