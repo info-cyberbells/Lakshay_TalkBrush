@@ -213,6 +213,8 @@ export const updateUser = async (req, res) => {
                 phoneNumber: user.phoneNumber,
                 location: user.location,
                 type: user.type,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
             },
         });
 
