@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginService, verifyService, logoutService, signupService, updateProfileService, getAllusersByType } from "../auth/authServices";
+import { loginService, verifyService, logoutService, signupService, updateProfileService, getAllusersByType, deleteUsersService } from "../auth/authServices";
 
 const user = JSON.parse(localStorage.getItem("User"));
 
@@ -88,6 +88,19 @@ export const getAllUsersByTypeThree = createAsyncThunk("auth/getAllUsersByTypeTh
         }
     }
 )
+
+export const deleteUsers = createAsyncThunk(
+  "auth/deleteUsers",
+  async (ids, { rejectWithValue }) => {
+    try {
+      const data = await deleteUsersService(ids);
+      return data; // { message: "X user(s) deleted successfully" }
+    } catch (error) {
+      // Handle both axios errors and general errors
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 
 
 const authSlice = createSlice({
@@ -206,6 +219,22 @@ const authSlice = createSlice({
                 state.isError = true;
                 state.message = action.payload;
             })
+
+            // delete users
+
+            .addCase(deleteUsers.pending, (state) => {
+        state.isLoading = true;
+        state.isError = null;
+        state.successMessage = null;
+      })
+      .addCase(deleteUsers.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload.message;
+      })
+      .addCase(deleteUsers.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = action.payload;
+      });
 
     }
 })

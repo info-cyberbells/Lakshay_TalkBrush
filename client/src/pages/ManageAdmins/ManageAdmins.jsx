@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import {
   getAllUsersByType,
-  setPaginationConfig,
+  setPaginationConfig, deleteUsers
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
 
@@ -33,9 +33,9 @@ const ManageAdmins = () => {
 
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
 
-  useEffect(() => {
-    dispatch(getAllUsersByType());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getAllUsersByType());
+  // }, [dispatch]);
 
   useEffect(() => {
     dispatch(
@@ -116,6 +116,7 @@ const ManageAdmins = () => {
     );
     setIsFilterOpen(false);
   };
+
   const handleAddAdmin = (data) => {
     console.log("New Admin:", data);
     // dispatch action here if needed
@@ -136,6 +137,29 @@ const ManageAdmins = () => {
     } else {
       setSelectedAdmins(allUsers?.map((admin) => admin._id) || []);
     }
+  };
+
+
+  // handle delete operation
+
+  const handleDelete = () => {
+    if (selectedAdmins.length === 0) return;
+  
+    dispatch(deleteUsers(selectedAdmins))
+      .unwrap()
+      .then(() => {
+        setSelectedAdmins([]);
+        // Refetch users after deletion
+        dispatch(
+      getAllUsersByType({
+        page: pagination.currentPage,
+        limit: pagination.limit,
+        sortBy: pagination.sortBy,
+        sortOrder: pagination.sortOrder,
+      })
+    );
+      })
+      .catch((error) => console.error("Delete failed:", error));
   };
 
   const handleExport = () => {
@@ -483,7 +507,7 @@ const ManageAdmins = () => {
       {isDeleteModelOpen && (
         <DeleteModal
           onClose={() => setDeleteModel(false)}
-          // onDelete={handleDelete}
+          onDelete={handleDelete}
         />
       )}
     </div>
