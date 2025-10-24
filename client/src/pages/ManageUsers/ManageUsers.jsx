@@ -185,6 +185,15 @@ const ManageUsers = () => {
     console.log("New User:", data);
     // dispatch action here if needed
     setIsModalOpen(false);
+
+    dispatch(
+      getAllUsersByTypeThree({
+        page: pagination.currentPage,
+        limit: pagination.limit,
+        sortBy: pagination.sortBy,
+        sortOrder: pagination.sortOrder,
+      })
+    );
   };
 
   const handleSelectUser = (userId) => {
@@ -209,6 +218,8 @@ const ManageUsers = () => {
       return;
     }
 
+
+
     // Create Excel-compatible HTML table
     const tableHTML = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
@@ -231,21 +242,20 @@ const ManageUsers = () => {
           </thead>
           <tbody>
             ${allUsers
-              .map(
-                (user) => `
+        .map(
+          (user) => `
               <tr>
                 <td>${user.fullName}</td>
                 <td>${user.email}</td>
                 <td>${user.phoneNumber || "N/A"}</td>
-                <td>${
-                  user.lastLogin
-                    ? new Date(user.lastLogin).toLocaleString()
-                    : "Never"
-                }</td>
+                <td>${user.lastLogin
+              ? new Date(user.lastLogin).toLocaleString()
+              : "Never"
+            }</td>
               </tr>
             `
-              )
-              .join("")}
+        )
+        .join("")}
           </tbody>
         </table>
       </body>
@@ -289,11 +299,10 @@ const ManageUsers = () => {
               <button
                 onClick={() => setDeleteModel(true)}
                 disabled={selectedUsers.length === 0} // disable if nothing selected
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${
-                  selectedUsers.length > 0
-                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
-                    : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${selectedUsers.length > 0
+                  ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+                  }`}
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
@@ -327,11 +336,13 @@ const ManageUsers = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden w-full">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500">Loading...</div>
-          ) : (
-            <table className="min-w-full w-full table-fixed">
+        <div className="bg-white rounded-lg shadow overflow-hidden w-full relative">
+          {isLoading && (
+            <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
+              <div className="spinner"></div>
+            </div>
+          )}
+          <table className="min-w-full w-full table-fixed">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left w-12">
@@ -391,7 +402,7 @@ const ManageUsers = () => {
                   <th className="px-6 py-3 text-left w-1/4">
                     <div
                       className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                      // onClick={() => handleSort("createdAt")}
+                    // onClick={() => handleSort("createdAt")}
                     >
                       Phone No.
                       {/* {sortConfig.column === "createdAt" ? (
@@ -409,7 +420,7 @@ const ManageUsers = () => {
                   <th className="px-6 py-3 text-left w-1/4">
                     <div
                       className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                      // onClick={() => handleSort("createdAt")}
+                    // onClick={() => handleSort("createdAt")}
                     >
                       Last Login
                       {/* {sortConfig.column === "createdAt" ? (
@@ -522,7 +533,7 @@ const ManageUsers = () => {
                 )}
               </tbody>
             </table>
-          )}
+            
           {pagination && pagination.totalPages > 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
               {/* Info */}

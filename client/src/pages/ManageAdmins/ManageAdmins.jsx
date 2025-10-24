@@ -128,8 +128,16 @@ const ManageAdmins = () => {
 
   const handleAddAdmin = (data) => {
     console.log("New Admin:", data);
-    // dispatch action here if needed
     setIsModalOpen(false);
+
+    dispatch(
+      getAllUsersByType({
+        page: pagination.currentPage,
+        limit: pagination.limit,
+        sortBy: pagination.sortBy,
+        sortOrder: pagination.sortOrder,
+      })
+    );
   };
 
   const handleSelectAdmin = (adminId) => {
@@ -153,20 +161,20 @@ const ManageAdmins = () => {
 
   const handleDelete = () => {
     if (selectedAdmins.length === 0) return;
-  
+
     dispatch(deleteUsers(selectedAdmins))
       .unwrap()
       .then(() => {
         setSelectedAdmins([]);
         // Refetch users after deletion
         dispatch(
-      getAllUsersByType({
-        page: pagination.currentPage,
-        limit: pagination.limit,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
-      })
-    );
+          getAllUsersByType({
+            page: pagination.currentPage,
+            limit: pagination.limit,
+            sortBy: pagination.sortBy,
+            sortOrder: pagination.sortOrder,
+          })
+        );
       })
       .catch((error) => console.error("Delete failed:", error));
   };
@@ -231,21 +239,20 @@ const handleUpdateUser = (userData) => {
           </thead>
           <tbody>
             ${allUsers
-              .map(
-                (user) => `
+        .map(
+          (user) => `
               <tr>
                 <td>${user.fullName}</td>
                 <td>${user.email}</td>
                 <td>${user.phoneNumber || "N/A"}</td>
-                <td>${
-                  user.lastLogin
-                    ? new Date(user.lastLogin).toLocaleString()
-                    : "Never"
-                }</td>
+                <td>${user.lastLogin
+              ? new Date(user.lastLogin).toLocaleString()
+              : "Never"
+            }</td>
               </tr>
             `
-              )
-              .join("")}
+        )
+        .join("")}
           </tbody>
         </table>
       </body>
@@ -289,11 +296,10 @@ const handleUpdateUser = (userData) => {
               <button
                 onClick={() => setDeleteModel(true)}
                 disabled={selectedAdmins.length === 0} // disable if nothing selected
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${
-                  selectedAdmins.length > 0
-                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
-                    : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
+                  ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+                  }`}
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
@@ -376,18 +382,21 @@ const handleUpdateUser = (userData) => {
                           <ChevronDown />
                         )
                       ) : (
-                        <ChevronDown className="opacity-50" />
-                      )}
-                    </div>
-                  </th>
+                        <ChevronDown />
+                      )
+                    ) : (
+                      <ChevronDown className="opacity-50" />
+                    )}
+                  </div>
+                </th>
 
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                      // onClick={() => handleSort("createdAt")}
-                    >
-                      Phone No.
-                      {/* {sortConfig.column === "createdAt" ? (
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
+                  // onClick={() => handleSort("createdAt")}
+                  >
+                    Phone No.
+                    {/* {sortConfig.column === "createdAt" ? (
                         sortConfig.order === "asc" ? (
                           <ChevronUp />
                         ) : (
@@ -396,16 +405,16 @@ const handleUpdateUser = (userData) => {
                       ) : (
                         <ChevronDown className="opacity-50" />
                       )} */}
-                    </div>
-                  </th>
+                  </div>
+                </th>
 
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                      // onClick={() => handleSort("createdAt")}
-                    >
-                      Last Login
-                      {/* {sortConfig.column === "createdAt" ? (
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
+                  // onClick={() => handleSort("createdAt")}
+                  >
+                    Last Login
+                    {/* {sortConfig.column === "createdAt" ? (
                         sortConfig.order === "asc" ? (
                           <ChevronUp />
                         ) : (
@@ -414,8 +423,8 @@ const handleUpdateUser = (userData) => {
                       ) : (
                         <ChevronDown className="opacity-50" />
                       )} */}
-                    </div>
-                  </th>
+                  </div>
+                </th>
 
                   <th className="px-6 py-3 w-16"></th>
                 </tr>
