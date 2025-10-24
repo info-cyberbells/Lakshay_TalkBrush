@@ -9,15 +9,11 @@ import {
   Plus,
   MoreVertical,
   ChevronDown,
-<<<<<<< HEAD
-  ChevronUp,
-=======
   ChevronUp,  Eye, Edit, X,
->>>>>>> 291cc2878d318a35cdf992fb673e59523dc0ccbe
 } from "lucide-react";
 import {
   getAllUsersByType,
-  setPaginationConfig, deleteUsers
+  setPaginationConfig, deleteUsers, updateUser
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
 
@@ -36,15 +32,12 @@ const ManageAdmins = () => {
   });
 
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
-<<<<<<< HEAD
-=======
    const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
->>>>>>> 291cc2878d318a35cdf992fb673e59523dc0ccbe
 
   // useEffect(() => {
   //   dispatch(getAllUsersByType());
@@ -183,8 +176,6 @@ const ManageAdmins = () => {
       .catch((error) => console.error("Delete failed:", error));
   };
 
-<<<<<<< HEAD
-=======
    // view details
   const onView = (user) => {
   setSelectedUser(user);
@@ -214,7 +205,6 @@ const handleUpdateUser = (userData) => {
     });
 };
 
->>>>>>> 291cc2878d318a35cdf992fb673e59523dc0ccbe
   const handleExport = () => {
     if (!allUsers || allUsers.length === 0) {
       alert("No data to export");
@@ -461,13 +451,6 @@ const handleUpdateUser = (userData) => {
                         ? new Date(admin.lastLogin).toLocaleString()
                         : "Never"}
                     </td>
-<<<<<<< HEAD
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-                    </td>
-=======
                     {/* <td className="px-6 py-4 text-right">
                       <button className="text-gray-400 hover:text-gray-600 transition-colors">
                         <MoreVertical className="w-5 h-5" />
@@ -525,7 +508,6 @@ const handleUpdateUser = (userData) => {
                             
                       </td>
 
->>>>>>> 291cc2878d318a35cdf992fb673e59523dc0ccbe
                   </tr>
                 ))
               ) : (
@@ -600,8 +582,6 @@ const handleUpdateUser = (userData) => {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
           {isUserDetailOpen && selectedUser && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
@@ -756,7 +736,6 @@ const handleUpdateUser = (userData) => {
   </div>
 )}
 
->>>>>>> 291cc2878d318a35cdf992fb673e59523dc0ccbe
       <FilterModal
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
