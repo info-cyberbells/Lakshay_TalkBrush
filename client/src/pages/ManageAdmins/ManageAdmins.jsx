@@ -9,8 +9,7 @@ import {
   Plus,
   MoreVertical,
   ChevronDown,
-  ChevronUp,
-   Eye, Edit, X,
+  ChevronUp,  Eye, Edit, X,
 } from "lucide-react";
 import {
   getAllUsersByType,
@@ -33,13 +32,11 @@ const ManageAdmins = () => {
   });
 
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState(null);
+   const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-
-
 
 
   // useEffect(() => {
@@ -179,7 +176,7 @@ const ManageAdmins = () => {
       .catch((error) => console.error("Delete failed:", error));
   };
 
-  // view details
+   // view details
   const onView = (user) => {
   setSelectedUser(user);
   setIsUserDetailOpen(true);
@@ -207,9 +204,6 @@ const handleUpdateUser = (userData) => {
       // alert(err || "Failed to update user");
     });
 };
-
-
-
 
   const handleExport = () => {
     if (!allUsers || allUsers.length === 0) {
@@ -332,55 +326,54 @@ const handleUpdateUser = (userData) => {
             Manage all admin and their access
           </p>
         </div>
-                {/* remove overflow hidden */}
-        <div className="bg-white rounded-lg shadow w-full">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500">Loading...</div>
-          ) : (
-            <table className="min-w-full w-full table-fixed ">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left w-12">
-                    <input
-                      type="checkbox"
-                      checked={
-                        allUsers?.length > 0 &&
-                        selectedAdmins.length === allUsers?.length
-                      }
-                      onChange={handleSelectAll}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                      onClick={() => handleSort("fullName")}
-                    >
-                      Name
-                      {sortConfig.column === "fullName" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
-                      ) : (
-                        <ChevronDown className="opacity-50 " />
-                      )}
-                    </div>
-                  </th>
 
-                  <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                      onClick={() => handleSort("email")}
-                    >
-                      Email
-                      {sortConfig.column === "email" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
+        <div className="bg-white rounded-lg shadow overflow-hidden w-full relative">
+          {isLoading && (
+            <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
+              <div className="spinner"></div>
+            </div>
+          )}
+          <table className="min-w-full w-full table-fixed">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left w-12">
+                  <input
+                    type="checkbox"
+                    checked={
+                      allUsers?.length > 0 &&
+                      selectedAdmins.length === allUsers?.length
+                    }
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    onClick={() => handleSort("fullName")}
+                  >
+                    Name
+                    {sortConfig.column === "fullName" ? (
+                      sortConfig.order === "asc" ? (
+                        <ChevronUp />
+                      ) : (
+                        <ChevronDown />
+                      )
+                    ) : (
+                      <ChevronDown className="opacity-50" />
+                    )}
+                  </div>
+                </th>
+
+                <th className="px-6 py-3 text-left w-1/4">
+                  <div
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    onClick={() => handleSort("email")}
+                  >
+                    Email
+                    {sortConfig.column === "email" ? (
+                      sortConfig.order === "asc" ? (
+                        <ChevronUp />
                       ) : (
                         <ChevronDown />
                       )
@@ -426,38 +419,44 @@ const handleUpdateUser = (userData) => {
                   </div>
                 </th>
 
-                  <th className="px-6 py-3 w-16"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {allUsers && allUsers.length > 0 ? (
-                  allUsers.map((admin) => (
-                    <tr
-                      key={admin._id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedAdmins.includes(admin._id)}
-                          onChange={() => handleSelectAdmin(admin._id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                        {admin.fullName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {admin.email}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {admin.phoneNumber || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {admin.lastLogin
-                          ? new Date(admin.lastLogin).toLocaleString()
-                          : "Never"}
-                      </td>
+                <th className="px-6 py-3 w-16"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {allUsers && allUsers.length > 0 ? (
+                allUsers.map((admin) => (
+                  <tr
+                    key={admin._id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedAdmins.includes(admin._id)}
+                        onChange={() => handleSelectAdmin(admin._id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      {admin.fullName}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {admin.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {admin.phoneNumber || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {admin.lastLogin
+                        ? new Date(admin.lastLogin).toLocaleString()
+                        : "Never"}
+                    </td>
+                    {/* <td className="px-6 py-4 text-right">
+                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </td> */}
+
                       <td className="px-6 py-4 text-right relative">
                         {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
                           <MoreVertical className="w-5 h-5" />
@@ -508,25 +507,21 @@ const handleUpdateUser = (userData) => {
                             )}
                             
                       </td>
-                    </tr>
-                    
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      No admins found
-                    </td>
+
                   </tr>
-                )}
-                
-              </tbody>
-            </table>
-            
-          )}
-          
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
+                    No admins found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
           {pagination && pagination.totalPages > 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
               {/* Info */}
@@ -587,39 +582,14 @@ const handleUpdateUser = (userData) => {
         </div>
       </div>
 
-      
-
-      <FilterModal
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        filterConfig={filterConfig}
-        setFilterConfig={setFilterConfig}
-        onApply={handleApplyFilter}
-        onReset={handleResetFilter}
-      />
-
-      <UserFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleAddAdmin}
-        type="admin"
-      />
-
-      {isDeleteModelOpen && (
-        <DeleteModal
-          onClose={() => setDeleteModel(false)}
-          onDelete={handleDelete}
-        />
-      )}
-
-    {isUserDetailOpen && selectedUser && (
+          {isUserDetailOpen && selectedUser && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
 
       {/* Close button */}
       <button
         onClick={() => setIsUserDetailOpen(false)}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute top-4 right-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
       >
         <X className="w-5 h-5" />
       </button>
@@ -676,14 +646,14 @@ const handleUpdateUser = (userData) => {
   </div>
 )}
 
-{isEditOpen && editUser && (
+      {isEditOpen && editUser && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
 
       {/* Close button */}
       <button
         onClick={() => setIsEditOpen(false)}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
       >
         <X className="w-5 h-5" />
       </button>
@@ -750,13 +720,13 @@ const handleUpdateUser = (userData) => {
           <button
             type="button"
             onClick={() => setIsEditOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+            className="px-5 py-2 bg-blue-600 text-white cursor-pointer rounded-xl hover:bg-blue-700 transition-colors"
           >
             Save
           </button>
@@ -766,7 +736,28 @@ const handleUpdateUser = (userData) => {
   </div>
 )}
 
+      <FilterModal
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        filterConfig={filterConfig}
+        setFilterConfig={setFilterConfig}
+        onApply={handleApplyFilter}
+        onReset={handleResetFilter}
+      />
 
+      <UserFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddAdmin}
+        type="admin"
+      />
+
+      {isDeleteModelOpen && (
+        <DeleteModal
+          onClose={() => setDeleteModel(false)}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };
