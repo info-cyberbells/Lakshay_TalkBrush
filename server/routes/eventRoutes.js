@@ -4,4 +4,4 @@ import { verifyToken } from '../controllers/loginController.js';
 
 export const eventRouter = express.Router();
 
-eventRouter.post('/addevent', upload.single('picture'), addEvent);
+eventRouter.post('/addEvent', upload.single('picture'), addEvent);

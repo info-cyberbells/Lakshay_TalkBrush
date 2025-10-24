@@ -5,7 +5,11 @@ import { User } from "../models/userModel.js";
 // Login Controller
 export const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        let { email, password } = req.body;
+
+        if (email) {
+            email = email.trim().toLowerCase();
+        }
 
         // Check if user exists
         const user = await User.findOne({ email });

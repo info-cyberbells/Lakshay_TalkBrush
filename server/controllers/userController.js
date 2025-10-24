@@ -6,7 +6,16 @@ import { User } from "../models/userModel.js";
 // User Signup Controller
 export const signupUser = async (req, res) => {
     try {
-        const { fullName, email, password, phoneNumber, location, type } = req.body;
+        let { fullName, email, password, phoneNumber, location, type } = req.body; 4
+
+        if (fullName) {
+            fullName = fullName.trim();
+            fullName = fullName.charAt(0).toUpperCase() + fullName.slice(1).toLowerCase();
+        }
+
+        if (email) {
+            email = email.trim().toLowerCase();
+        }
 
         // Check if email already exists
         const existingUser = await User.findOne({ email });
@@ -156,6 +165,61 @@ export const updateProfile = async (req, res) => {
     }
 }
 
+
+//update user data
+export const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id; 
+        let { fullName, email, phoneNumber, location, type, password } = req.body;
+
+        // Find user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (fullName) {
+            fullName = fullName.trim();
+            fullName = fullName.charAt(0).toUpperCase() + fullName.slice(1).toLowerCase();
+            user.fullName = fullName;
+        }
+
+        if (email) {
+            email = email.trim().toLowerCase();
+            const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already in use by another user" });
+            }
+            user.email = email;
+        }
+
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (location) user.location = location;
+        if (type) user.type = type;
+
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: "User updated successfully",
+            user: {
+                id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                location: user.location,
+                type: user.type,
+            },
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
 
 // Delete Multiple Users /Single user
 export const deleteUser = async (req, res) => {

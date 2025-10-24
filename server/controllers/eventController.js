@@ -35,33 +35,33 @@ export const upload = multer({
 });
 
 export const addEvent = async (req, res) => {
-    try {
-        const {fullName, description, date, time} = req.body;
-    
-    if(!fullName || !description || !date || !time){
-        return res.status(400).json({message : 'All feilds are Required'})
+  try {
+    const { fullName, description, date, time } = req.body;
+
+    if (!fullName || !description || !date || !time) {
+      return res.status(400).json({ message: 'All feilds are Required' })
     }
 
     const parsedDate = new Date(date);
-    if(isNaN(parsedDate.getTime())){
-        return res.status(400).json({message : "Invalid date format. Use YYYY-MM-DD"})
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" })
     }
 
     let picturePath = '';
     if (req.file) {
       picturePath = `/uploads/events/${req.file.filename}`;
-    } else if (req.body.pictureUrl) {
-      picturePath = req.body.pictureUrl;
+    } else if (req.body.picture) {
+      picturePath = req.body.picture;
     }
 
-    const newEvent = new Event ({
-        fullName, description, date: parsedDate, time, picture: picturePath, createdBy: req.user?.id || null
+    const newEvent = new Event({
+      fullName, description, date: parsedDate, time, picture: picturePath, createdBy: req.user?.id || null
     });
 
     await newEvent.save();
 
-    return res.status(200).json({message: "Event created Successfully", newEvent});
-    } catch (error) {
-        return res.status(500).json({message: "server error", error: error.message})
-    }
+    return res.status(200).json({ message: "Event created Successfully", newEvent });
+  } catch (error) {
+    return res.status(500).json({ message: "server error", error: error.message })
+  }
 }

@@ -22,7 +22,7 @@ const eventSchema = new mongoose.Schema({
   picture: {
     type: String,
     default: '',
-    required: true
+    required: false
   },
   createdAt: {
     type: Date,
