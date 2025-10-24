@@ -1,6 +1,6 @@
 import React from "react";
 import PageHeader from "../../hooks/PageHeader/PageHeader";
-import "./Dashboard.css";
+// import "./Dashboard.css";
 
 const stats = [
   {
@@ -31,7 +31,7 @@ const stats = [
 
 const Dashboard = () => {
   return (
-    <div className="ml-[240px] mt-[50px] mr-[250px] w-[calc(100%-240px)]">
+    <div className="ml-[240px] mt-[50px] mr-[250px] w-[calc(100%-240px)] pt-3">
       
       <header className="px-[12px] mx-[6px] py-[6px]">
         <div className="flex flex-wrap justify-between p-[8px] gap-6 font-Inter rounded-[20px]">

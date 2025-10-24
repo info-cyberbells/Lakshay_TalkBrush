@@ -342,11 +342,11 @@ const ManageAdmins = () => {
 
                   <th className="px-6 py-3 text-left w-1/4">
                     <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                      onClick={() => handleSort("createdAt")}
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
+                      // onClick={() => handleSort("createdAt")}
                     >
                       Phone No.
-                      {sortConfig.column === "createdAt" ? (
+                      {/* {sortConfig.column === "createdAt" ? (
                         sortConfig.order === "asc" ? (
                           <ChevronUp />
                         ) : (
@@ -354,17 +354,17 @@ const ManageAdmins = () => {
                         )
                       ) : (
                         <ChevronDown className="opacity-50" />
-                      )}
+                      )} */}
                     </div>
                   </th>
 
                   <th className="px-6 py-3 text-left w-1/4">
                     <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                      onClick={() => handleSort("createdAt")}
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
+                      // onClick={() => handleSort("createdAt")}
                     >
                       Last Login
-                      {sortConfig.column === "createdAt" ? (
+                      {/* {sortConfig.column === "createdAt" ? (
                         sortConfig.order === "asc" ? (
                           <ChevronUp />
                         ) : (
@@ -372,7 +372,7 @@ const ManageAdmins = () => {
                         )
                       ) : (
                         <ChevronDown className="opacity-50" />
-                      )}
+                      )} */}
                     </div>
                   </th>
 

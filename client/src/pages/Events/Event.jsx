@@ -84,7 +84,7 @@ const ScheduleCard = ({ event, items = [] }) => {
   const avatars = [0, 1, 2, 3].map((i) => items[i] || {});
 
   return (
-    <div className="flex font-[Poppins] border-l-8 border-2 border-[#D1D1D1] bg-white rounded-md p-4 mb-4" style={{ borderLeftColor: event.badgeColor }}>
+    <div className="flex font-[Poppins] border-l-8 border-2 border-[#D1D1D1] bg-white rounded-md p-4 mb-4 mt-3" style={{ borderLeftColor: event.badgeColor }}>
       <div className="flex flex-col flex-1">
         {/* Header: Time + Title on left, Avatars on right */}
         <div className="flex justify-between items-center">
