@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { useDispatch } from "react-redux";
+import {showToast} from "../../features/toastSlice";
 
 const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
+
+    const dispatch = useDispatch();
+
     const [formData, setFormData] = useState({
         fullName: '',
         description: '',
@@ -52,6 +57,10 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!formData.fullName || !formData.description || !formData.date || !formData.time) {
+           dispatch(showToast({ message: " All * fields are required!" }));
+           return;
+       }
         onSubmit(formData);
         // Reset form
         setFormData({
@@ -61,6 +70,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
             time: '',
             picture: ''
         });
+        dispatch(showToast({message : editingEvent ? "Event Updated successfully!!" : "Event Added Successfully!!!"}))
     };
 
     const handleClose = () => {
@@ -101,7 +111,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                             name="fullName"
                             value={formData.fullName}
                             onChange={handleInputChange}
-                            required
+                            // required
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins]"
                             placeholder="Enter event name"
                         />
@@ -115,7 +125,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                             name="description"
                             value={formData.description}
                             onChange={handleInputChange}
-                            required
+                            // required
                             rows="4"
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins] resize-none"
                             placeholder="Enter event description"
@@ -132,7 +142,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                                 name="date"
                                 value={formData.date}
                                 onChange={handleInputChange}
-                                required
+                                // required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins]"
                             />
                         </div>
@@ -146,7 +156,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                                 name="time"
                                 value={formData.time}
                                 onChange={handleInputChange}
-                                required
+                                // required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins]"
                             />
                         </div>

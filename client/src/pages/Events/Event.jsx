@@ -7,8 +7,11 @@ import {
   Trash2,
 } from "lucide-react";
 import AddEventModal from "../Model/AddEventModal";
+import DeleteModal from "../Model/DeleteModal";
+import { showToast } from "../../features/toastSlice";
 
 const ScheduleCard = ({ event, onEdit, onDelete }) => (
+
   <div
     className="flex font-[Poppins] border-l-8 border border-[#E5E7EB] bg-white rounded-lg p-5 hover:shadow-md transition-shadow"
     style={{ borderLeftColor: "#2D4CCA" }}
@@ -58,12 +61,12 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => (
             <Edit className="w-4 h-4 text-gray-600 cursor-pointer" />
           </button>
           <button
-            onClick={() => onDelete(event._id)}
-            className="p-2 hover:bg-red-50 rounded-md transition-colors"
-            title="Delete event"
-          >
-            <Trash2 className="w-4 h-4 text-red-600 cursor-pointer" />
-          </button>
+              onClick={() => onDelete(event)}
+              className="p-2 hover:bg-red-50 rounded-md transition-colors"
+              title="Delete event"
+            >
+              <Trash2 className="w-4 h-4 text-red-600 cursor-pointer" />
+            </button>
         </div>
       </div>
     </div>
@@ -75,6 +78,10 @@ const Event = () => {
   const { events, todayEvents, currentPage, totalPages, loading, error } = useSelector(
     (state) => state.events
   );
+
+  // const [isDeleteModelOpen, setDeleteModel] = useState(false);
+  const [isDeleteModelOpen, setDeleteModel] = useState(false);
+const [eventToDelete, setEventToDelete] = useState(null);
 
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,16 +133,36 @@ const Event = () => {
     setEditingEvent(null);
   };
 
-  const handleDeleteEvent = async (eventId) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      try {
-        await dispatch(deleteEvent(eventId)).unwrap();
-        dispatch(fetchAllEvents({ page, limit }));
-      } catch (error) {
-        console.error('Error deleting event:', error);
-      }
+  // const handleDeleteEvent = async (eventId) => {
+  //   if (window.confirm('Are you sure you want to delete this event?')) {
+  //     try {
+  //       await dispatch(deleteEvent(eventId)).unwrap();
+  //       dispatch(fetchAllEvents({ page, limit }));
+  //     } catch (error) {
+  //       console.error('Error deleting event:', error);
+  //     }
+  //   }
+  // };
+
+  const handleDeleteEvent = (event) => {
+  setEventToDelete(event);
+  setDeleteModel(true);
+};
+
+const handleDelete = async () => {
+  if (eventToDelete) {
+    try {
+      await dispatch(deleteEvent(eventToDelete._id)).unwrap();
+      dispatch(fetchAllEvents({ page, limit }));
+      setDeleteModel(false);
+      setEventToDelete(null);
+      dispatch(showToast({message:"Event Deleted Successfully!!!"}))
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      dispatch(showToast({message: "Failed to Delete Event!!!!"}))
     }
-  };
+  }
+};
 
   // Group events by date
   const groupEventsByDate = (eventsList) => {
@@ -158,7 +185,8 @@ const Event = () => {
   const groupedEvents = groupEventsByDate(events);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-[240px] pt-[40px]">
+  
+    <div className="min-h-screen min-w-full bg-gray-50 px-[240px] pt-[40px] flex flex-col">
       <div className="max-w-full px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -176,7 +204,7 @@ const Event = () => {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden w-full relative min-h-[200px]">
+        <div className="bg-white rounded-lg shadow overflow-hidden w-full relative min-h-[800px]">
           {loading && (
             <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
               <div className="spinner"></div>
@@ -204,6 +232,7 @@ const Event = () => {
                   {todayEvents && todayEvents.length > 0 ? (
                     <div className="space-y-4">
                       {todayEvents.map((event) => (
+                        // <ScheduleCard key={event._id || `today-${index}`} event={event} onEdit={handleEditEvent} onDelete={handleDeleteEvent} />
                         <ScheduleCard key={event._id || `today-${index}`} event={event} onEdit={handleEditEvent} onDelete={handleDeleteEvent} />
                       ))}
                     </div>
@@ -235,6 +264,7 @@ const Event = () => {
                           </div>
                           <div className="space-y-4">
                             {dateEvents.map((event, index) => (
+                              // <ScheduleCard key={event._id || `event-${index}`} event={event} onEdit={handleEditEvent}  />
                               <ScheduleCard key={event._id || `event-${index}`} event={event} onEdit={handleEditEvent} onDelete={handleDeleteEvent} />
                             ))}
                           </div>
@@ -297,7 +327,7 @@ const Event = () => {
           )}
 
           {/* Pagination */}
-          {totalPages >= 1 && (
+          {/* {totalPages >= 1 && (
             <div className="flex justify-center items-center gap-4 my-5">
               <button
                 onClick={handlePrev}
@@ -325,7 +355,47 @@ const Event = () => {
                 Next
               </button>
             </div>
-          )}
+          )} */}
+
+            {totalPages >= 1 && (
+                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                          <span className="text-sm text-gray-600 mb-3 sm:mb-0">
+                            Showing{" "}
+                            <span className="font-semibold text-gray-800">
+                            5
+                            </span>{" "}
+                            to{" "}
+                            <span className="font-semibold text-gray-800">
+                              5
+                            </span>{" "}
+                            of{" "}
+                            <span className="font-semibold text-gray-800">
+                            5
+                            </span>
+                          </span>
+            
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                            >
+                              ← Previous
+                            </button>
+            
+                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
+                              Page 
+                            </span>
+            
+                            <button
+                              
+                              disabled
+                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                            >
+                              Next →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
         </div>
       </div>
       <AddEventModal
@@ -334,6 +404,12 @@ const Event = () => {
         onSubmit={handleModalSubmit}
         editingEvent={editingEvent}
       />
+      {isDeleteModelOpen && (
+              <DeleteModal
+                onClose={() => setDeleteModel(false)}
+                onDelete={handleDelete}
+              />
+            )}
     </div>
   );
 };
