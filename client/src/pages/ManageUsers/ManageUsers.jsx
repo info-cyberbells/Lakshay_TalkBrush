@@ -21,6 +21,7 @@ import {
   updateUser,
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
+import {showToast} from "../../features/toastSlice";
 
 const ManageUsers = () => {
   const dispatch = useDispatch();
@@ -73,6 +74,7 @@ const ManageUsers = () => {
         sortOrder: filterConfig.sortOrder,
       })
     );
+    dispatch(showToast({message: "Filter Applied Successfully.."}))
     setIsFilterOpen(false);
   };
 
@@ -97,6 +99,7 @@ const ManageUsers = () => {
         sortOrder: "desc",
       })
     );
+        dispatch(showToast({message: "Filter Reset."}));
     setIsFilterOpen(false);
   };
 
@@ -125,6 +128,7 @@ const ManageUsers = () => {
         sortOrder: newOrder,
       })
     );
+    dispatch(showToast({message: "Filter Applied!!"}))
   };
 
   const handleDelete = () => {
@@ -142,8 +146,16 @@ const ManageUsers = () => {
             sortOrder: paginationType3.sortOrder,
           })
         );
+        dispatch(
+                showToast({
+                  message: `${selectedUsers.length} user${selectedUsers.length > 1 ? "s" : ""} deleted successfully.`,
+                  type: "success",
+                })
+              );
       })
-      .catch((error) => console.error("Delete failed:", error));
+      .catch((error) =>{ console.error("Delete failed:", error)
+        dispatch(showToast({message:"Failed to delete", type:"error"}));
+      });
   };
 
   const onView = (user) => {
@@ -165,9 +177,11 @@ const ManageUsers = () => {
       .unwrap()
       .then(() => {
         setIsEditOpen(false);
+        dispatch(showToast({ message: "Updated successful!", type: "success" }));
       })
       .catch((err) => {
         console.error("Update failed:", err);
+        dispatch(showToast({message: "Failed to Update", type: "error"}))
       });
   };
 

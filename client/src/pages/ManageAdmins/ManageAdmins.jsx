@@ -18,6 +18,8 @@ import {
   updateUser
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
+import { showToast } from "../../features/toastSlice";
+
 
 const ManageAdmins = () => {
   const dispatch = useDispatch();
@@ -51,7 +53,7 @@ const ManageAdmins = () => {
     );
   }, [dispatch, paginationType2.currentPage]);
 
-  const handleApplyFilter = () => {
+    const handleApplyFilter = () => {
     dispatch(
       setPaginationConfigType2({
         ...filterConfig,
@@ -66,8 +68,23 @@ const ManageAdmins = () => {
         sortOrder: filterConfig.sortOrder,
       })
     );
+  //  dispatch(
+  //    showToast({
+  //      message: `Filter applied: Sorted by "${filterConfig.sortBy}", Limit: ${filterConfig.limit}`,
+  //      type: "info",
+  //    })
+  // );
+
+  dispatch(
+     showToast({
+       message: "Filter applied Successfully",
+       type: "info",
+     })
+  );
+  
     setIsFilterOpen(false);
   };
+
 
   const [sortConfig, setSortConfig] = useState({
     column: null,
@@ -117,6 +134,7 @@ const ManageAdmins = () => {
         sortOrder: "desc",
       })
     );
+    dispatch(showToast({message: "Filter Reset."}));
     setIsFilterOpen(false);
   };
 
@@ -165,8 +183,18 @@ const ManageAdmins = () => {
             sortOrder: paginationType2.sortOrder,
           })
         );
+        dispatch(
+        showToast({
+          message: `${selectedAdmins.length} admin${selectedAdmins.length > 1 ? "s" : ""} deleted successfully.`,
+          type: "success",
+        })
+      );
       })
-      .catch((error) => console.error("Delete failed:", error));
+      .catch((error) => {
+        console.error("Delete Failed", error);
+        dispatch(showToast({message: "Failed to delete!!!", type: 'error'}))
+      })
+      
   };
 
    // view details
@@ -191,10 +219,15 @@ const onEdit = (user) => {
     .then(() => {
       setIsEditOpen(false);
       // alert("User updated successfully");
+      // showToast("Updated Successfully");
+      dispatch(showToast({ message: "Updated successful!", type: "success" }));
+
     })
     .catch((err) => {
       console.error("Update failed:", err);
       // alert(err || "Failed to update user");
+      dispatch(showToast({ message: "Something wents wrong", type: "error" }));
+
     });
 };
 
@@ -260,6 +293,7 @@ const onEdit = (user) => {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 ml-60 pr-60">
       <div className="w-full px-10 py-10 pt-10">
         <div className="mb-6">
@@ -720,6 +754,7 @@ const onEdit = (user) => {
         />
       )}
     </div>
+    </>
   );
 };
 

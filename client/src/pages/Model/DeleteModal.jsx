@@ -1,6 +1,6 @@
 export default function DeleteModal({ onClose, onDelete }) {
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] transition-opacity duration-300">
+    <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-[9999] transition-opacity duration-300">
       {/* Modal Card */}
       <div className=" bg-gray-100 rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 animate-scaleIn border border-gray-200 dark:border-gray-700">
         {/* Header */}

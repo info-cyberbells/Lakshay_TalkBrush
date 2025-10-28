@@ -10,6 +10,7 @@ import './App.css';
 import ManageAdmins from './pages/ManageAdmins/ManageAdmins';
 import ManageUsers from './pages/ManageUsers/ManageUsers';
 import Event from './pages/Events/Event';
+import Toast from './Component/Toast/Toast';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -89,6 +90,7 @@ function App() {
   return (
     <Router>
       <AppContent />
+      <Toast />
     </Router>
   );
 }
