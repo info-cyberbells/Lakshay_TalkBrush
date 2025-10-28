@@ -9,7 +9,7 @@ import {
   Plus,
   MoreVertical,
   ChevronDown,
-  ChevronUp,  Eye, Edit, X,
+  ChevronUp, Eye, Edit, X,
 } from "lucide-react";
 import {
   getAllUsersByType,
@@ -32,7 +32,7 @@ const ManageAdmins = () => {
   });
 
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
-   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
@@ -176,34 +176,34 @@ const ManageAdmins = () => {
       .catch((error) => console.error("Delete failed:", error));
   };
 
-   // view details
+  // view details
   const onView = (user) => {
-  setSelectedUser(user);
-  setIsUserDetailOpen(true);
-  setOpenMenuId(null); // close the dropdown
-};
+    setSelectedUser(user);
+    setIsUserDetailOpen(true);
+    setOpenMenuId(null); // close the dropdown
+  };
 
-// edit details
-const onEdit = (user) => {
-  setEditUser(user);
-  setIsEditOpen(true);
-  setOpenMenuId(null); // close the dropdown
-};
+  // edit details
+  const onEdit = (user) => {
+    setEditUser(user);
+    setIsEditOpen(true);
+    setOpenMenuId(null); // close the dropdown
+  };
 
-const handleUpdateUser = (userData) => {
-  const { _id, createdAt, updatedAt, ...updateData } = userData;
+  const handleUpdateUser = (userData) => {
+    const { _id, createdAt, updatedAt, ...updateData } = userData;
 
-  dispatch(updateUser({ id: _id, data: updateData }))
-    .unwrap()
-    .then(() => {
-      setIsEditOpen(false);
-      // alert("User updated successfully");
-    })
-    .catch((err) => {
-      console.error("Update failed:", err);
-      // alert(err || "Failed to update user");
-    });
-};
+    dispatch(updateUser({ id: _id, data: updateData }))
+      .unwrap()
+      .then(() => {
+        setIsEditOpen(false);
+        // alert("User updated successfully");
+      })
+      .catch((err) => {
+        console.error("Update failed:", err);
+        // alert(err || "Failed to update user");
+      });
+  };
 
   const handleExport = () => {
     if (!allUsers || allUsers.length === 0) {
@@ -457,56 +457,56 @@ const handleUpdateUser = (userData) => {
                       </button>
                     </td> */}
 
-                      <td className="px-6 py-4 text-right relative">
-                        {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <td className="px-6 py-4 text-right relative">
+                      {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
                           <MoreVertical className="w-5 h-5" />
                         </button> */}
-                        <button
-                              onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
-                              className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
+                        className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
+                      >
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+
+                      {openMenuId === admin._id && (
+                        <>
+                          {/* Transparent overlay inside the table cell */}
+
+                          <div className="absolute right-6 mb-3 -top-9 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
+                            {/* Cross icon to close */}
+                            <div className="flex items-center px-3 py-2 justify-between p-1">
+                              <span className="text-sm font-semibold text-gray-700" >More Options</span>
+                              <button
+                                onClick={() => setOpenMenuId(null)}
+                                className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                onView(admin);
+                                setOpenMenuId(null);
+                              }}
+                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
                             >
-                              <MoreVertical className="w-5 h-5" />
+                              <Eye className="w-4 h-4 mr-2" /> View Details
                             </button>
+                            <button
+                              onClick={() => {
+                                onEdit(admin);
+                                setOpenMenuId(null);
+                              }}
+                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded-b-lg"
+                            >
+                              <Edit className="w-4 h-4 mr-2" /> Edit Details
+                            </button>
+                          </div>
+                        </>
+                      )}
 
-                            {openMenuId === admin._id && (
-                              <>
-                              {/* Transparent overlay inside the table cell */}
-    
-                              <div className="absolute right-6 mb-3 -top-9 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
-                                {/* Cross icon to close */}
-                                <div className="flex items-center px-3 py-2 justify-between p-1">
-                                  <span className="text-sm font-semibold text-gray-700" >More Options</span>
-                                  <button
-                                    onClick={() => setOpenMenuId(null)}
-                                    className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-
-                                <button
-                                  onClick={() => {
-                                    onView(admin);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
-                                >
-                                  <Eye className="w-4 h-4 mr-2" /> View Details
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    onEdit(admin);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded-b-lg"
-                                >
-                                  <Edit className="w-4 h-4 mr-2" /> Edit Details
-                                </button>
-                              </div>
-                              </>
-                            )}
-                            
-                      </td>
+                    </td>
 
                   </tr>
                 ))
@@ -522,7 +522,7 @@ const handleUpdateUser = (userData) => {
               )}
             </tbody>
           </table>
-          {pagination && pagination.totalPages > 1 && (
+          {pagination && pagination.totalPages >= 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
               {/* Info */}
               <span className="text-sm text-gray-600 mb-3 sm:mb-0">
@@ -582,59 +582,59 @@ const handleUpdateUser = (userData) => {
         </div>
       </div>
 
-          {isUserDetailOpen && selectedUser && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
+      {isUserDetailOpen && selectedUser && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
 
-      {/* Close button */}
-      <button
-        onClick={() => setIsUserDetailOpen(false)}
-        className="absolute top-4 right-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-      >
-        <X className="w-5 h-5" />
-      </button>
+            {/* Close button */}
+            <button
+              onClick={() => setIsUserDetailOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Admin's Detail</h2>
-        <p className="text-sm text-gray-500 mt-1">Information about the selected Admin</p>
-      </div>
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Admin's Detail</h2>
+              <p className="text-sm text-gray-500 mt-1">Information about the selected Admin</p>
+            </div>
 
-      {/* Divider */}
-      <div className="border-b border-gray-200 mb-4"></div>
+            {/* Divider */}
+            <div className="border-b border-gray-200 mb-4"></div>
 
-      {/* Content */}
-      <div className="space-y-4 text-gray-700">
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Full Name:</span>
-          <span className="text-gray-900">{selectedUser.fullName}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Email:</span>
-          <span className="text-gray-900">{selectedUser.email}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Phone:</span>
-          <span className="text-gray-900">{selectedUser.phoneNumber || "N/A"}</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-600">Type:</span>
-          <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
-            {selectedUser.type === "2" ? "Admin" : "Other"}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Created At:</span>
-          <span className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Updated At:</span>
-          <span className="text-gray-900">{new Date(selectedUser.updatedAt).toLocaleString()}</span>
-        </div>
-      </div>
+            {/* Content */}
+            <div className="space-y-4 text-gray-700">
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-600">Full Name:</span>
+                <span className="text-gray-900">{selectedUser.fullName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-600">Email:</span>
+                <span className="text-gray-900">{selectedUser.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-600">Phone:</span>
+                <span className="text-gray-900">{selectedUser.phoneNumber || "N/A"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-600">Type:</span>
+                <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
+                  {selectedUser.type === "2" ? "Admin" : "Other"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-600">Created At:</span>
+                <span className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-600">Updated At:</span>
+                <span className="text-gray-900">{new Date(selectedUser.updatedAt).toLocaleString()}</span>
+              </div>
+            </div>
 
-      {/* Footer */}
-      {/* <div className="mt-6 flex justify-end">
+            {/* Footer */}
+            {/* <div className="mt-6 flex justify-end">
         <button
           onClick={() => setIsUserDetailOpen(false)}
           className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
@@ -642,99 +642,99 @@ const handleUpdateUser = (userData) => {
           Close
         </button>
       </div> */}
-    </div>
-  </div>
-)}
+          </div>
+        </div>
+      )}
 
       {isEditOpen && editUser && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
 
-      {/* Close button */}
-      <button
-        onClick={() => setIsEditOpen(false)}
-        className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <X className="w-5 h-5" />
-      </button>
+            {/* Close button */}
+            <button
+              onClick={() => setIsEditOpen(false)}
+              className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Edit Admin's Detail</h2>
-        <p className="text-sm text-gray-500 mt-1">Update admin's information below</p>
-      </div>
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Admin's Detail</h2>
+              <p className="text-sm text-gray-500 mt-1">Update admin's information below</p>
+            </div>
 
-      {/* Form */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleUpdateUser(editUser); // create this function to dispatch update
-        }}
-        className="space-y-4"
-      >
-        <div>
-          <label className="block text-gray-600 text-sm mb-1">Full Name</label>
-          <input
-            type="text"
-            value={editUser.fullName}
-            onChange={(e) =>
-              setEditUser({ ...editUser, fullName: e.target.value })
-            }
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-          />
+            {/* Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdateUser(editUser); // create this function to dispatch update
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-gray-600 text-sm mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={editUser.fullName}
+                  onChange={(e) =>
+                    setEditUser({ ...editUser, fullName: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-600 text-sm mb-1">Email</label>
+                <input
+                  type="email"
+                  value={editUser.email}
+                  onChange={(e) =>
+                    setEditUser({ ...editUser, email: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-600 text-sm mb-1">Phone Number</label>
+                <input
+                  type="text"
+                  value={editUser.phoneNumber || ""}
+                  onChange={(e) =>
+                    setEditUser({ ...editUser, phoneNumber: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                />
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium text-sm">Type:</span>
+                <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
+                  {editUser.type === "2" ? "Admin" : "Other"}
+                </span>
+              </div>
+
+              {/* Footer buttons */}
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 text-white cursor-pointer rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <div>
-          <label className="block text-gray-600 text-sm mb-1">Email</label>
-          <input
-            type="email"
-            value={editUser.email}
-            onChange={(e) =>
-              setEditUser({ ...editUser, email: e.target.value })
-            }
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-600 text-sm mb-1">Phone Number</label>
-          <input
-            type="text"
-            value={editUser.phoneNumber || ""}
-            onChange={(e) =>
-              setEditUser({ ...editUser, phoneNumber: e.target.value })
-            }
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-          />
-        </div>
-
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600 font-medium text-sm">Type:</span>
-          <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
-            {editUser.type === "2" ? "Admin" : "Other"}
-          </span>
-        </div>
-
-        {/* Footer buttons */}
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => setIsEditOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-5 py-2 bg-blue-600 text-white cursor-pointer rounded-xl hover:bg-blue-700 transition-colors"
-          >
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
 
       <FilterModal
         isOpen={isFilterOpen}

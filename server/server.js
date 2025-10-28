@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from 'cookie-parser'
+import path from 'path';
 
 import { connectDB } from "./config/db.js";
 import { userRouter } from "./routes/userRoute.js";
@@ -17,6 +18,8 @@ app.use(cors({
     origin: "http://localhost:3000",
     credentials: true,
 }));
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Routes
 app.use("/api/users", userRouter);

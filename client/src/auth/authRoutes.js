@@ -10,6 +10,11 @@ export const USER_ENDPOINTS = {
   GETALLUSERS: `${API_BASE_URL}/users/getAllUsersByType`,
   DELETE_USERS: `${API_BASE_URL}/users/deleteUsers`,
   EDIT_USER: `${API_BASE_URL}/users/editUser`,
+
+  ADD_NEW_EVENT: `${API_BASE_URL}/event/addEvent`,
+  GET_ALL_EVENTS: `${API_BASE_URL}/event/getAllEvents`,
+  UPDATE_EVENT: `${API_BASE_URL}/event/updateEvent`,
+  DELETE_EVENT: `${API_BASE_URL}/event/deleteEvent`,
 };
 
 
