@@ -11,7 +11,7 @@
   width: 100%;
   position: relative;
   z-index: 0;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .talkbrush-container::before {
@@ -46,6 +46,7 @@
 .left-panel p {
   color: white;
   font-size: 52px;
+  /* font-size: clamp(52px, 2vw, 20px); */
   font-family: 'Nunito';
   font-style: bold;
   text-align: center;
@@ -200,8 +201,6 @@
   margin-top: 5px;
   color: #ffd760;
   font-size: 10px;
-
-
 }
 
 .T-C input[type="checkbox"] {
@@ -422,61 +421,189 @@
   }
 }
 
+/* ================= RESPONSIVENESS ================= */
 
-
-@media (max-width: 992px) {
-  .talkbrush-container {
-    flex-direction: column;
-    height: auto;
-  }
-
+/* Tablets (portrait / landscape) */
+@media (max-width: 1024px) {
   .inner-container {
-    margin-top: 140px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 80px auto;
   }
 
   .left-panel {
-    flex: 0.5;
+    flex: unset;
+    width: 100%;
+    padding: 1.2rem;
     text-align: center;
-    align-items: center;
-    padding-left: 0;
-    padding: 4rem 2rem 2rem;
   }
 
-  .left-panel h1 {
-    font-size: 3rem;
+  .left-panel-container {
+    transform: translateY(0);
+  }
+
+  .left-panel-container img {
+    width: 160px;
+    height: 140px;
   }
 
   .left-panel p {
-    font-size: 1.5rem;
-    max-width: 100%;
+    font-size: 1.1rem;
+    line-height: 1.1;
   }
 
   .right-panel {
-    flex: 1;
-    width: 100%;
-    padding: 0 2rem 2rem;
+    width: 90%;
+    max-width: 500px;
+    padding: 1.5rem;
   }
 
   .form-container {
-    margin: 0 auto;
+    padding: 30px 40px;
   }
+  .T-C {
+  display: flex;
+  /* margin-top: 5px; */
+  color: #ffd760;
+  font-size: 8px;
+}
 }
 
-@media (max-width: 480px) {
-  .inner-container {
-    display: block;
-    margin-top: 20px;
+/* Mobile (below 768px) */
+@media (max-width: 768px) {
+  .talkbrush-container {
+    flex-direction: column;
+    /* justify-content: flex-start; */
   }
 
-  .left-panel h1 {
-    font-size: 2.5rem;
+  .inner-container {
+    margin-top: 20px;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+  }
+
+  .left-panel {
+    padding: 2rem 1rem;
+  }
+
+  .left-panel-container img {
+    width: 110px;
+    height: 90px;
   }
 
   .left-panel p {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .right-panel {
+    width: 90%;
+    /* margin-bottom: 30px; */
+    /* margin-top: 70px; */
+    border-radius: 16px;
   }
 
   .form-container {
     padding: 25px;
   }
+
+  .input-field {
+    padding: 14px 10px 14px 45px;
+    font-size: 13px;
+  }
+
+  .submit-btn {
+    font-size: 12px;
+    padding: 14px;
+  }
+}
+
+/* Small Mobile (below 480px) */
+@media (max-width: 480px ) {
+  .inner-container {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    gap: 1px;
+    height: auto;
+  }
+  .left-panel{
+    /* display: none; */
+    display: flex;
+    /* justify-content: ; */
+    width: 100%;
+    /* height: 50px; */
+  }
+
+  .left-panel-container img {
+    width: 70px;
+    height: 70px;
+    /* display: none; */
+  }
+
+  .left-panel p {
+    font-size: 11px;
+    /* display: none; */
+  }
+
+  /* .right-panel {
+   
+  } */
+
+  .form-container {
+    padding: 10px;
+    /* min-height: 60vh; */
+  }
+
+  .input-field {
+    font-size: 12px;
+  }
+
+  .submit-btn {
+    font-size: 11px;
+    padding: 12px;
+  }
+
+  .remember-me,
+  .forgetPassword {
+    font-size: 11px;
+  }
+
+  .form-toggle h2 {
+    font-size: 20px;
+  }
+
+  .T-C {
+  display: flex;
+  /* margin-top: 5px; */
+  color: #ffd760;
+  font-size: 8px;
+}
+
+.T-C input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin-right: 10px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #f7f6f3;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.form-description {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 25px;
+  font-size: 10px;
+  font-family: 'Poppins', sans-serif;
+
+}
+
 }

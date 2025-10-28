@@ -5,7 +5,7 @@ import { User } from "../models/userModel.js";
 // Login Controller
 export const loginUser = async (req, res) => {
     try {
-        let { email, password } = req.body;
+        let { email, password, rememberMe } = req.body;
 
         if (email) {
             email = email.trim().toLowerCase();
@@ -33,12 +33,14 @@ export const loginUser = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
         );
 
+        const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 23 * 60 * 60 * 1000 ;
+
         // Return user info + token
         res.cookie("authToken", token, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge,
         })
             .status(200)
             .json({

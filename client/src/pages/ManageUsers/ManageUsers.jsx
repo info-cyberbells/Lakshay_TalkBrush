@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import {
   getAllUsersByTypeThree,
-  setPaginationConfig,
+  setPaginationConfigType3,
   deleteUsers,
   updateUser,
 } from "../../features/userSlice";
@@ -24,7 +24,7 @@ import DeleteModal from "../Model/DeleteModal";
 
 const ManageUsers = () => {
   const dispatch = useDispatch();
-  const { allUsers, isLoading, pagination } = useSelector(
+  const { allUsers, isLoading, paginationType3 } = useSelector(
     (state) => state.auth
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,24 +47,20 @@ const ManageUsers = () => {
   const [editUser, setEditUser] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  // useEffect(() => {
-  //     dispatch(getAllUsersByType());
-  //   }, [dispatch]);
-
   useEffect(() => {
     dispatch(
       getAllUsersByTypeThree({
-        page: pagination.currentPage,
-        limit: pagination.limit,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
+        page: paginationType3.currentPage,
+        limit: paginationType3.limit,
+        sortBy: paginationType3.sortBy,
+        sortOrder: paginationType3.sortOrder,
       })
     );
-  }, [dispatch, pagination.currentPage]);
+  }, [dispatch, paginationType3.currentPage]);
 
   const handleApplyFilter = () => {
     dispatch(
-      setPaginationConfig({
+      setPaginationConfigType3({
         ...filterConfig,
         currentPage: 1,
       })
@@ -88,13 +84,13 @@ const ManageUsers = () => {
     };
     setFilterConfig(defaultConfig);
     dispatch(
-      setPaginationConfig({
+      setPaginationConfigType3({
         ...defaultConfig,
         currentPage: 1,
       })
     );
     dispatch(
-      getAllUsersByType({
+      getAllUsersByTypeThree({
         page: 1,
         limit: 20,
         sortBy: "createdAt",
@@ -105,8 +101,8 @@ const ManageUsers = () => {
   };
 
   const [sortConfig, setSortConfig] = useState({
-    column: null, // "fullName" or "email"
-    order: null, // "asc" or "desc"
+    column: null,
+    order: null,
   });
 
   const handleSort = (column) => {
@@ -119,7 +115,7 @@ const ManageUsers = () => {
 
     setSortConfig({ column, order: newOrder });
 
-    dispatch(setPaginationConfig({ currentPage: 1, sortOrder: newOrder }));
+    dispatch(setPaginationConfigType3({ currentPage: 1, sortOrder: newOrder }));
 
     dispatch(
       getAllUsersByTypeThree({
@@ -131,7 +127,6 @@ const ManageUsers = () => {
     );
   };
 
-  // handledelete api call
   const handleDelete = () => {
     if (selectedUsers.length === 0) return;
 
@@ -139,31 +134,28 @@ const ManageUsers = () => {
       .unwrap()
       .then(() => {
         setSelectedUsers([]);
-        // Refetch users after deletion
         dispatch(
           getAllUsersByTypeThree({
-            page: pagination.currentPage,
-            limit: pagination.limit,
-            sortBy: pagination.sortBy,
-            sortOrder: pagination.sortOrder,
+            page: paginationType3.currentPage,
+            limit: paginationType3.limit,
+            sortBy: paginationType3.sortBy,
+            sortOrder: paginationType3.sortOrder,
           })
         );
       })
       .catch((error) => console.error("Delete failed:", error));
   };
 
-  // view details
   const onView = (user) => {
     setSelectedUser(user);
     setIsUserDetailOpen(true);
-    setOpenMenuId(null); // close the dropdown
+    setOpenMenuId(null);
   };
 
-  // edit details
   const onEdit = (user) => {
     setEditUser(user);
     setIsEditOpen(true);
-    setOpenMenuId(null); // close the dropdown
+    setOpenMenuId(null);
   };
 
   const handleUpdateUser = (userData) => {
@@ -173,25 +165,22 @@ const ManageUsers = () => {
       .unwrap()
       .then(() => {
         setIsEditOpen(false);
-        // alert("User updated successfully");
       })
       .catch((err) => {
         console.error("Update failed:", err);
-        // alert(err || "Failed to update user");
       });
   };
 
   const handleAddUsers = (data) => {
     console.log("New User:", data);
-    // dispatch action here if needed
     setIsModalOpen(false);
 
     dispatch(
       getAllUsersByTypeThree({
-        page: pagination.currentPage,
-        limit: pagination.limit,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
+        page: paginationType3.currentPage,
+        limit: paginationType3.limit,
+        sortBy: paginationType3.sortBy,
+        sortOrder: paginationType3.sortOrder,
       })
     );
   };
@@ -218,9 +207,6 @@ const ManageUsers = () => {
       return;
     }
 
-
-
-    // Create Excel-compatible HTML table
     const tableHTML = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
       <head>
@@ -262,7 +248,6 @@ const ManageUsers = () => {
     </html>
   `;
 
-    // Create and download file
     const blob = new Blob([tableHTML], { type: "application/vnd.ms-excel" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -287,18 +272,14 @@ const ManageUsers = () => {
                 Manage Users
               </h1>
               <p className="text-sm text-blue-600 mt-1">
-                Total users: {allUsers?.length || 0}
+                Total users: {paginationType3.totalUsers}
+                {/* {allUsers?.length || 0} */}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {/* <button className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" onClick={()=>{setDeleteModel(true)}} >
-                                <Trash2 className="w-4 h-4" />
-                                Delete
-                            </button> */}
-
               <button
                 onClick={() => setDeleteModel(true)}
-                disabled={selectedUsers.length === 0} // disable if nothing selected
+                disabled={selectedUsers.length === 0}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${selectedUsers.length > 0
                   ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
                   : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
@@ -356,12 +337,6 @@ const ManageUsers = () => {
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                     />
                   </th>
-                  {/* <th className="px-6 py-3 text-left w-1/4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700" onClick={()=>{}}>
-                      Name
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </th> */}
 
                   <th className="px-6 py-3 text-left w-1/4">
                     <div
@@ -400,38 +375,14 @@ const ManageUsers = () => {
                   </th>
 
                   <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                    // onClick={() => handleSort("createdAt")}
-                    >
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                       Phone No.
-                      {/* {sortConfig.column === "createdAt" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
-                      ) : (
-                        <ChevronDown className="opacity-50" />
-                      )} */}
                     </div>
                   </th>
 
                   <th className="px-6 py-3 text-left w-1/4">
-                    <div
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                    // onClick={() => handleSort("createdAt")}
-                    >
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                       Last Login
-                      {/* {sortConfig.column === "createdAt" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
-                      ) : (
-                        <ChevronDown className="opacity-50" />
-                      )} */}
                     </div>
                   </th>
 
@@ -468,10 +419,6 @@ const ManageUsers = () => {
                           : "Never"}
                       </td>
                       <td className="px-6 py-4 text-right relative">
-                        {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button> */}
-
                         <button
                           onClick={() =>
                             setOpenMenuId(
@@ -485,7 +432,6 @@ const ManageUsers = () => {
 
                         {openMenuId === admin._id && (
                           <div className="absolute right-6 top-8 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
-                            {/* Cross icon to close */}
                             <div className="flex items-center px-3 py-2 justify-between p-1">
                               <span className="text-sm font-semibold text-gray-700">
                                 More Options
@@ -534,56 +480,54 @@ const ManageUsers = () => {
               </tbody>
             </table>
             
-          {pagination && pagination.totalPages > 1 && (
+          {paginationType3 && paginationType3.totalPages > 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              {/* Info */}
               <span className="text-sm text-gray-600 mb-3 sm:mb-0">
                 Showing{" "}
                 <span className="font-semibold text-gray-800">
-                  {(pagination.currentPage - 1) * pagination.limit + 1}
+                  {(paginationType3.currentPage - 1) * paginationType3.limit + 1}
                 </span>{" "}
                 to{" "}
                 <span className="font-semibold text-gray-800">
                   {Math.min(
-                    pagination.currentPage * pagination.limit,
-                    pagination.totalUsers
+                    paginationType3.currentPage * paginationType3.limit,
+                    paginationType3.totalUsers
                   )}
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-gray-800">
-                  {pagination.totalUsers}
+                  {paginationType3.totalUsers}
                 </span>
               </span>
 
-              {/* Buttons */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
                     dispatch(
-                      setPaginationConfig({
-                        currentPage: pagination.currentPage - 1,
+                      setPaginationConfigType3({
+                        currentPage: paginationType3.currentPage - 1,
                       })
                     )
                   }
-                  disabled={pagination.currentPage === 1}
+                  disabled={paginationType3.currentPage === 1}
                   className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
                 >
                   ← Previous
                 </button>
 
                 <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
-                  Page {pagination.currentPage} / {pagination.totalPages}
+                  Page {paginationType3.currentPage} / {paginationType3.totalPages}
                 </span>
 
                 <button
                   onClick={() =>
                     dispatch(
-                      setPaginationConfig({
-                        currentPage: pagination.currentPage + 1,
+                      setPaginationConfigType3({
+                        currentPage: paginationType3.currentPage + 1,
                       })
                     )
                   }
-                  disabled={pagination.currentPage === pagination.totalPages}
+                  disabled={paginationType3.currentPage === paginationType3.totalPages}
                   className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
                 >
                   Next →
@@ -620,7 +564,6 @@ const ManageUsers = () => {
       {isUserDetailOpen && selectedUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
-            {/* Close button */}
             <button
               onClick={() => setIsUserDetailOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -628,7 +571,6 @@ const ManageUsers = () => {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Header */}
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
                 User's Detail
@@ -638,10 +580,8 @@ const ManageUsers = () => {
               </p>
             </div>
 
-            {/* Divider */}
             <div className="border-b border-gray-200 mb-4"></div>
 
-            {/* Content */}
             <div className="space-y-4 text-gray-700">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-600">Full Name:</span>
@@ -676,16 +616,6 @@ const ManageUsers = () => {
                 </span>
               </div>
             </div>
-
-            {/* Footer */}
-            {/* <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setIsUserDetailOpen(false)}
-                className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-              >
-                Close
-              </button>
-            </div> */}
           </div>
         </div>
       )}
