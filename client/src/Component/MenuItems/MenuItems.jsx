@@ -1,54 +1,8 @@
-// import React from 'react';
-// import { useNavigate, useLocation } from 'react-router-dom';
-// import { useDispatch } from 'react-redux';
-// import { logout } from '../../features/userSlice';
-// import { Home, User, Settings, LogOut } from 'lucide-react';
-// import './MenuItems.css';
-
-// const MenuItems = () => {
-//     const navigate = useNavigate();
-//     const location = useLocation();
-
-//     const dispatch = useDispatch();
-
-//     const handleLogout = async () => {
-//         await dispatch(logout());
-//         navigate('/');
-//     };
-
-//     return (
-//         <ul className="menu-items">
-//             <li onClick={() => navigate('/dashboard')}
-//                 className={location.pathname === '/dashboard' ? 'active' : ''}>
-//                 <Home size={20} />
-//                 <span>Dashboard</span>
-//             </li>
-//             <li onClick={() => navigate('/profile')}
-//                 className={location.pathname === '/profile' ? 'active' : ''}>
-//                 <User size={20} />
-//                 <span>Manage Profile</span>
-//             </li>
-//             <li onClick={() => navigate('/settings')}
-//                 className={location.pathname === '/settings' ? 'active' : ''}>
-//                 <Settings size={20} />
-//                 <span>Privacy Policy</span>
-//             </li>
-//             <li onClick={handleLogout}
-//                 className={location.pathname === '/logout' ? 'active' : ''}>
-//                 <LogOut size={20} />
-//                 <span>Logout</span>
-//             </li>
-//         </ul>
-//     );
-// };
-
-// export default MenuItems;
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/userSlice';
-import { Home, User, Settings, LogOut, Users, Shield } from 'lucide-react'; // Added icons
+import { Home, User, Settings, LogOut, Users, UserCog, MessageSquare } from 'lucide-react';
 import './MenuItems.css';
 
 const MenuItems = () => {
@@ -56,7 +10,7 @@ const MenuItems = () => {
     const location = useLocation();
     const dispatch = useDispatch();
 
-    const role = localStorage.getItem("role"); // 👈 Get logged-in user role
+    const role = localStorage.getItem("role");
 
     const handleLogout = async () => {
         await dispatch(logout());
@@ -160,34 +114,31 @@ const MenuItems = () => {
         ChevronDown: <path d="m6 9 6 6 6-6" />,
     };
 
-    // 🧠 Define menu items per role
+    // Define menu items per role
     const menuConfig = {
         superadmin: [
-            // { name: "Dashboard", icon: <Home size={20}  />, path: "/dashboard" },
             { name: "Dashboard", icon: <Icon>{icons.Blocks}</Icon>, path: "/dashboard" },
-            // { name: "Manage Admins", icon: <Shield size={20} />, path: "/manage-admins" },
             { name: "Admin Management", icon: <Icon>{icons.UserCog}</Icon>, path: "/manage-admins" },
-            // { name: "Manage Users", icon: <Users size={20} />, path: "/manage-users" },
             { name: "User Management", icon: <Icon>{icons.UserSearch}</Icon>, path: "/manage-users" },
-            // { name: "Privacy Policy", icon: <Settings size={20} />, path: "/settings" },
-            // { name: "Privacy Policy",icon: <Icon>{icons.FileText}</Icon>, path: "/settings" },
             { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-event" },
             { name: "Analytics", icon: <Icon>{icons.BarAnalytics}</Icon>, path: "/analytics" },
         ],
         admin: [
             { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
-            { name: "Manage Users", icon: <Users size={20} />, path: "/manage-users" },
-            // { name: "Privacy Policy", icon: <Settings size={20} />, path: "/settings" },
+            { name: "Manage Profile", icon: <UserCog size={20} />, path: "/manage-profile" },
+            { name: "User Management", icon: <Users size={20} />, path: "/manage-users" },
             { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-event" },
+            { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/convo-space" },
+            { name: "Analytics", icon: <Icon>{icons.BarAnalytics}</Icon>, path: "/analytics" },
         ],
         user: [
             { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
-            { name: "Services", icon: <User size={20} />, path: "/services" },
-            { name: "Privacy Policy", icon: <Settings size={20} />, path: "/settings" },
+            { name: "Manage Profile", icon: <UserCog size={20} />, path: "/manage-profile" },
+            { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/events" },
+            { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/convo-space" },
         ],
     };
-    const type = role === '1' ? 'superadmin' : role === '2' ? 'admin' : 'user'; // 👈 Map role to menuConfig key
-    // 🪄 Choose menu based on role (default to user if not found)
+    const type = role === '1' ? 'superadmin' : role === '2' ? 'admin' : 'user';
     const menuItems = menuConfig[type] || menuConfig.user;
 
     return (

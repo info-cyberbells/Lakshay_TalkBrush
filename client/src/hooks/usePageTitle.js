@@ -22,6 +22,14 @@ const routeConfig = {
         title: 'Analytics',
         // icon: Settings
     },
+    '/manage-profile': {
+        title: 'Manage Profile',
+        // icon: Settings
+    },
+    '/convo-space': {
+        title: 'Convo Space',
+        // icon: Settings
+    },
 };
 
 export const usePageTitle = () => {

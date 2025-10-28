@@ -33,6 +33,14 @@ export const signupService = async (userData) => {
   return response.data;
 }
 
+//get logged in user profile
+export const getProfileService = async () => {
+  const response = await axios.get(USER_ENDPOINTS.GET_LOGGED_USER_DETAIL, {
+    withCredentials: true,
+  });
+  return response.data;
+};
+
 //update profile
 export const updateProfileService = async (userData) => {
   const response = await axios.put(USER_ENDPOINTS.UPDATEPROFILE_USER, userData, {

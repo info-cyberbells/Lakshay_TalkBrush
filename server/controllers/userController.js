@@ -166,10 +166,47 @@ export const updateProfile = async (req, res) => {
 }
 
 
+//get current loged in user data
+export const getProfile = async (req, res) => {
+    try {
+        const token = req.cookies?.authToken;
+        if (!token) {
+            return res.status(401).json({ message: "No token provided" });
+        }
+
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Find user by ID from token
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Return only the needed fields
+        res.json({
+            user: {
+                id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                type: user.type,
+                lastLogin: user.lastLogin,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            }
+        });
+    } catch (error) {
+        console.error("Get Profile failed: ", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 //update user data
 export const updateUser = async (req, res) => {
     try {
-        const userId = req.params.id; 
+        const userId = req.params.id;
         let { fullName, email, phoneNumber, location, type, password } = req.body;
 
         // Find user by ID

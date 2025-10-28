@@ -6,6 +6,7 @@ export const USER_ENDPOINTS = {
   VERIFY_USER: `${API_BASE_URL}/users/verifyToken`,
   LOGOUT_USER: `${API_BASE_URL}/users/logout`,
   SIGNUP_USER: `${API_BASE_URL}/users/signup`,
+  GET_LOGGED_USER_DETAIL: `${API_BASE_URL}/users/profile`,
   UPDATEPROFILE_USER: `${API_BASE_URL}/users/updateProfile`,
   GETALLUSERS: `${API_BASE_URL}/users/getAllUsersByType`,
   DELETE_USERS: `${API_BASE_URL}/users/deleteUsers`,
