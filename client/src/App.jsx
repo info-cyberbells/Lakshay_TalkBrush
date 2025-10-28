@@ -17,26 +17,48 @@ function AppContent() {
   const location = useLocation();
   const [isVerifying, setIsVerifying] = useState(true);
 
-  useEffect(() => {
-    const verifyUser = async () => {
-      const hasVerified = localStorage.getItem('tokenVerified');
-      if (hasVerified === 'true') {
-        setIsVerifying(false);
-        return;
-      }
-      setIsVerifying(true);
-      const result = await dispatch(verify());
-      localStorage.setItem('tokenVerified', 'true');
+  // useEffect(() => {
+  //   const verifyUser = async () => {
+  //     const hasVerified = localStorage.getItem('tokenVerified');
+  //     if (hasVerified === 'true') {
+  //       setIsVerifying(false);
+  //       return;
+  //     }
+  //     setIsVerifying(true);
+  //     const result = await dispatch(verify());
+  //     localStorage.setItem('tokenVerified', 'true');
 
-      if (verify.rejected.match(result) && location.pathname !== '/') {
-        navigate('/');
-      } else if (verify.fulfilled.match(result) && location.pathname === '/') {
-        navigate('/dashboard');
+  //     if (verify.rejected.match(result) && location.pathname !== '/') {
+  //       navigate('/');
+  //     } else if (verify.fulfilled.match(result) && location.pathname === '/') {
+  //       navigate('/dashboard');
+  //     }
+  //     setIsVerifying(false);
+  //   };
+  //   verifyUser();
+  // }, []);
+
+  useEffect(() => {
+  const verifyUser = async () => {
+    setIsVerifying(true);
+    const result = await dispatch(verify());
+
+    if (verify.fulfilled.match(result)) {
+      if (location.pathname === "/") {
+        navigate("/dashboard");
       }
-      setIsVerifying(false);
-    };
-    verifyUser();
-  }, []);
+    } else {
+      if (location.pathname !== "/") {
+        navigate("/");
+      }
+    }
+
+    setIsVerifying(false);
+  };
+
+  verifyUser();
+}, []);
+
 
   if (isVerifying) {
     return (

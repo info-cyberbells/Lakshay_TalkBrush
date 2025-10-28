@@ -13,13 +13,15 @@ import {
 } from "lucide-react";
 import {
   getAllUsersByType,
-  setPaginationConfig, deleteUsers, updateUser
+  setPaginationConfigType2,
+  deleteUsers,
+  updateUser
 } from "../../features/userSlice";
 import DeleteModal from "../Model/DeleteModal";
 
 const ManageAdmins = () => {
   const dispatch = useDispatch();
-  const { allUsers, isLoading, pagination } = useSelector(
+  const { allUsers, isLoading, paginationType2 } = useSelector(
     (state) => state.auth
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,25 +40,20 @@ const ManageAdmins = () => {
   const [editUser, setEditUser] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-
-  // useEffect(() => {
-  //   dispatch(getAllUsersByType());
-  // }, [dispatch]);
-
   useEffect(() => {
     dispatch(
       getAllUsersByType({
-        page: pagination.currentPage,
-        limit: pagination.limit,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
+        page: paginationType2.currentPage,
+        limit: paginationType2.limit,
+        sortBy: paginationType2.sortBy,
+        sortOrder: paginationType2.sortOrder,
       })
     );
-  }, [dispatch, pagination.currentPage]);
+  }, [dispatch, paginationType2.currentPage]);
 
   const handleApplyFilter = () => {
     dispatch(
-      setPaginationConfig({
+      setPaginationConfigType2({
         ...filterConfig,
         currentPage: 1,
       })
@@ -73,8 +70,8 @@ const ManageAdmins = () => {
   };
 
   const [sortConfig, setSortConfig] = useState({
-    column: null, // "fullName" or "email"
-    order: null, // "asc" or "desc"
+    column: null,
+    order: null,
   });
 
   const handleSort = (column) => {
@@ -87,7 +84,7 @@ const ManageAdmins = () => {
 
     setSortConfig({ column, order: newOrder });
 
-    dispatch(setPaginationConfig({ currentPage: 1, sortOrder: newOrder }));
+    dispatch(setPaginationConfigType2({ currentPage: 1, sortOrder: newOrder }));
 
     dispatch(
       getAllUsersByType({
@@ -107,7 +104,7 @@ const ManageAdmins = () => {
     };
     setFilterConfig(defaultConfig);
     dispatch(
-      setPaginationConfig({
+      setPaginationConfigType2({
         ...defaultConfig,
         currentPage: 1,
       })
@@ -129,10 +126,10 @@ const ManageAdmins = () => {
 
     dispatch(
       getAllUsersByType({
-        page: pagination.currentPage,
-        limit: pagination.limit,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
+        page: paginationType2.currentPage,
+        limit: paginationType2.limit,
+        sortBy: paginationType2.sortBy,
+        sortOrder: paginationType2.sortOrder,
       })
     );
   };
@@ -153,9 +150,6 @@ const ManageAdmins = () => {
     }
   };
 
-
-  // handle delete operation
-
   const handleDelete = () => {
     if (selectedAdmins.length === 0) return;
 
@@ -163,47 +157,46 @@ const ManageAdmins = () => {
       .unwrap()
       .then(() => {
         setSelectedAdmins([]);
-        // Refetch users after deletion
         dispatch(
           getAllUsersByType({
-            page: pagination.currentPage,
-            limit: pagination.limit,
-            sortBy: pagination.sortBy,
-            sortOrder: pagination.sortOrder,
+            page: paginationType2.currentPage,
+            limit: paginationType2.limit,
+            sortBy: paginationType2.sortBy,
+            sortOrder: paginationType2.sortOrder,
           })
         );
       })
       .catch((error) => console.error("Delete failed:", error));
   };
 
-  // view details
+   // view details
   const onView = (user) => {
-    setSelectedUser(user);
-    setIsUserDetailOpen(true);
-    setOpenMenuId(null); // close the dropdown
-  };
+  setSelectedUser(user);
+  setIsUserDetailOpen(true);
+  setOpenMenuId(null); // close the dropdown
+};
 
-  // edit details
-  const onEdit = (user) => {
-    setEditUser(user);
-    setIsEditOpen(true);
-    setOpenMenuId(null); // close the dropdown
-  };
+// edit details
+const onEdit = (user) => {
+  setEditUser(user);
+  setIsEditOpen(true);
+  setOpenMenuId(null); // close the dropdown
+};
 
   const handleUpdateUser = (userData) => {
     const { _id, createdAt, updatedAt, ...updateData } = userData;
 
-    dispatch(updateUser({ id: _id, data: updateData }))
-      .unwrap()
-      .then(() => {
-        setIsEditOpen(false);
-        // alert("User updated successfully");
-      })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        // alert(err || "Failed to update user");
-      });
-  };
+  dispatch(updateUser({ id: _id, data: updateData }))
+    .unwrap()
+    .then(() => {
+      setIsEditOpen(false);
+      // alert("User updated successfully");
+    })
+    .catch((err) => {
+      console.error("Update failed:", err);
+      // alert(err || "Failed to update user");
+    });
+};
 
   const handleExport = () => {
     if (!allUsers || allUsers.length === 0) {
@@ -211,7 +204,6 @@ const ManageAdmins = () => {
       return;
     }
 
-    // Create Excel-compatible HTML table
     const tableHTML = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
       <head>
@@ -253,7 +245,6 @@ const ManageAdmins = () => {
     </html>
   `;
 
-    // Create and download file
     const blob = new Blob([tableHTML], { type: "application/vnd.ms-excel" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -278,18 +269,14 @@ const ManageAdmins = () => {
                 Manage Admins
               </h1>
               <p className="text-sm text-blue-600 mt-1">
-                Total Admins: {allUsers?.length || 0}
+                Total Admins: {paginationType2.totalUsers}
+                {/* {allUsers?.length || 0} */}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {/* <button className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" onClick={()=> setDeleteModel(true)}>
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button> */}
-
               <button
                 onClick={() => setDeleteModel(true)}
-                disabled={selectedAdmins.length === 0} // disable if nothing selected
+                disabled={selectedAdmins.length === 0}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
                   ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
                   : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
@@ -384,38 +371,14 @@ const ManageAdmins = () => {
                 </th>
 
                 <th className="px-6 py-3 text-left w-1/4">
-                  <div
-                    className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                  // onClick={() => handleSort("createdAt")}
-                  >
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                     Phone No.
-                    {/* {sortConfig.column === "createdAt" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
-                      ) : (
-                        <ChevronDown className="opacity-50" />
-                      )} */}
                   </div>
                 </th>
 
                 <th className="px-6 py-3 text-left w-1/4">
-                  <div
-                    className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
-                  // onClick={() => handleSort("createdAt")}
-                  >
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                     Last Login
-                    {/* {sortConfig.column === "createdAt" ? (
-                        sortConfig.order === "asc" ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )
-                      ) : (
-                        <ChevronDown className="opacity-50" />
-                      )} */}
                   </div>
                 </th>
 
@@ -457,56 +420,56 @@ const ManageAdmins = () => {
                       </button>
                     </td> */}
 
-                    <td className="px-6 py-4 text-right relative">
-                      {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <td className="px-6 py-4 text-right relative">
+                        {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
                           <MoreVertical className="w-5 h-5" />
                         </button> */}
-                      <button
-                        onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
-                        className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
-                      >
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-
-                      {openMenuId === admin._id && (
-                        <>
-                          {/* Transparent overlay inside the table cell */}
-
-                          <div className="absolute right-6 mb-3 -top-9 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
-                            {/* Cross icon to close */}
-                            <div className="flex items-center px-3 py-2 justify-between p-1">
-                              <span className="text-sm font-semibold text-gray-700" >More Options</span>
-                              <button
-                                onClick={() => setOpenMenuId(null)}
-                                className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            <button
-                              onClick={() => {
-                                onView(admin);
-                                setOpenMenuId(null);
-                              }}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
+                        <button
+                              onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
+                              className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
                             >
-                              <Eye className="w-4 h-4 mr-2" /> View Details
+                              <MoreVertical className="w-5 h-5" />
                             </button>
-                            <button
-                              onClick={() => {
-                                onEdit(admin);
-                                setOpenMenuId(null);
-                              }}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded-b-lg"
-                            >
-                              <Edit className="w-4 h-4 mr-2" /> Edit Details
-                            </button>
-                          </div>
-                        </>
-                      )}
 
-                    </td>
+                            {openMenuId === admin._id && (
+                              <>
+                              {/* Transparent overlay inside the table cell */}
+    
+                              <div className="absolute right-6 mb-3 -top-9 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
+                                {/* Cross icon to close */}
+                                <div className="flex items-center px-3 py-2 justify-between p-1">
+                                  <span className="text-sm font-semibold text-gray-700" >More Options</span>
+                                  <button
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+
+                                <button
+                                  onClick={() => {
+                                    onView(admin);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
+                                >
+                                  <Eye className="w-4 h-4 mr-2" /> View Details
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    onEdit(admin);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded-b-lg"
+                                >
+                                  <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                </button>
+                              </div>
+                              </>
+                            )}
+                            
+                      </td>
 
                   </tr>
                 ))
@@ -522,56 +485,54 @@ const ManageAdmins = () => {
               )}
             </tbody>
           </table>
-          {pagination && pagination.totalPages >= 1 && (
+          {pagination && pagination.totalPages > 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              {/* Info */}
               <span className="text-sm text-gray-600 mb-3 sm:mb-0">
                 Showing{" "}
                 <span className="font-semibold text-gray-800">
-                  {(pagination.currentPage - 1) * pagination.limit + 1}
+                  {(paginationType2.currentPage - 1) * paginationType2.limit + 1}
                 </span>{" "}
                 to{" "}
                 <span className="font-semibold text-gray-800">
                   {Math.min(
-                    pagination.currentPage * pagination.limit,
-                    pagination.totalUsers
+                    paginationType2.currentPage * paginationType2.limit,
+                    paginationType2.totalUsers
                   )}
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-gray-800">
-                  {pagination.totalUsers}
+                  {paginationType2.totalUsers}
                 </span>
               </span>
 
-              {/* Buttons */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
                     dispatch(
-                      setPaginationConfig({
-                        currentPage: pagination.currentPage - 1,
+                      setPaginationConfigType2({
+                        currentPage: paginationType2.currentPage - 1,
                       })
                     )
                   }
-                  disabled={pagination.currentPage === 1}
+                  disabled={paginationType2.currentPage === 1}
                   className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
                 >
                   ← Previous
                 </button>
 
                 <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
-                  Page {pagination.currentPage} / {pagination.totalPages}
+                  Page {paginationType2.currentPage} / {paginationType2.totalPages}
                 </span>
 
                 <button
                   onClick={() =>
                     dispatch(
-                      setPaginationConfig({
-                        currentPage: pagination.currentPage + 1,
+                      setPaginationConfigType2({
+                        currentPage: paginationType2.currentPage + 1,
                       })
                     )
                   }
-                  disabled={pagination.currentPage === pagination.totalPages}
+                  disabled={paginationType2.currentPage === paginationType2.totalPages}
                   className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
                 >
                   Next →
@@ -582,59 +543,59 @@ const ManageAdmins = () => {
         </div>
       </div>
 
-      {isUserDetailOpen && selectedUser && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
+          {isUserDetailOpen && selectedUser && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
 
-            {/* Close button */}
-            <button
-              onClick={() => setIsUserDetailOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* Close button */}
+      <button
+        onClick={() => setIsUserDetailOpen(false)}
+        className="absolute top-4 right-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
 
-            {/* Header */}
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Admin's Detail</h2>
-              <p className="text-sm text-gray-500 mt-1">Information about the selected Admin</p>
-            </div>
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Admin's Detail</h2>
+        <p className="text-sm text-gray-500 mt-1">Information about the selected Admin</p>
+      </div>
 
-            {/* Divider */}
-            <div className="border-b border-gray-200 mb-4"></div>
+      {/* Divider */}
+      <div className="border-b border-gray-200 mb-4"></div>
 
-            {/* Content */}
-            <div className="space-y-4 text-gray-700">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Full Name:</span>
-                <span className="text-gray-900">{selectedUser.fullName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Email:</span>
-                <span className="text-gray-900">{selectedUser.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Phone:</span>
-                <span className="text-gray-900">{selectedUser.phoneNumber || "N/A"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-600">Type:</span>
-                <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
-                  {selectedUser.type === "2" ? "Admin" : "Other"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Created At:</span>
-                <span className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Updated At:</span>
-                <span className="text-gray-900">{new Date(selectedUser.updatedAt).toLocaleString()}</span>
-              </div>
-            </div>
+      {/* Content */}
+      <div className="space-y-4 text-gray-700">
+        <div className="flex justify-between">
+          <span className="font-medium text-gray-600">Full Name:</span>
+          <span className="text-gray-900">{selectedUser.fullName}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="font-medium text-gray-600">Email:</span>
+          <span className="text-gray-900">{selectedUser.email}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="font-medium text-gray-600">Phone:</span>
+          <span className="text-gray-900">{selectedUser.phoneNumber || "N/A"}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="font-medium text-gray-600">Type:</span>
+          <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
+            {selectedUser.type === "2" ? "Admin" : "Other"}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="font-medium text-gray-600">Created At:</span>
+          <span className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="font-medium text-gray-600">Updated At:</span>
+          <span className="text-gray-900">{new Date(selectedUser.updatedAt).toLocaleString()}</span>
+        </div>
+      </div>
 
-            {/* Footer */}
-            {/* <div className="mt-6 flex justify-end">
+      {/* Footer */}
+      {/* <div className="mt-6 flex justify-end">
         <button
           onClick={() => setIsUserDetailOpen(false)}
           className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
@@ -642,47 +603,47 @@ const ManageAdmins = () => {
           Close
         </button>
       </div> */}
-          </div>
-        </div>
-      )}
+    </div>
+  </div>
+)}
 
       {isEditOpen && editUser && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
 
-            {/* Close button */}
-            <button
-              onClick={() => setIsEditOpen(false)}
-              className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* Close button */}
+      <button
+        onClick={() => setIsEditOpen(false)}
+        className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
 
-            {/* Header */}
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Admin's Detail</h2>
-              <p className="text-sm text-gray-500 mt-1">Update admin's information below</p>
-            </div>
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Edit Admin's Detail</h2>
+        <p className="text-sm text-gray-500 mt-1">Update admin's information below</p>
+      </div>
 
-            {/* Form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleUpdateUser(editUser); // create this function to dispatch update
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-gray-600 text-sm mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={editUser.fullName}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, fullName: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                />
-              </div>
+      {/* Form */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleUpdateUser(editUser); // create this function to dispatch update
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <label className="block text-gray-600 text-sm mb-1">Full Name</label>
+          <input
+            type="text"
+            value={editUser.fullName}
+            onChange={(e) =>
+              setEditUser({ ...editUser, fullName: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          />
+        </div>
 
               <div>
                 <label className="block text-gray-600 text-sm mb-1">Email</label>
@@ -715,26 +676,26 @@ const ManageAdmins = () => {
                 </span>
               </div>
 
-              {/* Footer buttons */}
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-blue-600 text-white cursor-pointer rounded-xl hover:bg-blue-700 transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
+        {/* Footer buttons */}
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setIsEditOpen(false)}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-5 py-2 bg-blue-600 text-white cursor-pointer rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            Save
+          </button>
         </div>
-      )}
+      </form>
+    </div>
+  </div>
+)}
 
       <FilterModal
         isOpen={isFilterOpen}

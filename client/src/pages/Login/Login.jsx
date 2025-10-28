@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login, signUp } from "../../features/userSlice";
 
+
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function Login() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [toastMsg, setToastMsg] = useState('');
   const [loginErrors, setLoginErrors] = useState({});
   const [signupErrors, setSignupErrors] = useState({});
@@ -20,6 +21,7 @@ export default function Login() {
   const [showSignPassword, setShowSignPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
 
   const switchForm = (loginState) => {
@@ -53,10 +55,15 @@ export default function Login() {
 
 
     if (isLogin) {
-      const result = await dispatch(login({ email, password }));
+      const result = await dispatch(login({ email, password, rememberMe }));
       if (login.fulfilled.match(result)) {
+      
+        const userRole = result.payload.user.type;
+
+        localStorage.setItem("role", userRole);
+
         showToast('Login successful!');
-        localStorage.setItem("role", result.payload.user.type); // 👈 Store user role
+        
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
@@ -79,11 +86,18 @@ export default function Login() {
         newErrors.confirmPassword = true;
       }
 
+      
+
       if (Object.keys(newErrors).length > 0) {
-        setSignupErrors(newErrors);
-        showToast('Please fill in all fields');
-        return;
-      }
+          setSignupErrors(newErrors);
+
+          if (password !== confirmPassword) {
+            showToast("Your password mismatched!");
+          } else {
+            showToast("Please fill in all fields");
+          }
+          return;
+        }
 
       setSignupErrors({});
       const result = await dispatch(signUp({ fullName, phoneNumber, email, type: "3", password, confirmPassword }));
@@ -167,8 +181,8 @@ export default function Login() {
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
-                        if (errors.email) {
-                          setErrors((prev) => ({ ...prev, email: false }));
+                        if (loginErrors.email) {
+                          setLoginErrors((prev) => ({ ...prev, email: false }));
                         }
                       }}
                     />
@@ -184,8 +198,8 @@ export default function Login() {
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
-                        if (errors.password) {
-                          setErrors((prev) => ({ ...prev, password: false }));
+                        if (loginErrors.password) {
+                          setLoginErrors((prev) => ({ ...prev, password: false }));
                         }
                       }}
 
@@ -199,7 +213,7 @@ export default function Login() {
 
                   <div className="remember-me">
                     <div className="remember-left">
-                      <input type="checkbox" id="remember" />
+                      <input type="checkbox" id="remember" checked={rememberMe} onChange={(e)=>setRememberMe(e.target.checked)}/>
                       <label htmlFor="remember">Remember Me</label>
                     </div>
                     <button className="forgetPassword" disabled>
@@ -237,7 +251,12 @@ export default function Login() {
                       autoComplete="off"
                       name="userName"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => {setFullName(e.target.value);
+                        if(signupErrors.fullName){
+                          setSignupErrors((prev)=> ({...prev, fullName: false}))
+                        }
+                      }   
+                      }
                     />
                     <i className="fas fa-user input-icon"></i>
                   </div>
@@ -250,7 +269,12 @@ export default function Login() {
                       autoComplete="new-email"
                       name="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => { setEmail(e.target.value);
+                        if (signupErrors.email){
+                          setSignupErrors((prev)=> ({...prev, email: false}))
+                        }
+                      }
+                      }
                     />
                     <i className="fas fa-envelope input-icon"></i>
                   </div>
@@ -259,11 +283,16 @@ export default function Login() {
                     <input
                       type="text"
                       placeholder="Phone Number"
-                      className="input-field"
+                      className={`input-field ${signupErrors.phoneNumber ? 'error' : ''}`}
                       autoComplete="off"
                       name="userPhoneNumber"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => {
+                              setPhoneNumber(e.target.value);
+                              if (signupErrors.phoneNumber) {
+                                setSignupErrors((prev) => ({ ...prev, phoneNumber: false }));
+                              }
+                            }}
                     />
                     <i className="fas fa-phone-alt input-icon"></i>
                   </div>
@@ -277,7 +306,11 @@ export default function Login() {
                       autoComplete="new-password"
                       name="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => { setPassword(e.target.value)
+                        if(signupErrors.password){
+                          setSignupErrors((prev)=> ({...prev, password: false}))
+                        }
+                      }}
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
@@ -294,7 +327,12 @@ export default function Login() {
                       autoComplete="off"
                       name="userPasswordc"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => { setConfirmPassword(e.target.value)
+                        if(signupErrors.confirmPassword){
+                          setSignupErrors((prev)=> ({...prev, confirmPassword: false}))
+                        }
+                      }
+                      }
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
@@ -366,6 +404,8 @@ export default function Login() {
     </>
   );
 }
+
+
 
 // import React, { useState } from "react";
 // import { useNavigate } from "react-router-dom";
@@ -719,3 +759,5 @@ export default function Login() {
 //     </>
 //   );
 // }
+
+
