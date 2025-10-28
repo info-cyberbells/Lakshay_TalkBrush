@@ -11,6 +11,8 @@ import ManageAdmins from './pages/ManageAdmins/ManageAdmins';
 import ManageUsers from './pages/ManageUsers/ManageUsers';
 import Event from './pages/Events/Event';
 import Toast from './Component/Toast/Toast';
+import ConvoSpace from './pages/ConvoSpace/ConvoSpace';
+import UserEvents from './pages/UserEvents/UserEvents';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -18,47 +20,26 @@ function AppContent() {
   const location = useLocation();
   const [isVerifying, setIsVerifying] = useState(true);
 
-  // useEffect(() => {
-  //   const verifyUser = async () => {
-  //     const hasVerified = localStorage.getItem('tokenVerified');
-  //     if (hasVerified === 'true') {
-  //       setIsVerifying(false);
-  //       return;
-  //     }
-  //     setIsVerifying(true);
-  //     const result = await dispatch(verify());
-  //     localStorage.setItem('tokenVerified', 'true');
-
-  //     if (verify.rejected.match(result) && location.pathname !== '/') {
-  //       navigate('/');
-  //     } else if (verify.fulfilled.match(result) && location.pathname === '/') {
-  //       navigate('/dashboard');
-  //     }
-  //     setIsVerifying(false);
-  //   };
-  //   verifyUser();
-  // }, []);
-
   useEffect(() => {
-  const verifyUser = async () => {
-    setIsVerifying(true);
-    const result = await dispatch(verify());
+    const verifyUser = async () => {
+      setIsVerifying(true);
+      const result = await dispatch(verify());
 
-    if (verify.fulfilled.match(result)) {
-      if (location.pathname === "/") {
-        navigate("/dashboard");
+      if (verify.fulfilled.match(result)) {
+        if (location.pathname === "/") {
+          navigate("/dashboard");
+        }
+      } else {
+        if (location.pathname !== "/") {
+          navigate("/");
+        }
       }
-    } else {
-      if (location.pathname !== "/") {
-        navigate("/");
-      }
-    }
 
-    setIsVerifying(false);
-  };
+      setIsVerifying(false);
+    };
 
-  verifyUser();
-}, []);
+    verifyUser();
+  }, []);
 
 
   if (isVerifying) {
@@ -81,6 +62,8 @@ function AppContent() {
         <Route path='/manage-admins' element={<ManageAdmins />} />
         <Route path='/manage-users' element={<ManageUsers />} />
         <Route path='/manage-event' element={<Event />} />
+        <Route path='/convo-space' element={<ConvoSpace />} />
+        <Route path='/events' element={<UserEvents />} />
       </Routes>
     </div >
   );
