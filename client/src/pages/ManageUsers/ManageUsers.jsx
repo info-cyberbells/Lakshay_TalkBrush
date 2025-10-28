@@ -515,7 +515,7 @@ const ManageUsers = () => {
             </tbody>
           </table>
 
-          {pagination && pagination.totalPages >= 1 && (
+          {paginationType3 && paginationType3.totalPages >= 1 && (
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <span className="text-sm text-gray-600 mb-3 sm:mb-0">
                 Showing{" "}
