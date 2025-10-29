@@ -110,13 +110,11 @@ const Profile = () => {
         {/* Header */}
         <header className="flex justify-between">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Manage Profile</h1>
-            <p className="text-gray-600 mt-2">
-              Update your personal information and account details
-            </p>
+            <h1 className="text-2xl font-semibold text-gray-900">Manage Profile</h1>
           </div>
           <div>
-            <button className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+            <button className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+            >
               Change Password
             </button>
           </div>
@@ -239,11 +237,10 @@ const Profile = () => {
                     onClick={handleSubmit}
                     disabled={!isChanged || isLoading}
                     className={`flex-1 py-3 font-medium rounded-lg transition  
-                        ${
-                        isChanged
-                            ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
-                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                        }`}
+                        ${isChanged
+                        ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
+                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      }`}
                   >
                     {isLoading ? "Updating..." : "Update Profile"}
                   </button>

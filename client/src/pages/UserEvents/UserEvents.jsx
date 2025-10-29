@@ -52,7 +52,7 @@ const ScheduleCard = ({ event }) => (
 
 const Event = () => {
     const dispatch = useDispatch();
-    const { events, todayEvents, currentPage, totalPages, loading, error } = useSelector(
+    const { events, todayEvents, currentPage, totalEvents, totalPages, loading, error } = useSelector(
         (state) => state.events
     );
 
@@ -166,7 +166,7 @@ const Event = () => {
                                                     </div>
                                                     <div className="space-y-4">
                                                         {dateEvents.map((event, index) => (
-                                                            <ScheduleCard key={event._id || `event-${index}`} event={event}  />
+                                                            <ScheduleCard key={event._id || `event-${index}`} event={event} />
                                                         ))}
                                                     </div>
                                                 </div>
@@ -187,76 +187,46 @@ const Event = () => {
                         </div>
                     )}
 
-                    {/* Pagination */}
-                    {/* {totalPages >= 1 && (
-                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                            <button
-                                onClick={handlePrev}
-                                disabled={page === 1}
-                                className={`px-3 py-2 text-sm  font-medium border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 ${page === 1
-                                    ? "bg-gray-100 cursor-not-allowed"
-                                    : "text-gray-700 bg-white border-2 shadow-sm"
-                                    }`}
-                            >
-                                Previous
-                            </button>
-
-                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
-                                Page {currentPage} of {totalPages}
-                            </span>
-
-                            <button
-                                onClick={handleNext}
-                                disabled={page === totalPages}
-                                className={`px-3 py-2 text-sm  font-medium border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 ${page === totalPages
-                                    ? "bg-gray-100 cursor-not-allowed"
-                                    : "text-gray-700 bg-white border-2 shadow-sm"
-                                    }`}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )} */}
-
                     {totalPages >= 1 && (
-                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                          <span className="text-sm text-gray-600 mb-3 sm:mb-0">
-                            Showing{" "}
-                            <span className="font-semibold text-gray-800">
-                            --
-                            </span>{" "}
-                            to{" "}
-                            <span className="font-semibold text-gray-800">
-                              --
-                            </span>{" "}
-                            of{" "}
-                            <span className="font-semibold text-gray-800">
-                            {events?.length || 0}
+                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg mt-3">
+                            <span className="text-sm text-gray-600 mb-3 sm:mb-0">
+                                Showing{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {currentPage}
+                                </span>{" "}
+                                to{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {totalEvents}
+                                </span>{" "}
+                                of{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {totalPages}
+                                </span>
                             </span>
-                          </span>
-            
-                          <div className="flex items-center gap-2">
-                            <button
-                            disabled={totalPages===1}
-                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-                            >
-                              ← Previous
-                            </button>
-            
-                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
-                            Page {currentPage} of {totalPages}
-                            </span>
-            
-                            <button
-                              
-                              disabled={totalPages === 1}
-                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-                            >
-                              Next →
-                            </button>
-                          </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handlePrev}
+                                    disabled={page === 1}
+                                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                                >
+                                    ← Previous
+                                </button>
+
+                                <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
+                                    {currentPage}
+                                </span>
+
+                                <button
+                                    onClick={handleNext}
+                                    disabled={page === totalPages}
+                                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                                >
+                                    Next →
+                                </button>
+                            </div>
                         </div>
-                      )}
+                    )}
                 </div>
             </div>
         </div>

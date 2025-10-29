@@ -58,7 +58,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path='/profile' element={<Profile />} />
+        <Route path='/manage-profile' element={<Profile />} />
         <Route path='/manage-admins' element={<ManageAdmins />} />
         <Route path='/manage-users' element={<ManageUsers />} />
         <Route path='/manage-event' element={<Event />} />
