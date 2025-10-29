@@ -94,7 +94,8 @@ const Event = () => {
     const groupedEvents = groupEventsByDate(events);
 
     return (
-        <div className="min-h-screen bg-gray-50 px-[240px] pt-[40px]">
+
+        <div className="bg-gray-50 min-h-screen w-full px-[240px] pt-[30px] pb-10">
             <div className="max-w-full px-6 py-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
@@ -106,7 +107,7 @@ const Event = () => {
 
                 </div>
 
-                <div className="bg-white rounded-lg shadow overflow-hidden w-full relative min-h-[200px]">
+                <div className="bg-white rounded-lg shadow overflow-hidden w-full relative lg:min-h-[600px]">
                     {loading && (
                         <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
                             <div className="spinner"></div>
@@ -122,9 +123,9 @@ const Event = () => {
                     {!loading && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Main Content Area */}
-                            <div className="lg:col-span-2 space-y-8">
+                            <div className="lg:col-span-3 space-y-8">
                                 {/* Today's Events Section */}
-                                <div className="bg-white rounded-xl shadow-sm p-6">
+                                <div className="bg-white rounded-xl w-full shadow-sm p-6">
                                     <h3 className="text-xl font-[Poppins] font-semibold mb-5 text-[#2D4CCA] flex items-center gap-2">
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -187,35 +188,75 @@ const Event = () => {
                     )}
 
                     {/* Pagination */}
-                    {totalPages >= 1 && (
-                        <div className="flex justify-center items-center gap-4 my-5">
+                    {/* {totalPages >= 1 && (
+                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
                             <button
                                 onClick={handlePrev}
                                 disabled={page === 1}
-                                className={`px-6 py-3 rounded-lg font-[Poppins] font-medium transition-all ${page === 1
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                    : "bg-white text-[#2D4CCA] border-2 border-[#2D4CCA] hover:bg-[#2D4CCA] hover:text-white shadow-sm"
+                                className={`px-3 py-2 text-sm  font-medium border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 ${page === 1
+                                    ? "bg-gray-100 cursor-not-allowed"
+                                    : "text-gray-700 bg-white border-2 shadow-sm"
                                     }`}
                             >
                                 Previous
                             </button>
 
-                            <span className="text-gray-700 font-[Poppins] font-medium px-4">
+                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
                                 Page {currentPage} of {totalPages}
                             </span>
 
                             <button
                                 onClick={handleNext}
                                 disabled={page === totalPages}
-                                className={`px-6 py-3 rounded-lg font-[Poppins] font-medium transition-all ${page === totalPages
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                    : "bg-[#2D4CCA] text-white hover:bg-[#2440a8] shadow-sm"
+                                className={`px-3 py-2 text-sm  font-medium border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 ${page === totalPages
+                                    ? "bg-gray-100 cursor-not-allowed"
+                                    : "text-gray-700 bg-white border-2 shadow-sm"
                                     }`}
                             >
                                 Next
                             </button>
                         </div>
-                    )}
+                    )} */}
+
+                    {totalPages >= 1 && (
+                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                          <span className="text-sm text-gray-600 mb-3 sm:mb-0">
+                            Showing{" "}
+                            <span className="font-semibold text-gray-800">
+                            --
+                            </span>{" "}
+                            to{" "}
+                            <span className="font-semibold text-gray-800">
+                              --
+                            </span>{" "}
+                            of{" "}
+                            <span className="font-semibold text-gray-800">
+                            {events?.length || 0}
+                            </span>
+                          </span>
+            
+                          <div className="flex items-center gap-2">
+                            <button
+                            disabled={totalPages===1}
+                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                            >
+                              ← Previous
+                            </button>
+            
+                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
+                            Page {currentPage} of {totalPages}
+                            </span>
+            
+                            <button
+                              
+                              disabled={totalPages === 1}
+                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                            >
+                              Next →
+                            </button>
+                          </div>
+                        </div>
+                      )}
                 </div>
             </div>
         </div>
