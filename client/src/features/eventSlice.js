@@ -61,6 +61,7 @@ const eventSlice = createSlice({
         events: [],
         currentPage: 1,
         totalPages: 1,
+        totalEvents:[],
         loading: false,
         error: null,
     },
@@ -91,6 +92,7 @@ const eventSlice = createSlice({
                 state.events = action.payload.events || [];
                 state.currentPage = action.payload.currentPage;
                 state.totalPages = action.payload.totalPages;
+                state.totalEvents = action.payload.totalEvents
             })
             .addCase(fetchAllEvents.rejected, (state, action) => {
                 state.loading = false;

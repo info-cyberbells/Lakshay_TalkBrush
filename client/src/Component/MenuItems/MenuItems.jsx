@@ -1,16 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/userSlice';
-import { Home, User, Settings, LogOut, Users, UserCog, MessageSquare } from 'lucide-react';
+import { Home, LogOut, Users, UserCog, MessageSquare, Menu, X } from 'lucide-react';
 import './MenuItems.css';
 
-const MenuItems = () => {
+const MenuItems = ({ onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
 
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
     const role = localStorage.getItem("role");
+
+    const handleNavigation = (path) => {
+        navigate(path);
+        if (onClose) onClose();
+    };
 
     const handleLogout = async () => {
         await dispatch(logout());
@@ -142,11 +150,12 @@ const MenuItems = () => {
     const menuItems = menuConfig[type] || menuConfig.user;
 
     return (
+
         <ul className="menu-items">
             {menuItems.map((item) => (
                 <li
                     key={item.name}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleNavigation(item.path)}
                     className={location.pathname === item.path ? 'active' : ''}
                 >
                     {item.icon}
@@ -154,12 +163,13 @@ const MenuItems = () => {
                 </li>
             ))}
 
-            {/* Logout is common for all */}
-            <li onClick={handleLogout}>
+            <li onClick={handleLogout} className="logout-item">
                 <LogOut size={20} />
                 <span>Logout</span>
             </li>
         </ul>
+
+
     );
 };
 

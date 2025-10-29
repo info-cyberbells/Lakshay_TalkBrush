@@ -628,15 +628,6 @@ const onEdit = (user) => {
         </div>
       </div>
 
-      {/* Footer */}
-      {/* <div className="mt-6 flex justify-end">
-        <button
-          onClick={() => setIsUserDetailOpen(false)}
-          className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-        >
-          Close
-        </button>
-      </div> */}
     </div>
   </div>
 )}

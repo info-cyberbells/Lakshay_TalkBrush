@@ -1,35 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import MenuItems from '../MenuItems/MenuItems';
 import './Navbar.css';
-import TalkBurshLogo from '../../assets/TalkBrush_logo.svg'; 
+import TalkBurshLogo from '../../assets/TalkBrush_logo.svg';
 import HeaderBar from '../HeaderBar/HeaderBar';
 import RightComponent from '../HeaderBar/RightPanel';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false);
+      }
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   return (
-    // <aside className="sidebar">
-    //   <div className="sidebar-header">
-    //     <img src={TalkBurshLogo} alt="Logo" className="sidebar-logo" />
-    //   </div>
-    //   <MenuItems />  
-    //   <HeaderBar />  
-    // </aside>
-
-
     <>
-      <aside className="sidebar">
+
+
+      {/* Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="menu-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`sidebar ${isMobile && isSidebarOpen ? 'sidebar-open' : ''} ${isMobile ? 'mobile' : ''}`}>
         <div className="sidebar-header">
           <img src={TalkBurshLogo} alt="Logo" className="sidebar-logo" />
         </div>
-        <MenuItems />  
+        <MenuItems onClose={() => setIsSidebarOpen(false)} />
       </aside>
 
-      {/* HeaderBar next to sidebar */}
-      
-        <HeaderBar />
-        <RightComponent />
+      <HeaderBar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+      <RightComponent />
     </>
-
   );
 };
 

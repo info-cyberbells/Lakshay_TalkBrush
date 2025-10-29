@@ -61,12 +61,12 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => (
             <Edit className="w-4 h-4 text-gray-600 cursor-pointer" />
           </button>
           <button
-              onClick={() => onDelete(event)}
-              className="p-2 hover:bg-red-50 rounded-md transition-colors"
-              title="Delete event"
-            >
-              <Trash2 className="w-4 h-4 text-red-600 cursor-pointer" />
-            </button>
+            onClick={() => onDelete(event)}
+            className="p-2 hover:bg-red-50 rounded-md transition-colors"
+            title="Delete event"
+          >
+            <Trash2 className="w-4 h-4 text-red-600 cursor-pointer" />
+          </button>
         </div>
       </div>
     </div>
@@ -75,13 +75,13 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => (
 
 const Event = () => {
   const dispatch = useDispatch();
-  const { events, todayEvents, currentPage, totalPages, loading, error } = useSelector(
+  const { events, todayEvents, currentPage, totalPages, totalEvents, loading, error } = useSelector(
     (state) => state.events
   );
 
   // const [isDeleteModelOpen, setDeleteModel] = useState(false);
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
-const [eventToDelete, setEventToDelete] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -145,24 +145,24 @@ const [eventToDelete, setEventToDelete] = useState(null);
   // };
 
   const handleDeleteEvent = (event) => {
-  setEventToDelete(event);
-  setDeleteModel(true);
-};
+    setEventToDelete(event);
+    setDeleteModel(true);
+  };
 
-const handleDelete = async () => {
-  if (eventToDelete) {
-    try {
-      await dispatch(deleteEvent(eventToDelete._id)).unwrap();
-      dispatch(fetchAllEvents({ page, limit }));
-      setDeleteModel(false);
-      setEventToDelete(null);
-      dispatch(showToast({message:"Event Deleted Successfully!!!"}))
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      dispatch(showToast({message: "Failed to Delete Event!!!!"}))
+  const handleDelete = async () => {
+    if (eventToDelete) {
+      try {
+        await dispatch(deleteEvent(eventToDelete._id)).unwrap();
+        dispatch(fetchAllEvents({ page, limit }));
+        setDeleteModel(false);
+        setEventToDelete(null);
+        dispatch(showToast({ message: "Event Deleted Successfully!!!" }))
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        dispatch(showToast({ message: "Failed to Delete Event!!!!" }))
+      }
     }
-  }
-};
+  };
 
   // Group events by date
   const groupEventsByDate = (eventsList) => {
@@ -185,7 +185,7 @@ const handleDelete = async () => {
   const groupedEvents = groupEventsByDate(events);
 
   return (
-  
+
     <div className="min-h-screen min-w-full bg-gray-50 px-[240px] pt-[40px] flex flex-col">
       <div className="max-w-full px-6 py-8">
         {/* Header */}
@@ -326,75 +326,47 @@ const handleDelete = async () => {
             </div>
           )}
 
-          {/* Pagination */}
-          {/* {totalPages >= 1 && (
-            <div className="flex justify-center items-center gap-4 my-5">
-              <button
-                onClick={handlePrev}
-                disabled={page === 1}
-                className={`px-6 py-3 rounded-lg font-[Poppins] font-medium transition-all ${page === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-white text-[#2D4CCA] border-2 border-[#2D4CCA] hover:bg-[#2D4CCA] hover:text-white shadow-sm"
-                  }`}
-              >
-                Previous
-              </button>
 
-              <span className="text-gray-700 font-[Poppins] font-medium px-4">
-                Page {currentPage} of {totalPages}
+          {totalPages >= 1 && (
+            <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg mt-3">
+              <span className="text-sm text-gray-600 mb-3 sm:mb-0">
+                Showing{" "}
+                <span className="font-semibold text-gray-800">
+                  {currentPage}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalEvents}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-800">
+                  {totalPages}
+                </span>
               </span>
 
-              <button
-                onClick={handleNext}
-                disabled={page === totalPages}
-                className={`px-6 py-3 rounded-lg font-[Poppins] font-medium transition-all ${page === totalPages
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-[#2D4CCA] text-white hover:bg-[#2440a8] shadow-sm"
-                  }`}
-              >
-                Next
-              </button>
-            </div>
-          )} */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrev}
+                  disabled={page === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                >
+                  ← Previous
+                </button>
 
-            {totalPages >= 1 && (
-                        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                          <span className="text-sm text-gray-600 mb-3 sm:mb-0">
-                            Showing{" "}
-                            <span className="font-semibold text-gray-800">
-                            5
-                            </span>{" "}
-                            to{" "}
-                            <span className="font-semibold text-gray-800">
-                              5
-                            </span>{" "}
-                            of{" "}
-                            <span className="font-semibold text-gray-800">
-                            5
-                            </span>
-                          </span>
-            
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-                            >
-                              ← Previous
-                            </button>
-            
-                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
-                              Page 
-                            </span>
-            
-                            <button
-                              
-                              disabled
-                              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-                            >
-                              Next →
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
+                  {currentPage}
+                </span>
+
+                <button
+                  onClick={handleNext}
+                  disabled={page === totalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
@@ -405,11 +377,11 @@ const handleDelete = async () => {
         editingEvent={editingEvent}
       />
       {isDeleteModelOpen && (
-              <DeleteModal
-                onClose={() => setDeleteModel(false)}
-                onDelete={handleDelete}
-              />
-            )}
+        <DeleteModal
+          onClose={() => setDeleteModel(false)}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };

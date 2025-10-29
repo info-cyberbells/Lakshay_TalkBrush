@@ -1,12 +1,15 @@
+import mongoose from "mongoose";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from 'cookie-parser'
 import path from 'path';
 
+import startWatcher from "./watcher.js";
 import { connectDB } from "./config/db.js";
 import { userRouter } from "./routes/userRoute.js";
 import { eventRouter } from "./routes/eventRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -24,9 +27,13 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/event", eventRouter);
+app.use("/api/activities", activityRoutes);
 
 // Connect to DB
-connectDB();
+connectDB().then(() => {
+  startWatcher(); 
+  console.log("start wtchter runs")
+});
 
 // Start Server
 const PORT = process.env.PORT || 5000;
