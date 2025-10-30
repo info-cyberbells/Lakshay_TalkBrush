@@ -294,24 +294,25 @@ const onEdit = (user) => {
 
   return (
     <>
-    <div className="min-h-screen bg-gray-50 ml-60 pr-60">
-      <div className="w-full px-10 py-10 pt-10">
+    {/* <div className="min-h-screen bg-gray-50 ml-60 pr-60"> */}
+       <div className="min-h-screen bg-gray-50 lg:ml-60 lg:pr-60 ml-0 pr-0">
+      <div className="w-full px-5 md:px-10 md:py-10 pt-10">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 mt-5">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900 mt-3">
+              <h1 className="text-sm md:text-2xl font-semibold text-gray-900 mt-3">
                 Manage Admins
               </h1>
-              <p className="text-sm text-blue-600 mt-1">
+              <p className="text-xs md:text-sm text-blue-600 mt-1">
                 Total Admins: {paginationType2.totalUsers}
                 {/* {allUsers?.length || 0} */}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 text-sm lg:text-base md:flex items-center gap-1 md:gap-3">
               <button
                 onClick={() => setDeleteModel(true)}
                 disabled={selectedAdmins.length === 0}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
+                className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
                   ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
                   : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
                   }`}
@@ -321,43 +322,46 @@ const onEdit = (user) => {
               </button>
 
               <button
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 onClick={() => setIsFilterOpen(true)}
               >
                 <Filter className="w-4 h-4" />
                 Filters
               </button>
               <button
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 onClick={handleExport}
               >
                 <Download className="w-4 h-4" />
                 Export
               </button>
               <button
-                className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
                 <Plus className="w-4 h-4" />
-                Add new Admin
+                Add <p className="hidden md:inline">New Admin</p>
               </button>
             </div>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm hidden md:inline text-gray-600">
             Manage all admin and their access
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden w-full relative">
+        {/* <div className="bg-white rounded-lg shadow overflow-hidden w-full relative"> */}
+          <div className="bg-white rounded-lg shadow overflow-hidden w-full relative">
+
           {isLoading && (
             <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
               <div className="spinner"></div>
             </div>
           )}
-          <table className="min-w-full w-full table-fixed">
+          {/* <table className="min-w-full w-full table-fixed"> */}
+              <table className="min-w-full w-full md:table-fixed sm:scroll-auto " >
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left w-12">
+                <th className="px-3 py-1 md:px-6 md:py-3 text-left w-12">
                   <input
                     type="checkbox"
                     checked={
@@ -365,10 +369,10 @@ const onEdit = (user) => {
                       selectedAdmins.length === allUsers?.length
                     }
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                   />
                 </th>
-                <th className="px-6 py-3 text-left w-1/4">
+                <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4">
                   <div
                     className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
                     onClick={() => handleSort("fullName")}
@@ -386,7 +390,8 @@ const onEdit = (user) => {
                   </div>
                 </th>
 
-                <th className="px-6 py-3 text-left w-1/4">
+                {/* <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4"> */}
+                <th className="px-6 py-3 text-left w-[35%] sm:w-[30%]">
                   <div
                     className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
                     onClick={() => handleSort("email")}
@@ -404,19 +409,21 @@ const onEdit = (user) => {
                   </div>
                 </th>
 
-                <th className="px-6 py-3 text-left w-1/4">
+                {/* <th className="px-6 py-3 text-left w-1/4"> */}
+                <th className="px-6 py-3 text-left w-1/4 hidden md:table-cell">
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                     Phone No.
                   </div>
                 </th>
 
-                <th className="px-6 py-3 text-left w-1/4">
+                {/* <th className="px-6 py-3 text-left w-1/4"> */}
+                <th className="px-6 py-3 text-left w-1/4 hidden lg:table-cell">
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                     Last Login
                   </div>
                 </th>
 
-                <th className="px-6 py-3 w-16"></th>
+                <th className="px-3 py-1 md:px-6 md:py-3 w-16"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -426,24 +433,32 @@ const onEdit = (user) => {
                     key={admin._id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-2 py-1 md:px-6 md:py-4">
                       <input
                         type="checkbox"
                         checked={selectedAdmins.includes(admin._id)}
                         onChange={() => handleSelectAdmin(admin._id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        // className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                         className="w-2 h-2 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                       />
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                    <td 
+                    className="px-2 py-1 md:px-6 md:py-4 text-sm font-medium  md:font-semibold text-gray-900"
+                    >
                       {admin.fullName}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td 
+                    // className="px-6 py-4 text-sm text-gray-600"
+                    className="px-2 py-1 md:px-6 md:py-4 text-sm text-gray-600"
+                    >
                       {admin.email}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
+                    <td className="px-6 py-4 text-sm text-gray-600 hidden md:table-cell">
                       {admin.phoneNumber || "N/A"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
+                    <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
                       {admin.lastLogin
                         ? new Date(admin.lastLogin).toLocaleString()
                         : "Never"}
@@ -454,7 +469,7 @@ const onEdit = (user) => {
                       </button>
                     </td> */}
 
-                      <td className="px-6 py-4 text-right relative">
+                      <td className="px-2 py-1 md:px-4 md:py-2 lg:px-6 lg:py-4 text-right relative">
                         {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
                           <MoreVertical className="w-5 h-5" />
                         </button> */}
@@ -462,7 +477,7 @@ const onEdit = (user) => {
                               onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
                               className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
                             >
-                              <MoreVertical className="w-5 h-5" />
+                              <MoreVertical className="w-3 h:3 md:w-5 md:h-5" />
                             </button>
 
                             {openMenuId === admin._id && (
