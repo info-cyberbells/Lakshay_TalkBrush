@@ -10,54 +10,129 @@ const startWatcher = () => {
 
     changeStream.on("change", async (change) => {
         try {
-            // ⚠️ IGNORE changes to the activities collection to prevent infinite loop
             if (change.ns.coll === "activities") {
                 return;
             }
 
             let actionType = "";
+            let title = "";
             let description = "";
+            let category = "";
+            let metadata = {};
             const collectionName = change.ns.coll;
             const fullDocument = change.fullDocument;
+
+            // Determine category based on collection
+            // Events → notifications, Users → activities
+            category = collectionName === "events" ? "notification" : "activity";
 
             switch (change.operationType) {
                 case "insert":
                     actionType = "CREATE";
 
-                    // Customize description based on collection
                     if (collectionName === "users") {
                         const userName = fullDocument?.name || fullDocument?.email || "Unknown User";
-                        description = `New user registered: ${userName}`;
+                        const userRole = fullDocument?.role || "user";
+
+                        title = "New User Registered";
+                        description = `${userName} has joined the platform`;
+                        metadata = {
+                            userName,
+                            userEmail: fullDocument?.email,
+                            userRole,
+                            userId: fullDocument?._id,
+                            icon: "user-plus"
+                        };
                     } else if (collectionName === "events") {
-                        const eventName = fullDocument?.title || fullDocument?.name || "Unknown Event";
-                        description = `New event created: ${eventName}`;
+                        const eventName = fullDocument?.title || fullDocument?.name || fullDocument?.fullName || "Unknown Event";
+                        const eventDate = fullDocument?.date || fullDocument?.startDate;
+
+                        title = "New Event Created";
+                        description = `Event "${eventName}" has been added`;
+                        metadata = {
+                            eventName,
+                            eventDate,
+                            eventId: fullDocument?._id,
+                            createdBy: fullDocument?.createdBy,
+                            icon: "calendar-plus"
+                        };
                     } else {
-                        description = `New ${collectionName} created`;
+                        title = `New ${collectionName} Added`;
+                        description = `A new ${collectionName} item has been created`;
+                        metadata = { entityId: fullDocument?._id, icon: "plus" };
                     }
                     break;
 
                 case "update":
                     actionType = "UPDATE";
+                    const updatedFields = change.updateDescription?.updatedFields || {};
+                    const fieldNames = Object.keys(updatedFields);
 
-                    // Customize description based on collection and updated fields
                     if (collectionName === "users") {
-                        const updatedFields = change.updateDescription?.updatedFields;
+                        const userName = fullDocument?.name || fullDocument?.email || "Unknown User";
+                        const userId = fullDocument?._id;
 
-                        // Check specific fields to determine action
-                        if (updatedFields?.lastLogin) {
-                            description = `User logged in: ${fullDocument?.name || fullDocument?.email || "Unknown User"}`;
-                        } else if (updatedFields?.password) {
-                            description = `User password changed: ${fullDocument?.name || fullDocument?.email || "Unknown User"}`;
+                        if (updatedFields?.lastLogin || updatedFields?.lastLoginAt) {
+                            const userRole = fullDocument?.role || "user";
+                            title = userRole === "admin" ? "Admin Login" : "User Login";
+                            description = `${userName} logged into the system`;
+                            metadata = {
+                                userName,
+                                userEmail: fullDocument?.email,
+                                userRole,
+                                userId,
+                                loginTime: updatedFields.lastLogin || updatedFields.lastLoginAt || new Date(),
+                                icon: "login"
+                            };
+                        } else if (updatedFields?.password || updatedFields?.passwordHash) {
+                            title = "Password Changed";
+                            description = `${userName} changed their password`;
+                            metadata = { userName, userId, icon: "lock" };
                         } else if (updatedFields?.name || updatedFields?.email || updatedFields?.phone) {
-                            description = `User profile updated: ${fullDocument?.name || fullDocument?.email || "Unknown User"}`;
+                            title = "Profile Updated";
+                            description = `${userName} updated their profile`;
+                            metadata = {
+                                userName,
+                                userId,
+                                updatedFields: fieldNames,
+                                icon: "user-edit"
+                            };
+                        } else if (updatedFields?.role) {
+                            title = "User Role Changed";
+                            description = `${userName}'s role was changed to ${updatedFields.role}`;
+                            metadata = {
+                                userName,
+                                userId,
+                                newRole: updatedFields.role,
+                                icon: "user-check"
+                            };
                         } else {
-                            description = `User information updated: ${fullDocument?.name || fullDocument?.email || "Unknown User"}`;
+                            title = "User Updated";
+                            description = `${userName}'s information was updated`;
+                            metadata = {
+                                userName,
+                                userId,
+                                updatedFields: fieldNames,
+                                icon: "user"
+                            };
                         }
                     } else if (collectionName === "events") {
-                        const eventName = fullDocument?.title || fullDocument?.name || "Unknown Event";
-                        description = `Event updated: ${eventName}`;
+                        const eventName = fullDocument?.fullName || fullDocument?.name || "Unknown Event";
+                        const eventId = fullDocument?._id;
+
+                        title = "Event Updated";
+                        description = `Event "${eventName}" was modified`;
+                        metadata = {
+                            eventName,
+                            eventId,
+                            updatedFields: fieldNames,
+                            updatedBy: fullDocument?.updatedBy,
+                            icon: "calendar-edit"
+                        };
                     } else {
-                        description = `${collectionName} updated`;
+                        title = `${collectionName} Updated`;
+                        description = `A ${collectionName} item was modified`;
+                        metadata = { updatedFields: fieldNames, icon: "edit" };
                     }
                     break;
 
@@ -65,11 +140,19 @@ const startWatcher = () => {
                     actionType = "DELETE";
 
                     if (collectionName === "users") {
-                        description = `User account deleted`;
+                        const deletedId = change.documentKey._id;
+                        title = "User Deleted";
+                        description = `A user account was permanently deleted`;
+                        metadata = { deletedUserId: deletedId, icon: "user-minus" };
                     } else if (collectionName === "events") {
-                        description = `Event deleted`;
+                        const deletedId = change.documentKey._id;
+                        title = "Event Deleted";
+                        description = `An event was removed from the system`;
+                        metadata = { deletedEventId: deletedId, icon: "calendar-minus" };
                     } else {
-                        description = `${collectionName} deleted`;
+                        title = `${collectionName} Deleted`;
+                        description = `A ${collectionName} item was removed`;
+                        metadata = { deletedId: change.documentKey._id, icon: "trash" };
                     }
                     break;
 
@@ -77,17 +160,31 @@ const startWatcher = () => {
                     return;
             }
 
+            // Create activity with category
             await Activity.create({
                 actionType,
+                title,
                 description,
+                category,
                 entityType: collectionName,
                 entityId: change.documentKey._id,
+                metadata,
+                timestamp: new Date()
             });
 
-            console.log("📦 Logged activity:", description);
+            console.log(`📦 [${category.toUpperCase()}] ${title} - ${description}`);
         } catch (err) {
             console.error("❌ Activity log failed:", err.message);
         }
+    });
+
+    changeStream.on("error", (error) => {
+        console.error("❌ Change stream error:", error);
+    });
+
+    changeStream.on("close", () => {
+        console.log("⚠️ Change stream closed. Reconnecting...");
+        setTimeout(startWatcher, 5000);
     });
 };
 

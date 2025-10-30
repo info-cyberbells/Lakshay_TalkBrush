@@ -1,10 +1,17 @@
 import mongoose from "mongoose";
 
 const activitySchema = new mongoose.Schema({
-    actionType: { type: String, required: true }, // e.g. CREATE, UPDATE, DELETE
+    actionType: { type: String, required: true },
+    title: { type: String, required: true }, 
     description: { type: String },
-    entityType: { type: String }, // which collection changed
-    entityId: { type: mongoose.Schema.Types.Mixed },
+    category: { 
+        type: String, 
+        required: true,
+        enum: ['notification', 'activity'], 
+        default: 'activity'
+    },
+    entityType: { type: String }, 
+    entityId: { type: mongoose.Schema.Types.Mixed }, 
     createdAt: { type: Date, default: Date.now },
 });
 

@@ -16,6 +16,8 @@ export const USER_ENDPOINTS = {
   GET_ALL_EVENTS: `${API_BASE_URL}/event/getAllEvents`,
   UPDATE_EVENT: `${API_BASE_URL}/event/updateEvent`,
   DELETE_EVENT: `${API_BASE_URL}/event/deleteEvent`,
+
+  GET_ALL_ACTIVITIES: `${API_BASE_URL}/activities/getAllActivities`,
 };
 
 

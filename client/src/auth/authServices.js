@@ -125,3 +125,12 @@ export const deleteEventService = async (eventId) => {
   );
   return response.data;
 };
+
+
+//get all activities
+export const getActivitiesService = async () => {
+  const response = await axios.get(USER_ENDPOINTS.GET_ALL_ACTIVITIES,
+    { withCredentials: true }
+  );
+  return response.data;
+};
