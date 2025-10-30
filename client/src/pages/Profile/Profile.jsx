@@ -69,7 +69,7 @@ const Profile = () => {
       await dispatch(updateProfile(formData)).unwrap();
       dispatch(
         showToast({
-          message: "✅ Profile updated successfully!",
+          message: "Profile updated successfully!",
           type: "success",
         })
       );
@@ -78,7 +78,7 @@ const Profile = () => {
     } catch (error) {
       console.error("Update failed");
       dispatch(
-        showToast({ message: "❌ Failed to update profile.", type: "error" })
+        showToast({ message: "Failed to update profile.", type: "error" })
       );
     }
   };
@@ -105,24 +105,26 @@ const Profile = () => {
 
   return (
     // <div className="min-h-screen bg-gray-50 py-8 pl-[240px] pr-[240px] pt-[40px]">
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-8 md:px-16 lg:px-32 xl:px-[240px] pt-[40px] min-w-[320px]">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-8 lg:px-[230px] md:px-16 md:w-full  xl:px-[240px] pt-[40px] sm:w-full sm:mr-0 md:w-full xl:min-w-[320px]">
       <div className="max-w-full px-6 py-8">
         {/* Header */}
         <header className="flex justify-between">
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-gray-900">Manage Profile</h1>
+            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-2xl 2xl:text-2xl font-semibold text-gray-900">
+              Manage Profile
+            </h1>
           </div>
           <div>
-            <button className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
-            >
+            <button className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-base text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
               Change Password
             </button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* <div className="grid grid-cols-1 container 2xl:px-25 lg:grid-cols-3 gap-6"> */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 container 2xl:px-25 gap-6 mx-auto">
           {/* Profile Card */}
-          <div className="lg:col-span-1 min-w-[260px] ">
+          <div className="lg:col-span-1 lg:min-w-[200px] min-w-[260px] ">
             <div className="bg-white rounded-lg shadow p-6 lg:min-h-[433px]">
               <div className="flex flex-col items-center">
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mb-4">
@@ -237,10 +239,11 @@ const Profile = () => {
                     onClick={handleSubmit}
                     disabled={!isChanged || isLoading}
                     className={`flex-1 py-3 font-medium rounded-lg transition  
-                        ${isChanged
-                        ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
-                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      }`}
+                        ${
+                          isChanged
+                            ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
+                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        }`}
                   >
                     {isLoading ? "Updating..." : "Update Profile"}
                   </button>
