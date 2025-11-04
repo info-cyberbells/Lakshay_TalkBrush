@@ -5,10 +5,11 @@ import cors from "cors";
 import cookieParser from 'cookie-parser'
 import path from 'path';
 
-import startWatcher from "./watcher.js";
+import startWatcher from "./utils/watcher.js";
 import { connectDB } from "./config/db.js";
 import { userRouter } from "./routes/userRoute.js";
 import { eventRouter } from "./routes/eventRoutes.js";
+import { dashboardRouter } from "./routes/dashboardRoute.js";
 import activityRoutes from "./routes/activityRoutes.js";
 
 dotenv.config();
@@ -18,8 +19,8 @@ app.use(cookieParser());
 // Middleware
 app.use(express.json());
 app.use(cors({
-    origin: "http://localhost:3000",
-    credentials: true,
+  origin: "http://localhost:3000",
+  credentials: true,
 }));
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -27,12 +28,17 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/event", eventRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/api/activities", activityRoutes);
 
 // Connect to DB
 connectDB().then(() => {
-  startWatcher(); 
-  console.log("start wtchter runs")
+  if (process.env.NODE_ENV === 'production') {
+    ActivityWatcher.init();
+    console.log("Activity Watcher started on LIVE server");
+  } else {
+    console.log("Activity Watcher disabled (running on LOCAL)");
+  }
 });
 
 // Start Server

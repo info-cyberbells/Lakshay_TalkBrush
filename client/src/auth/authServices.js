@@ -126,6 +126,14 @@ export const deleteEventService = async (eventId) => {
   return response.data;
 };
 
+//dashboard overview
+export const getDashboardService = async () => {
+  const response = await axios.get(USER_ENDPOINTS.ADMIN_DASHBOARD_OVERVIEW,
+    { withCredentials: true }
+  );
+  return response.data;
+};
+
 
 //get all activities
 export const getActivitiesService = async () => {

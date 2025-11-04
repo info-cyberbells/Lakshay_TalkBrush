@@ -144,12 +144,12 @@
 
 .input-field {
   width: 100%;
-  padding: 18px 10px 18px 50px;
+  padding: 18px 10px 18px 42px;
   background: #ffd7601a;
   border: 1px solid #ffd760;
   border-radius: 8px;
   color: white;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 120%;
   font-family: Poppins;
@@ -159,7 +159,7 @@
 
 .input-field::placeholder {
   color: #ffffff;
-  font-size: 12px;
+  font-size: 14px;
 
 }
 
@@ -298,9 +298,9 @@
   background-color: #FAB713;
   color: #ffffff;
   font-family: Poppins;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 500;
-  line-height: 120%;
+  line-height: 100%;
   cursor: pointer;
   margin-top: 15px;
   transition: background-color 1000ms ease-out, transform 0.3s ease-out;
@@ -316,7 +316,7 @@
 
 .DDHA {
   font-family: Poppins;
-  font-size: 12px;
+  font-size: 13px;
   display: flex;
   justify-content: center;
   align-items: center;

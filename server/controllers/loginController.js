@@ -5,7 +5,7 @@ import { User } from "../models/userModel.js";
 // Login Controller
 export const loginUser = async (req, res) => {
     try {
-        let { email, password, rememberMe } = req.body;
+        let { email, password } = req.body;
 
         if (email) {
             email = email.trim().toLowerCase();
@@ -23,8 +23,10 @@ export const loginUser = async (req, res) => {
             return res.status(400).json({ message: "Invalid email or password" });
         }
 
-        user.lastLogin = new Date();
-        await user.save();
+        await User.updateOne(
+            { _id: user._id },
+            { $set: { lastLogin: new Date() } }
+        );
 
         // Generate JWT token
         const token = jwt.sign(
@@ -33,7 +35,7 @@ export const loginUser = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
         );
 
-        const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 23 * 60 * 60 * 1000 ;
+        const maxAge = 7 * 24 * 60 * 60 * 1000;
 
         // Return user info + token
         res.cookie("authToken", token, {

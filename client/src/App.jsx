@@ -13,6 +13,8 @@ import Event from './pages/Events/Event';
 import Toast from './Component/Toast/Toast';
 import ConvoSpace from './pages/ConvoSpace/ConvoSpace';
 import UserEvents from './pages/UserEvents/UserEvents';
+import VoiceConversation from "./pages/VoiceConversation/VoiceConversation";
+
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -64,6 +66,7 @@ function AppContent() {
         <Route path='/manage-event' element={<Event />} />
         <Route path='/convo-space' element={<ConvoSpace />} />
         <Route path='/events' element={<UserEvents />} />
+        <Route path='/voice-conversation' element={<VoiceConversation />} />
       </Routes>
     </div >
   );

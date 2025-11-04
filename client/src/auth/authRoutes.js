@@ -17,6 +17,8 @@ export const USER_ENDPOINTS = {
   UPDATE_EVENT: `${API_BASE_URL}/event/updateEvent`,
   DELETE_EVENT: `${API_BASE_URL}/event/deleteEvent`,
 
+  ADMIN_DASHBOARD_OVERVIEW: `${API_BASE_URL}/dashboard/overview`,
+
   GET_ALL_ACTIVITIES: `${API_BASE_URL}/activities/getAllActivities`,
 };
 

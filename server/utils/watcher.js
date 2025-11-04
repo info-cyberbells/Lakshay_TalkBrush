@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Activity from "./models/activityModel.js";
+import Activity from "../models/activityModel.js";
 
 const startWatcher = () => {
     const db = mongoose.connection;

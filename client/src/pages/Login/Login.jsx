@@ -138,14 +138,14 @@ export default function Login() {
             <div className="form-container">
               <div className="form-toggle">
                 <h2
-                  className={isLogin ? "active" : ""}
+                  className={isLogin ? "" : "active"}
                 // onClick={() => setIsLogin(true)}
                 >
                   Login
                 </h2>
                 <h2 style={{ color: "rgba(255, 255, 255, 0.5)", fontWeight: 200 }}>|</h2>
                 <h2
-                  className={!isLogin ? "active" : ""}
+                  className={!isLogin ? "" : "active"}
                 // onClick={() => setIsLogin(false)}
                 >
                   Signup
