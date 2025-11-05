@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginService, verifyService, logoutService, signupService, updateProfileService, getProfileService, getAllusersByType, deleteUsersService, editUserDetails } from "../auth/authServices";
+import { loginService, verifyService, logoutService, signupService, updateProfileService, getProfileService, getAllusersByType, deleteUsersService, editUserDetails, changePasswordService, requestPasswordResetService, verifyResetCodeService } from "../auth/authServices";
 
 const user = JSON.parse(localStorage.getItem("User"));
 
@@ -145,6 +145,45 @@ export const updateUser = createAsyncThunk(
         } catch (error) {
             const message = error.response?.data?.message || error.message || "Failed to update user";
             return rejectWithValue(message);
+        }
+    }
+);
+
+//change password
+export const changePassword = createAsyncThunk(
+    "auth/changePassword",
+    async ({ currentPassword, newPassword }, { rejectWithValue }) => {
+        try {
+            const response = await changePasswordService({ currentPassword, newPassword });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+// request password reset (send OTP)
+export const requestPasswordReset = createAsyncThunk(
+    "auth/requestPasswordReset",
+    async (email, { rejectWithValue }) => {
+        try {
+            const response = await requestPasswordResetService(email);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+// verify reset code and set new password
+export const verifyResetCode = createAsyncThunk(
+    "auth/verifyResetCode",
+    async ({ email, code, newPassword }, { rejectWithValue }) => {
+        try {
+            const response = await verifyResetCodeService({ email, code, newPassword });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message);
         }
     }
 );
@@ -322,6 +361,58 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.isError = action.payload;
             })
+
+            // change password
+            .addCase(changePassword.pending, (state) => {
+                state.isLoading = true;
+                state.isError = false;
+                state.isSuccess = false;
+            })
+            .addCase(changePassword.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.message = "Password changed successfully!";
+            })
+            .addCase(changePassword.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload || "Failed to change password.";
+            })
+
+            // request password reset
+            .addCase(requestPasswordReset.pending, (state) => {
+                state.isLoading = true;
+                state.isError = false;
+                state.isSuccess = false;
+            })
+            .addCase(requestPasswordReset.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.message = action.payload.message || "OTP sent successfully!";
+            })
+            .addCase(requestPasswordReset.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload || "Failed to send OTP.";
+            })
+
+            // verify reset code
+            .addCase(verifyResetCode.pending, (state) => {
+                state.isLoading = true;
+                state.isError = false;
+                state.isSuccess = false;
+            })
+            .addCase(verifyResetCode.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.message = action.payload.message || "Password reset successful!";
+            })
+            .addCase(verifyResetCode.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload || "Invalid or expired reset code.";
+            })
+
     }
 })
 

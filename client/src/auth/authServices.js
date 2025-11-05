@@ -142,3 +142,27 @@ export const getActivitiesService = async () => {
   );
   return response.data;
 };
+
+
+//change password
+export const changePasswordService = async ({ currentPassword, newPassword }) => {
+  const response = await axios.post(
+    USER_ENDPOINTS.CHANGE_PASSWORD,
+    { currentPassword, newPassword },
+    { withCredentials: true }
+  );
+  return response.data;
+};
+
+
+// Request password reset (send OTP)
+export const requestPasswordResetService = async (email) => {
+  const response = await axios.post(`${USER_ENDPOINTS.RESET_PASSWORD}`, { email });
+  return response.data;
+};
+
+// Verify code and set new password
+export const verifyResetCodeService = async ({ email, code, newPassword }) => {
+  const response = await axios.post(`${USER_ENDPOINTS.VERIFY_RESET_CODE}`, { email, code, newPassword });
+  return response.data;
+};

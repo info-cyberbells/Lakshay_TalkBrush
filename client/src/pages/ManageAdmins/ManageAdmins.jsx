@@ -38,9 +38,7 @@ const ManageAdmins = () => {
   const [isDeleteModelOpen, setDeleteModel] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
-  const [editUser, setEditUser] = useState(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     dispatch(
@@ -53,7 +51,7 @@ const ManageAdmins = () => {
     );
   }, [dispatch, paginationType2.currentPage]);
 
-    const handleApplyFilter = () => {
+  const handleApplyFilter = () => {
     dispatch(
       setPaginationConfigType2({
         ...filterConfig,
@@ -68,20 +66,20 @@ const ManageAdmins = () => {
         sortOrder: filterConfig.sortOrder,
       })
     );
-  //  dispatch(
-  //    showToast({
-  //      message: `Filter applied: Sorted by "${filterConfig.sortBy}", Limit: ${filterConfig.limit}`,
-  //      type: "info",
-  //    })
-  // );
+    //  dispatch(
+    //    showToast({
+    //      message: `Filter applied: Sorted by "${filterConfig.sortBy}", Limit: ${filterConfig.limit}`,
+    //      type: "info",
+    //    })
+    // );
 
-  dispatch(
-     showToast({
-       message: "Filter applied Successfully",
-       type: "info",
-     })
-  );
-  
+    dispatch(
+      showToast({
+        message: "Filter applied Successfully",
+        type: "info",
+      })
+    );
+
     setIsFilterOpen(false);
   };
 
@@ -134,14 +132,13 @@ const ManageAdmins = () => {
         sortOrder: "desc",
       })
     );
-    dispatch(showToast({message: "Filter Reset."}));
+    dispatch(showToast({ message: "Filter Reset." }));
     setIsFilterOpen(false);
   };
 
-  const handleAddAdmin = (data) => {
-    console.log("New Admin:", data);
+  const handleAddAdmin = () => {
     setIsModalOpen(false);
-
+    setEditingUser(null);
     dispatch(
       getAllUsersByType({
         page: paginationType2.currentPage,
@@ -184,52 +181,18 @@ const ManageAdmins = () => {
           })
         );
         dispatch(
-        showToast({
-          message: `${selectedAdmins.length} admin${selectedAdmins.length > 1 ? "s" : ""} deleted successfully.`,
-          type: "success",
-        })
-      );
+          showToast({
+            message: `${selectedAdmins.length} admin${selectedAdmins.length > 1 ? "s" : ""} deleted successfully.`,
+            type: "success",
+          })
+        );
       })
       .catch((error) => {
         console.error("Delete Failed", error);
-        dispatch(showToast({message: "Failed to delete!!!", type: 'error'}))
+        dispatch(showToast({ message: "Failed to delete!!!", type: 'error' }))
       })
-      
+
   };
-
-   // view details
-  const onView = (user) => {
-  setSelectedUser(user);
-  setIsUserDetailOpen(true);
-  setOpenMenuId(null); // close the dropdown
-};
-
-// edit details
-const onEdit = (user) => {
-  setEditUser(user);
-  setIsEditOpen(true);
-  setOpenMenuId(null); // close the dropdown
-};
-
-  const handleUpdateUser = (userData) => {
-    const { _id, createdAt, updatedAt, ...updateData } = userData;
-
-  dispatch(updateUser({ id: _id, data: updateData }))
-    .unwrap()
-    .then(() => {
-      setIsEditOpen(false);
-      // alert("User updated successfully");
-      // showToast("Updated Successfully");
-      dispatch(showToast({ message: "Updated successful!", type: "success" }));
-
-    })
-    .catch((err) => {
-      console.error("Update failed:", err);
-      // alert(err || "Failed to update user");
-      dispatch(showToast({ message: "Something wents wrong", type: "error" }));
-
-    });
-};
 
   const handleExport = () => {
     if (!allUsers || allUsers.length === 0) {
@@ -294,472 +257,292 @@ const onEdit = (user) => {
 
   return (
     <>
-    {/* <div className="min-h-screen bg-gray-50 ml-60 pr-60"> */}
-       <div className="min-h-screen bg-gray-50 lg:ml-60 lg:pr-60 ml-0 pr-0">
-      <div className="w-full px-5 md:px-10 md:py-10 pt-10">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2 mt-5">
-            <div>
-              <h1 className="text-sm md:text-2xl font-semibold text-gray-900 mt-3">
-                Manage Admins
-              </h1>
-              <p className="text-xs md:text-sm text-blue-600 mt-1">
-                Total Admins: {paginationType2.totalUsers}
-                {/* {allUsers?.length || 0} */}
-              </p>
-            </div>
-            <div className="grid grid-cols-2 text-sm lg:text-base md:flex items-center gap-1 md:gap-3">
-              <button
-                onClick={() => setDeleteModel(true)}
-                disabled={selectedAdmins.length === 0}
-                className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
-                  ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
-                  : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
-                  }`}
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
+      {/* <div className="min-h-screen bg-gray-50 ml-60 pr-60"> */}
+      <div className="min-h-screen bg-gray-50 lg:ml-60 lg:pr-60 ml-0 pr-0">
+        <div className="w-full px-5 md:px-10 md:py-10 pt-10">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2 mt-5">
+              <div>
+                <h1 className="text-sm md:text-2xl font-semibold text-gray-900 mt-3">
+                  Manage Admins
+                </h1>
+                <p className="text-xs md:text-sm text-blue-600 mt-1">
+                  Total Admins: {paginationType2.totalUsers}
+                  {/* {allUsers?.length || 0} */}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 text-sm lg:text-base md:flex items-center gap-1 md:gap-3">
+                <button
+                  onClick={() => setDeleteModel(true)}
+                  disabled={selectedAdmins.length === 0}
+                  className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
+                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
+                    : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+                    }`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
 
-              <button
-                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => setIsFilterOpen(true)}
-              >
-                <Filter className="w-4 h-4" />
-                Filters
-              </button>
-              <button
-                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={handleExport}
-              >
-                <Download className="w-4 h-4" />
-                Export
-              </button>
-              <button
-                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <Plus className="w-4 h-4" />
-                Add <p className="hidden md:inline">New Admin</p>
-              </button>
+                <button
+                  className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => setIsFilterOpen(true)}
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters
+                </button>
+                <button
+                  className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={handleExport}
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+                <button
+                  className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                  Add <p className="hidden md:inline">New Admin</p>
+                </button>
+              </div>
             </div>
+            <p className="text-sm hidden md:inline text-gray-600">
+              Manage all admin and their access
+            </p>
           </div>
-          <p className="text-sm hidden md:inline text-gray-600">
-            Manage all admin and their access
-          </p>
-        </div>
 
-        {/* <div className="bg-white rounded-lg shadow overflow-hidden w-full relative"> */}
+          {/* <div className="bg-white rounded-lg shadow overflow-hidden w-full relative"> */}
           <div className="bg-white rounded-lg shadow overflow-hidden w-full relative">
 
-          {isLoading && (
-            <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
-              <div className="spinner"></div>
-            </div>
-          )}
-          {/* <table className="min-w-full w-full table-fixed"> */}
-              <table className="min-w-full w-full md:table-fixed sm:scroll-auto " >
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-3 py-1 md:px-6 md:py-3 text-left w-12">
-                  <input
-                    type="checkbox"
-                    checked={
-                      allUsers?.length > 0 &&
-                      selectedAdmins.length === allUsers?.length
-                    }
-                    onChange={handleSelectAll}
-                    className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                  />
-                </th>
-                <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4">
-                  <div
-                    className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort("fullName")}
-                  >
-                    Name
-                    {sortConfig.column === "fullName" ? (
-                      sortConfig.order === "asc" ? (
-                        <ChevronUp />
-                      ) : (
-                        <ChevronDown />
-                      )
-                    ) : (
-                      <ChevronDown className="opacity-50" />
-                    )}
-                  </div>
-                </th>
-
-                {/* <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4"> */}
-                <th className="px-6 py-3 text-left w-[35%] sm:w-[30%]">
-                  <div
-                    className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort("email")}
-                  >
-                    Email
-                    {sortConfig.column === "email" ? (
-                      sortConfig.order === "asc" ? (
-                        <ChevronUp />
-                      ) : (
-                        <ChevronDown />
-                      )
-                    ) : (
-                      <ChevronDown className="opacity-50" />
-                    )}
-                  </div>
-                </th>
-
-                {/* <th className="px-6 py-3 text-left w-1/4"> */}
-                <th className="px-6 py-3 text-left w-1/4 hidden md:table-cell">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
-                    Phone No.
-                  </div>
-                </th>
-
-                {/* <th className="px-6 py-3 text-left w-1/4"> */}
-                <th className="px-6 py-3 text-left w-1/4 hidden lg:table-cell">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
-                    Last Login
-                  </div>
-                </th>
-
-                <th className="px-3 py-1 md:px-6 md:py-3 w-16"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {allUsers && allUsers.length > 0 ? (
-                allUsers.map((admin) => (
-                  <tr
-                    key={admin._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-2 py-1 md:px-6 md:py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedAdmins.includes(admin._id)}
-                        onChange={() => handleSelectAdmin(admin._id)}
-                        // className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                         className="w-2 h-2 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                      />
-                    </td>
-                    <td 
-                    className="px-2 py-1 md:px-6 md:py-4 text-sm font-medium  md:font-semibold text-gray-900"
+            {isLoading && (
+              <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90 z-10">
+                <div className="spinner"></div>
+              </div>
+            )}
+            {/* <table className="min-w-full w-full table-fixed"> */}
+            <table className="min-w-full w-full md:table-fixed sm:scroll-auto " >
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-3 py-1 md:px-6 md:py-3 text-left w-12">
+                    <input
+                      type="checkbox"
+                      checked={
+                        allUsers?.length > 0 &&
+                        selectedAdmins.length === allUsers?.length
+                      }
+                      onChange={handleSelectAll}
+                      className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4">
+                    <div
+                      className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                      onClick={() => handleSort("fullName")}
                     >
-                      {admin.fullName}
-                    </td>
-                    <td 
-                    // className="px-6 py-4 text-sm text-gray-600"
-                    className="px-2 py-1 md:px-6 md:py-4 text-sm text-gray-600"
+                      Name
+                      {sortConfig.column === "fullName" ? (
+                        sortConfig.order === "asc" ? (
+                          <ChevronUp />
+                        ) : (
+                          <ChevronDown />
+                        )
+                      ) : (
+                        <ChevronDown className="opacity-50" />
+                      )}
+                    </div>
+                  </th>
+
+                  {/* <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4"> */}
+                  <th className="px-6 py-3 text-left w-[35%] sm:w-[30%]">
+                    <div
+                      className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                      onClick={() => handleSort("email")}
                     >
-                      {admin.email}
-                    </td>
-                    {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
-                    <td className="px-6 py-4 text-sm text-gray-600 hidden md:table-cell">
-                      {admin.phoneNumber || "N/A"}
-                    </td>
-                    {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
-                    <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
-                      {admin.lastLogin
-                        ? new Date(admin.lastLogin).toLocaleString()
-                        : "Never"}
-                    </td>
-                    {/* <td className="px-6 py-4 text-right">
+                      Email
+                      {sortConfig.column === "email" ? (
+                        sortConfig.order === "asc" ? (
+                          <ChevronUp />
+                        ) : (
+                          <ChevronDown />
+                        )
+                      ) : (
+                        <ChevronDown className="opacity-50" />
+                      )}
+                    </div>
+                  </th>
+
+                  {/* <th className="px-6 py-3 text-left w-1/4"> */}
+                  <th className="px-6 py-3 text-left w-1/4 hidden md:table-cell">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
+                      Phone No.
+                    </div>
+                  </th>
+
+                  {/* <th className="px-6 py-3 text-left w-1/4"> */}
+                  <th className="px-6 py-3 text-left w-1/4 hidden lg:table-cell">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
+                      Last Login
+                    </div>
+                  </th>
+
+                  <th className="px-3 py-1 md:px-6 md:py-3 w-16"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {allUsers && allUsers.length > 0 ? (
+                  allUsers.map((admin) => (
+                    <tr
+                      key={admin._id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-2 py-1 md:px-6 md:py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedAdmins.includes(admin._id)}
+                          onChange={() => handleSelectAdmin(admin._id)}
+                          // className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                          className="w-2 h-2 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        />
+                      </td>
+                      <td
+                        className="px-2 py-1 md:px-6 md:py-4 text-sm font-medium  md:font-semibold text-gray-900"
+                      >
+                        {admin.fullName}
+                      </td>
+                      <td
+                        // className="px-6 py-4 text-sm text-gray-600"
+                        className="px-2 py-1 md:px-6 md:py-4 text-sm text-gray-600"
+                      >
+                        {admin.email}
+                      </td>
+                      {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
+                      <td className="px-6 py-4 text-sm text-gray-600 hidden md:table-cell">
+                        {admin.phoneNumber || "N/A"}
+                      </td>
+                      {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
+                      <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
+                        {admin.lastLogin
+                          ? new Date(admin.lastLogin).toLocaleString()
+                          : "Never"}
+                      </td>
+                      {/* <td className="px-6 py-4 text-right">
                       <button className="text-gray-400 hover:text-gray-600 transition-colors">
                         <MoreVertical className="w-5 h-5" />
                       </button>
                     </td> */}
 
                       <td className="px-2 py-1 md:px-4 md:py-2 lg:px-6 lg:py-4 text-right relative">
-                        {/* <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button> */}
                         <button
-                              onClick={() => setOpenMenuId(openMenuId === admin._id ? null : admin._id)}
-                              className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors "
-                            >
-                              <MoreVertical className="w-3 h:3 md:w-5 md:h-5" />
-                            </button>
-
-                            {openMenuId === admin._id && (
-                              <>
-                              {/* Transparent overlay inside the table cell */}
-    
-                              <div className="absolute right-6 mb-3 -top-9 w-40 bg-white shadow-lg rounded-lg border border-gray-100 z-50">
-                                {/* Cross icon to close */}
-                                <div className="flex items-center px-3 py-2 justify-between p-1">
-                                  <span className="text-sm font-semibold text-gray-700" >More Options</span>
-                                  <button
-                                    onClick={() => setOpenMenuId(null)}
-                                    className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-
-                                <button
-                                  onClick={() => {
-                                    onView(admin);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
-                                >
-                                  <Eye className="w-4 h-4 mr-2" /> View Details
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    onEdit(admin);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded-b-lg"
-                                >
-                                  <Edit className="w-4 h-4 mr-2" /> Edit Details
-                                </button>
-                              </div>
-                              </>
-                            )}
-                            
+                          onClick={() => {
+                            setEditingUser(admin);
+                            setIsModalOpen(true);
+                          }}
+                          className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                        >
+                          <MoreVertical className="w-3 h-3 md:w-5 md:h-5" />
+                        </button>
                       </td>
 
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
+                      No admins found
+                    </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-8 text-center text-gray-500"
+                )}
+              </tbody>
+            </table>
+            {paginationType2 && paginationType2.totalPages >= 1 && (
+              <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                <span className="text-sm text-gray-600 mb-3 sm:mb-0">
+                  Showing{" "}
+                  <span className="font-semibold text-gray-800">
+                    {(paginationType2.currentPage - 1) * paginationType2.limit + 1}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-semibold text-gray-800">
+                    {Math.min(
+                      paginationType2.currentPage * paginationType2.limit,
+                      paginationType2.totalUsers
+                    )}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-gray-800">
+                    {paginationType2.totalUsers}
+                  </span>
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        setPaginationConfigType2({
+                          currentPage: paginationType2.currentPage - 1,
+                        })
+                      )
+                    }
+                    disabled={paginationType2.currentPage === 1}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
                   >
-                    No admins found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          {paginationType2 && paginationType2.totalPages >= 1 && (
-            <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              <span className="text-sm text-gray-600 mb-3 sm:mb-0">
-                Showing{" "}
-                <span className="font-semibold text-gray-800">
-                  {(paginationType2.currentPage - 1) * paginationType2.limit + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-semibold text-gray-800">
-                  {Math.min(
-                    paginationType2.currentPage * paginationType2.limit,
-                    paginationType2.totalUsers
-                  )}
-                </span>{" "}
-                of{" "}
-                <span className="font-semibold text-gray-800">
-                  {paginationType2.totalUsers}
-                </span>
-              </span>
+                    ← Previous
+                  </button>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    dispatch(
-                      setPaginationConfigType2({
-                        currentPage: paginationType2.currentPage - 1,
-                      })
-                    )
-                  }
-                  disabled={paginationType2.currentPage === 1}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-                >
-                  ← Previous
-                </button>
+                  <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
+                    Page {paginationType2.currentPage} / {paginationType2.totalPages}
+                  </span>
 
-                <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md ">
-                  Page {paginationType2.currentPage} / {paginationType2.totalPages}
-                </span>
-
-                <button
-                  onClick={() =>
-                    dispatch(
-                      setPaginationConfigType2({
-                        currentPage: paginationType2.currentPage + 1,
-                      })
-                    )
-                  }
-                  disabled={paginationType2.currentPage === paginationType2.totalPages}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-                >
-                  Next →
-                </button>
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        setPaginationConfigType2({
+                          currentPage: paginationType2.currentPage + 1,
+                        })
+                      )
+                    }
+                    disabled={paginationType2.currentPage === paginationType2.totalPages}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+                  >
+                    Next →
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-          {isUserDetailOpen && selectedUser && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
-
-      {/* Close button */}
-      <button
-        onClick={() => setIsUserDetailOpen(false)}
-        className="absolute top-4 right-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Admin's Detail</h2>
-        <p className="text-sm text-gray-500 mt-1">Information about the selected Admin</p>
-      </div>
-
-      {/* Divider */}
-      <div className="border-b border-gray-200 mb-4"></div>
-
-      {/* Content */}
-      <div className="space-y-4 text-gray-700">
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Full Name:</span>
-          <span className="text-gray-900">{selectedUser.fullName}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Email:</span>
-          <span className="text-gray-900">{selectedUser.email}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Phone:</span>
-          <span className="text-gray-900">{selectedUser.phoneNumber || "N/A"}</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-600">Type:</span>
-          <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
-            {selectedUser.type === "2" ? "Admin" : "Other"}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Created At:</span>
-          <span className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium text-gray-600">Updated At:</span>
-          <span className="text-gray-900">{new Date(selectedUser.updatedAt).toLocaleString()}</span>
-        </div>
-      </div>
-
-    </div>
-  </div>
-)}
-
-      {isEditOpen && editUser && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-openDropdown">
-
-      {/* Close button */}
-      <button
-        onClick={() => setIsEditOpen(false)}
-        className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Edit Admin's Detail</h2>
-        <p className="text-sm text-gray-500 mt-1">Update admin's information below</p>
-      </div>
-
-      {/* Form */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleUpdateUser(editUser); // create this function to dispatch update
-        }}
-        className="space-y-4"
-      >
-        <div>
-          <label className="block text-gray-600 text-sm mb-1">Full Name</label>
-          <input
-            type="text"
-            value={editUser.fullName}
-            onChange={(e) =>
-              setEditUser({ ...editUser, fullName: e.target.value })
-            }
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-          />
+            )}
+          </div>
         </div>
 
-              <div>
-                <label className="block text-gray-600 text-sm mb-1">Email</label>
-                <input
-                  type="email"
-                  value={editUser.email}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, email: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-600 text-sm mb-1">Phone Number</label>
-                <input
-                  type="text"
-                  value={editUser.phoneNumber || ""}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, phoneNumber: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                />
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 font-medium text-sm">Type:</span>
-                <span className="px-2 py-1 text-xs font-semibold text-white rounded-full bg-blue-600">
-                  {editUser.type === "2" ? "Admin" : "Other"}
-                </span>
-              </div>
-
-        {/* Footer buttons */}
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => setIsEditOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-5 py-2 bg-blue-600 text-white cursor-pointer rounded-xl hover:bg-blue-700 transition-colors"
-          >
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-
-      <FilterModal
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        filterConfig={filterConfig}
-        setFilterConfig={setFilterConfig}
-        onApply={handleApplyFilter}
-        onReset={handleResetFilter}
-      />
-
-      <UserFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleAddAdmin}
-        type="admin"
-      />
-
-      {isDeleteModelOpen && (
-        <DeleteModal
-          onClose={() => setDeleteModel(false)}
-          onDelete={handleDelete}
+        <FilterModal
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
+          filterConfig={filterConfig}
+          setFilterConfig={setFilterConfig}
+          onApply={handleApplyFilter}
+          onReset={handleResetFilter}
         />
-      )}
-    </div>
+
+        <UserFormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingUser(null);
+          }}
+          onSubmit={handleAddAdmin}
+          type="admin"
+          userData={editingUser}
+        />
+
+        {isDeleteModelOpen && (
+          <DeleteModal
+            onClose={() => setDeleteModel(false)}
+            onDelete={handleDelete}
+          />
+        )}
+      </div>
     </>
   );
 };

@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema({
     type: {
         type: String,
     },
+    resetCode: String,
+    resetCodeExpires: Date,
     lastLogin: {
         type: Date,
     },

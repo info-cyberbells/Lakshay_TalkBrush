@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProfile, updateProfile } from "../../features/userSlice";
+import { fetchProfile, updateProfile, changePassword } from "../../features/userSlice";
 import { User, Mail, Phone, Calendar, Shield } from "lucide-react";
 import { showToast } from "../../features/toastSlice";
+import ChnagePasswordModal from "../Model/ChangePasswordModal.jsx";
+
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -10,6 +12,7 @@ const Profile = () => {
     (state) => state.auth
   );
   const [isChanged, setIsChanged] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -32,30 +35,32 @@ const Profile = () => {
   }, [user]);
 
   const handleChange = (e) => {
-    // setFormData({
-    //     ...formData,
-    //     [e.target.name]: e.target.value
-    // });
     const updatedData = { ...formData, [e.target.name]: e.target.value };
     setFormData(updatedData);
-    // Compare current formData with original user data
     const hasChanges = Object.keys(formData).some(
       (key) => updatedData[key]?.trim?.() !== user[key]?.trim?.()
     );
     setIsChanged(hasChanges);
   };
 
-  // const handleSubmit = async (e) => {
-  //     e.preventDefault();
-  //     // await dispatch(updateProfile(formData));
-  //      try {
-  //         await dispatch(updateProfile(formData)).unwrap();
-  //         dispatch(showToast({ message: "✅ Profile updated successfully!", type: "success" }));
-  //         dispatch(fetchProfile());
-  //     } catch (error) {
-  //         dispatch(showToast({ message: "❌ Failed to update profile!", type: "error" }));
-  //     }
-  // };
+  const handleChangePassword = () => {
+    setIsModalOpen(true);
+  };
+
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleModalSubmit = async ({ currentPassword, newPassword }) => {
+    try {
+      await dispatch(changePassword({ currentPassword, newPassword })).unwrap();
+      dispatch(showToast({ message: "Password changed successfully!", type: "success" }));
+      setIsModalOpen(false);
+    } catch (error) {
+      dispatch(showToast({ message: error || "Failed to change password!", type: "error" }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,7 +109,6 @@ const Profile = () => {
   };
 
   return (
-    // <div className="min-h-screen bg-gray-50 py-8 pl-[240px] pr-[240px] pt-[40px]">
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-8 lg:px-[230px] md:px-16 md:w-full  xl:px-[240px] pt-[40px] sm:w-full sm:mr-0 md:w-full xl:min-w-[320px]">
       <div className="max-w-full px-6 py-8">
         {/* Header */}
@@ -115,7 +119,9 @@ const Profile = () => {
             </h1>
           </div>
           <div>
-            <button className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-base text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+            <button
+              onClick={handleChangePassword}
+              className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-base text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
               Change Password
             </button>
           </div>
@@ -221,29 +227,16 @@ const Profile = () => {
                   />
                 </div>
 
-                {/* {isError && (
-                                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                                        <p className="text-red-700 text-sm font-medium">{message}</p>
-                                    </div>
-                                )}
-
-                                {isSuccess && (
-                                    <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                                        <p className="text-green-700 text-sm font-medium">Profile updated successfully!</p>
-                                    </div>
-                                )} */}
-
                 <div className="flex gap-4 pt-4">
                   <button
                     type="button"
                     onClick={handleSubmit}
                     disabled={!isChanged || isLoading}
                     className={`flex-1 py-3 font-medium rounded-lg transition  
-                        ${
-                          isChanged
-                            ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
-                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                        }`}
+                        ${isChanged
+                        ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
+                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      }`}
                   >
                     {isLoading ? "Updating..." : "Update Profile"}
                   </button>
@@ -253,6 +246,11 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <ChnagePasswordModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleModalSubmit}
+      />
     </div>
   );
 };

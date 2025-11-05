@@ -14,6 +14,7 @@ import Toast from './Component/Toast/Toast';
 import ConvoSpace from './pages/ConvoSpace/ConvoSpace';
 import UserEvents from './pages/UserEvents/UserEvents';
 import VoiceConversation from "./pages/VoiceConversation/VoiceConversation";
+import Analytics from './pages/Analytics/Analytis';
 
 
 function AppContent() {
@@ -67,6 +68,7 @@ function AppContent() {
         <Route path='/convo-space' element={<ConvoSpace />} />
         <Route path='/events' element={<UserEvents />} />
         <Route path='/voice-conversation' element={<VoiceConversation />} />
+        <Route path='/analytics' element={<Analytics />} />
       </Routes>
     </div >
   );

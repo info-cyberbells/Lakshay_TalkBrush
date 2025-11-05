@@ -1,5 +1,5 @@
 import express from "express";
-import { signupUser, getUsersByType, updateProfile, getProfile, updateUser, deleteUser } from "../controllers/userController.js";
+import { signupUser, getUsersByType, updateProfile, getProfile, updateUser, deleteUser, changePassword, requestResetPassword, verifyResetCodeAndChangePassword } from "../controllers/userController.js";
 import { loginUser, verifyToken, logoutUser } from "../controllers/loginController.js";
 
 export const userRouter = express.Router();
@@ -31,5 +31,13 @@ userRouter.put("/editUser/:id", updateUser);
 //delete Users/user
 userRouter.delete("/deleteUsers", deleteUser);
 
+//change password 
+userRouter.post("/changePassword", changePassword);
+
+//request password reset
+userRouter.post('/resetPassword', requestResetPassword);
+
+//verify  password reset code and change password
+userRouter.post('/verifyResetCode', verifyResetCodeAndChangePassword);
 
 

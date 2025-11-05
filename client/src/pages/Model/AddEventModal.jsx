@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useDispatch } from "react-redux";
-import {showToast} from "../../features/toastSlice";
+import { showToast } from "../../features/toastSlice";
 
 const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
 
     const dispatch = useDispatch();
+    const [errors, setErrors] = useState({});
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -24,12 +25,26 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                 time: editingEvent.time || '',
                 pictures: editingEvent.pictures || []
             });
+        } else {
+            setFormData({
+                fullName: '',
+                description: '',
+                date: '',
+                time: '',
+                pictures: []
+            });
         }
-    }, [editingEvent]);
+        setErrors({});
+    }, [editingEvent, isOpen]);
 
 
     const handleInputChange = (e) => {
         const { name, value, files } = e.target;
+        setErrors((prev) => {
+            if (!prev[name]) return prev;
+            return { ...prev, [name]: false };
+        });
+
 
         if (name === 'pictures' && files && files.length > 0) {
             const fileArray = Array.from(files);
@@ -44,7 +59,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
             Promise.all(readers).then(results => {
                 setFormData(prev => ({
                     ...prev,
-                    pictures: [...prev.pictures, ...results] 
+                    pictures: [...prev.pictures, ...results]
                 }));
             });
         } else {
@@ -57,21 +72,31 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.fullName || !formData.description || !formData.date || !formData.time) {
-           dispatch(showToast({ message: " All * fields are required!" }));
-           return;
-       }
+
+        const newErrors = {};
+        if (!formData.fullName) newErrors.fullName = true;
+        if (!formData.description) newErrors.description = true;
+        if (!formData.date) newErrors.date = true;
+        if (!formData.time) newErrors.time = true;
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            dispatch(showToast({ message: "Please fill all required * fields!", type: "error" }));
+            return;
+        }
+
         onSubmit(formData);
-        // Reset form
         setFormData({
-            fullName: '',
-            description: '',
-            date: '',
-            time: '',
-            picture: ''
+            fullName: "",
+            description: "",
+            date: "",
+            time: "",
+            pictures: [],
         });
-        dispatch(showToast({message : editingEvent ? "Event Updated successfully!!" : "Event Added Successfully!!!"}))
+        setErrors({});
+        dispatch(showToast({ message: editingEvent ? "Event Updated successfully!!" : "Event Added Successfully!!!" }));
     };
+
 
     const handleClose = () => {
         setFormData({
@@ -81,6 +106,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
             time: '',
             picture: ''
         });
+        setErrors({});
         onClose();
     };
 
@@ -112,7 +138,10 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                             value={formData.fullName}
                             onChange={handleInputChange}
                             // required
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins]"
+                            className={`w-full px-4 py-3 border rounded-lg outline-none font-[Poppins] transition-colors duration-200 ${errors.fullName
+                                ? "border-red-500 focus:border-red-500"
+                                : "border-gray-300 focus:border-[#2D4CCA]"
+                                }`}
                             placeholder="Enter event name"
                         />
                     </div>
@@ -127,7 +156,10 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                             onChange={handleInputChange}
                             // required
                             rows="4"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins] resize-none"
+                            className={`w-full px-4 py-3 border rounded-lg outline-none font-[Poppins] transition-colors duration-200 ${errors.description
+                                ? "border-red-500 focus:border-red-500"
+                                : "border-gray-300 focus:border-[#2D4CCA]"
+                                }`}
                             placeholder="Enter event description"
                         />
                     </div>
@@ -143,8 +175,10 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                                 value={formData.date}
                                 onChange={handleInputChange}
                                 // required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins]"
-                            />
+                                className={`w-full px-4 py-3 border rounded-lg outline-none font-[Poppins] transition-colors duration-200 ${errors.date
+                                    ? "border-red-500 focus:border-red-500"
+                                    : "border-gray-300 focus:border-[#2D4CCA]"
+                                    }`} />
                         </div>
 
                         <div>
@@ -157,8 +191,10 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                                 value={formData.time}
                                 onChange={handleInputChange}
                                 // required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins]"
-                            />
+                                className={`w-full px-4 py-3 border rounded-lg outline-none font-[Poppins] transition-colors duration-200 ${errors.time
+                                    ? "border-red-500 focus:border-red-500"
+                                    : "border-gray-300 focus:border-[#2D4CCA]"
+                                    }`} />
                         </div>
                     </div>
 
@@ -172,7 +208,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                             accept="image/*"
                             multiple
                             onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins] cursor-pointer"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#2D4CCA] focus:border-transparent outline-none font-[Poppins] cursor-pointer"
                         />
 
                         {/* ADD THIS PREVIEW SECTION */}
@@ -203,17 +239,17 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                         )}
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-[Poppins] font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md font-[Poppins] text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-6 py-3 bg-[#2D4CCA] text-white rounded-lg font-[Poppins] font-medium hover:bg-[#2440a8] transition-colors cursor-pointer"
+                            className="px-4 py-2  bg-blue-600 rounded-lg hover:bg-blue-700 text-white rounded-md font-[Poppins] text-sm font-medium hover:bg-[#2440a8] transition-colors cursor-pointer whitespace-nowrap"
                         >
                             {editingEvent ? 'Update Event' : 'Create Event'}
                         </button>

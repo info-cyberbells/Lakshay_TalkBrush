@@ -97,6 +97,7 @@ const ConvoSpace = () => {
             Más información sobre Talk Brush
           </a>
         </div>
+        
 
         {/* Right Section */}
         <div className="relative ml-auto lg:ml-0 lg:pl-12">

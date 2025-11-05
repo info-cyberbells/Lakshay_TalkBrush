@@ -59,8 +59,8 @@ const RightComponent = () => {
     dispatch(fetchActivities());
   }, [dispatch]);
 
-  const role = localStorage.getItem("role");
-  if (role === "3") return null;
+  // const role = localStorage.getItem("role");
+  // if (role === "3") return null;
 
 
   return (
