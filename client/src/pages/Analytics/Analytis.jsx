@@ -21,7 +21,7 @@ const Analytics = () => {
     ];
 
     return (
-        <div className="min-h-screen ml-[240px] mt-[50px] p-4 md:p-8">
+       <div className="lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3 px-4 lg:px-0 mt-4">
             <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* Conversations Chart Section */}

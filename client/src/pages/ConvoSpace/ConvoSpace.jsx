@@ -56,12 +56,12 @@ const ConvoSpace = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 ml-[240px] mt-[50px] mr-[250px] w-[calc(100%-240px)] pt-3">
-      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3">
+      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         {/* Left Section */}
-        <div className="space-y-6">
-          <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 leading-tight">
-            Start Conversation <br ></br>with TalkBrush para <br ></br>todos.
+        <div className="space-y-4 lg:space-y-6 mt-18 sm:mt-24 lg:mt-0">
+          <h1 className="text-xl lg:text-4xl font-bold text-gray-900 leading-tight">
+            Start Conversation <br className="hidden lg:block"></br>with TalkBrush para <br className="hidden lg:block"></br>todos.
           </h1>
 
           <p className="text-sm leading-relaxed" style={{ color: "#5F6368" }}>
@@ -72,10 +72,10 @@ const ConvoSpace = () => {
             through unique accents!
           </p>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 lg:gap-4">
             <button
               onClick={handleStartConversation}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md cursor-pointer"
+              className="flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md cursor-pointer text-sm lg:text-base"
             >
               <Mic className="w-5 h-5" />
               Start Conversation
@@ -83,7 +83,7 @@ const ConvoSpace = () => {
 
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer"
+              className="flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer text-sm lg:text-base"
             >
               <Link2 className="w-5 h-5" />
               Copy the link and share
@@ -97,13 +97,12 @@ const ConvoSpace = () => {
             Más información sobre Talk Brush
           </a>
         </div>
-        
+
 
         {/* Right Section */}
-        <div className="relative ml-auto lg:ml-0 lg:pl-12">
+        <div className="relative mx-auto lg:ml-0 lg:pl-12 w-full max-w-md lg:max-w-none">
           {/* Image Slider Container */}
-          <div className="relative bg-gradient-to-br from-blue-100 to-blue-200 rounded-full overflow-hidden aspect-square shadow-lg max-w-sm">
-            {/* Images */}
+          <div className="relative bg-gradient-to-br from-blue-100 to-blue-200 rounded-full overflow-hidden aspect-square shadow-lg w-full max-w-[280px] sm:max-w-sm mx-auto">            {/* Images */}
             {slides.map((slide, index) => (
               <div
                 key={index}
@@ -121,24 +120,24 @@ const ConvoSpace = () => {
             {/* Navigation Arrows on Image */}
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
+              className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
             >
               <ChevronLeft className="w-5 h-5 text-gray-800 cursor-pointer" />
             </button>
 
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
+              className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
             >
               <ChevronRight className="w-5 h-5 text-gray-800 cursor-pointer" />
             </button>
           </div>
 
           {/* Info Card Below Image */}
-          <div className="mt-8 bg-white rounded-2xl  p-6">
+          <div className="mt-6 lg:mt-8 bg-white rounded-2xl p-4 lg:p-6">
             {/* Slide Content */}
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-2 lg:mb-3">
                 {slides[currentSlide].title}
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">

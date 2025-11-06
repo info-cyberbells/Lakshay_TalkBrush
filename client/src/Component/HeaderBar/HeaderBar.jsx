@@ -5,8 +5,7 @@ import { MdDashboard } from "react-icons/md";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { Menu, X } from 'lucide-react';
 
-const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
-
+const Header = ({ isSidebarOpen, setIsSidebarOpen, isRightPanelOpen, setIsRightPanelOpen }) => {
 
   const { title } = usePageTitle();
   const [isMobile, setIsMobile] = useState(false);
@@ -44,12 +43,29 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
         </div>
         {!isMobile && (
           <>
-            <img src="/headers/lighttheme.png" alt="Profile" className="right-side-icons" />
-            <img src="/headers/history.png" alt="Profile" className="right-side-icons" />
+            <img src="/headers/lighttheme.png" alt="Profile" className="right-side-icons" />          </>
+        )}
+        {isMobile && (
+          <>
+            <img
+              src="/headers/history.png"
+              alt="History"
+              className="right-side-icons"
+              onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+              style={{ cursor: 'pointer' }}
+            />
+            <img
+              src="/headers/notification.png"
+              alt="Notification"
+              className="right-side-icons"
+              onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+              style={{ cursor: 'pointer' }}
+            />
           </>
         )}
-        <img src="/headers/notification.png" alt="Profile" className="right-side-icons" />
-        <img src="/headers/Settings.png" style={{ height: "12px", width: "12px" }} alt="Profile" className="right-side-icons" />
+        {!isMobile && (
+          <img src="/headers/Settings.png" style={{ height: "12px", width: "12px" }} alt="Profile" className="right-side-icons" />
+        )}
 
         {/* Mobile Menu Toggle Button */}
         {isMobile && (

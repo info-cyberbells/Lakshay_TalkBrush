@@ -51,7 +51,7 @@ const getInitial = (description) => {
   return description.charAt(0).toUpperCase();
 };
 
-const RightComponent = () => {
+const RightComponent = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { notifications, activities, loading, error } = useSelector((state) => state.activities);
 
@@ -64,7 +64,23 @@ const RightComponent = () => {
 
 
   return (
-    <aside className="right-component">
+    <aside className={`right-component ${isOpen ? 'open' : ''}`}>
+      {isOpen && (
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            background: 'none',
+            border: 'none',
+            fontSize: '24px',
+            cursor: 'pointer'
+          }}
+        >
+          ×
+        </button>
+      )}
       {/* Notifications Section (Events) */}
       <div className="right-box">
         <h4>Notifications</h4>

@@ -62,16 +62,16 @@ const VoiceConversation = ({ onEndCall }) => {
 
     return (
         <div
-            className="h-screen bg-gray-50 flex ml-[240px] mt-[50px] mr-[235px] w-[calc(100%-240px)] overflow-hidden"
+            className="h-screen bg-gray-50 flex flex-col lg:flex-row lg:ml-[240px] lg:mt-[50px] lg:mr-[235px] lg:w-[calc(100%-240px)] overflow-hidden px-4 lg:px-0 pt-4 lg:pt-0"
             style={{ fontFamily: "'Mia-Assistant-Vocal', sans-serif" }}
         >
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col">
                 {/* Header */}
-                <div className="border-gray-200 px-8 py-6 flex items-center justify-between">
-                    <div className="flex items-center bg-white  gap-4">
+                <div className="border-gray-200 px-4 lg:px-8 py-4 lg:py-6 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 pt-16 lg:pt-4">
+                    <div className="flex items-center gap-4 w-full lg:w-auto justify-center lg:justify-start order-2 lg:order-1">
                         {/* Accent Dropdown */}
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-white-50 transition-colors">
+                        <button className="flex items-center gap-2 px-3 lg:px-4 py-2 border border-gray-300 rounded-lg hover:bg-white-50 transition-colors text-sm lg:text-base">
                             <span className="font-medium cursor-pointer" style={{
                                 fontFamily: "'Poppins', sans-serif",
                                 color: "#333333"
@@ -80,30 +80,28 @@ const VoiceConversation = ({ onEndCall }) => {
                         </button>
                     </div>
 
-                    <div className="flex-1 text-center">
+                    <div className="flex-1 text-center w-full lg:w-auto">
                         <h1
+                            className="text-xl lg:text-3xl"
                             style={{
                                 fontFamily: "'Hanken Grotesk', sans-serif",
                                 fontWeight: 700,
                                 fontStyle: "normal",
-                                fontSize: "32px",
-                                lineHeight: "56.2px",
+                                lineHeight: "1.4",
                                 letterSpacing: "0",
                                 color: "#000000",
                             }}
                         >
                             Mia - Assistant Vocal
                         </h1>
-
-                        <p style={{
+                        <p className="text-sm lg:text-xl" style={{
                             fontFamily: "'Hanken Grotesk', sans-serif",
                             fontWeight: 400,
                             fontStyle: "normal",
-                            fontSize: "20px",
-                            lineHeight: "56.2px",
+                            lineHeight: "1.4",
                             letterSpacing: "0",
                             color: "#868686",
-                            marginTop: "-15px",
+                            marginTop: "0px",
                         }}>
                             Specialized AI Assistant for Ivory Coast
                         </p>
@@ -112,9 +110,9 @@ const VoiceConversation = ({ onEndCall }) => {
                 </div>
 
                 {/* Center Content - Waveform */}
-                <div className="flex-1 flex flex-col items-center justify-center px-8">
+                <div className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-6 lg:py-0">
                     {/* Animated Waveform */}
-                    <div className="relative w-full max-w-xl h-64 flex items-center justify-center mb-8">
+                    <div className="relative w-full max-w-xl h-40 lg:h-64 flex items-center justify-center mb-6 lg:mb-8">
                         <svg
                             className="w-full h-full"
                             viewBox="0 0 800 300"
@@ -235,8 +233,9 @@ const VoiceConversation = ({ onEndCall }) => {
                     </div>
 
                     {/* Listening Status */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-6 lg:mb-8">
                         <p
+                            className="text-xl lg:text-3xl"
                             style={{
                                 fontFamily: "'Turret Road', sans-serif",
                                 fontWeight: 400,
@@ -258,45 +257,45 @@ const VoiceConversation = ({ onEndCall }) => {
                     </div>
 
                     {/* Control Buttons */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 lg:gap-4">
                         <button
                             onClick={handleMicToggle}
-                            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-lg ${isListening
+                            className={`w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-lg ${isListening
                                 ? "bg-white text-gray-700 hover:bg-gray-100"
                                 : "bg-gray-700 text-white hover:bg-gray-800"
                                 }`}
                         >
-                            <Mic className="w-6 h-6" />
+                            <Mic className="w-5 h-5 lg:w-6 lg:h-6" />
                         </button>
 
                         <button
                             onClick={handleShare}
-                            className="w-14 h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg"
+                            className="w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg"
                         >
-                            <Share2 className="w-6 h-6 text-gray-700" />
+                            <Share2 className="w-5 h-5 lg:w-6 lg:h-6 text-gray-700" />
                         </button>
 
                         <button
                             onClick={handleLike}
-                            className="w-14 h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg"
+                            className="w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg"
                         >
-                            <ThumbsUp className="w-6 h-6 text-gray-700" />
+                            <ThumbsUp className="w-5 h-5 lg:w-6 lg:h-6 text-gray-700" />
                         </button>
 
                         <button
                             onClick={handleEndCall}
-                            className="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors shadow-lg"
+                            className="w-12 h-12 lg:w-14 lg:h-14 bg-red-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors shadow-lg"
                         >
-                            <Phone className="w-6 h-6 text-white rotate-[135deg]" />
+                            <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-white rotate-[135deg]" />
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Right Sidebar - Participants */}
-            <div className="w-80 text-center p-6 bg-gray-50">
+            <div className="w-full lg:w-80 text-center p-4 lg:p-6 bg-gray-50 border-t lg:border-t-0 lg: border-gray-200 max-h-[50vh] lg:max-h-none overflow-y-auto">
                 <div
-                    className="font-medium mb-5"
+                    className="font-medium mb-4 lg:mb-5 text-sm lg:text-base"
                     style={{
                         display: "flex",
                         justifyContent: "center",
@@ -319,7 +318,7 @@ const VoiceConversation = ({ onEndCall }) => {
                 </div>
 
 
-                <div className="w-auto bg-white border-l border-gray-200 p-6 overflow-y-auto">
+                <div className="w-auto bg-white p-4 lg:p-6">
                     {/* Active Participants */}
                     <div className="space-y-6">
                         {participants.map((participant) => (
@@ -331,7 +330,7 @@ const VoiceConversation = ({ onEndCall }) => {
                                     <img
                                         src={participant.avatar}
                                         alt={participant.name}
-                                        className="w-20 h-20 rounded-full border-4 border-blue-500"
+                                        className="w-16 h-16 lg:w-20 lg:h-20 rounded-full border-4 border-blue-500"
                                     />
                                     {participant.isActive && (
                                         <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
@@ -352,7 +351,7 @@ const VoiceConversation = ({ onEndCall }) => {
                                     key={user.id}
                                     src={user.avatar}
                                     alt="Participant"
-                                    className="w-10 h-10 rounded-full border-2 border-white shadow-md"
+                                    className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white shadow-md"
                                 />
                             ))}
                         </div>

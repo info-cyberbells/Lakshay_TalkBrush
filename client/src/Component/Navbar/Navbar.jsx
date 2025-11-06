@@ -9,6 +9,7 @@ import { Menu, X } from 'lucide-react';
 const Navbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -41,8 +42,13 @@ const Navbar = () => {
         <MenuItems onClose={() => setIsSidebarOpen(false)} />
       </aside>
 
-      <HeaderBar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-      <RightComponent />
+      <HeaderBar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        isRightPanelOpen={isRightPanelOpen}
+        setIsRightPanelOpen={setIsRightPanelOpen}
+      />
+      <RightComponent isOpen={isRightPanelOpen} onClose={() => setIsRightPanelOpen(false)} />
     </>
   );
 };
