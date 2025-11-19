@@ -19,68 +19,6 @@ import AddEventModal from "../Model/AddEventModal";
 import DeleteModal from "../Model/DeleteModal";
 import { showToast } from "../../features/toastSlice";
 
-// const ScheduleCard = ({ event, onEdit, onDelete }) => (
-//   <div
-//     className="font-[Poppins] border-l-8 border border-[#E5E7EB] bg-white rounded-lg p-3 sm:p-4 md:p-5 hover:shadow-md transition-shadow w-full overflow-hidden"
-//     style={{ borderLeftColor: "#2D4CCA" }}
-//   >
-//     <div className="flex flex-col w-full">
-//       <div className="flex justify-between items-start gap-2 w-full">
-//         <div className="flex-1 min-w-0 overflow-hidden">
-//           <span className="text-[#A098AE] font-medium text-xs sm:text-sm md:text-[14px]">
-//             {event.time}
-//           </span>
-//           <h3 className="text-[#252525] text-sm sm:text-base md:text-[18px] font-semibold mt-1">
-//             {event.fullName}
-//           </h3>
-//           <p
-//             className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden"
-//           >
-//             {event.description}
-//           </p>
-//         </div>
-
-//         <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4">
-//           {event.pictures && event.pictures.length > 0 ? (
-//             <div className="flex -space-x-2">
-//               {event.pictures.slice(0, 3).map((pic, idx) => (
-//                 <img
-//                   key={idx}
-//                   src={pic}
-//                   alt={`Event ${idx + 1}`}
-//                   className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white"
-//                 />
-//               ))}
-//               {event.pictures.length > 3 && (
-//                 <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gray-200 rounded-full flex items-center justify-center border-2 border-white">
-//                   <span className="text-xs sm:text-sm font-semibold text-gray-600">
-//                     +{event.pictures.length - 3}
-//                   </span>
-//                 </div>
-//               )}
-//             </div>
-//           ) : null}
-
-//           <button
-//             onClick={() => onEdit(event)}
-//             className="p-1 sm:p-2 hover:bg-gray-100 rounded-md transition-colors"
-//             title="Edit event"
-//           >
-//             <Edit className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 cursor-pointer" />
-//           </button>
-
-//           <button
-//             onClick={() => onDelete(event)}
-//             className="p-1 sm:p-2 hover:bg-red-50 rounded-md transition-colors"
-//             title="Delete event"
-//           >
-//             <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 cursor-pointer" />
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// );
 
 const ScheduleCard = ({ event, onEdit, onDelete }) => {
   const [previewImg, setPreviewImg] = useState(null);
@@ -130,11 +68,10 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => {
           <img
             src={previewImg}
             alt="Preview"
-            className={`max-w-[95%] max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out ${
-              isZoomed
-                ? "scale-150 cursor-zoom-out"
-                : "scale-100 cursor-zoom-in"
-            }`}
+            className={`max-w-[95%] max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out ${isZoomed
+              ? "scale-150 cursor-zoom-out"
+              : "scale-100 cursor-zoom-in"
+              }`}
             onClick={toggleZoom}
           />
         </div>
@@ -282,10 +219,10 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => {
               </button>
             </div>
           </div>
-            <div>
-                <p className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden">
-                {event.description}
-              </p>
+          <div>
+            <p className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden">
+              {event.description}
+            </p>
           </div>
         </div>
       </div>
@@ -374,7 +311,6 @@ const Event = () => {
         setDeleteModel(false);
         setEventToDelete(null);
         dispatch(showToast({ message: "Event Deleted Successfully!!!" }));
-        // dispatch(showToast({ message: "Event Deleted Successfully!!!", type: "success" }));
       } catch (error) {
         console.error("Error deleting event:", error);
         dispatch(showToast({ message: "Failed to Delete Event!!!!" }));
@@ -390,40 +326,40 @@ const Event = () => {
     return new Date(d.setDate(diff));
   };
 
- const filterEvents = (eventsList) => {
-  if (filterType === "all") return eventsList;
+  const filterEvents = (eventsList) => {
+    if (filterType === "all") return eventsList;
 
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
 
-  if (filterType === "week") {
-    const weekStart = startOfWeek(now);    // Monday
-    const weekEnd = new Date(weekStart);   
-    weekEnd.setDate(weekEnd.getDate() + 6);  // Sunday
+    if (filterType === "week") {
+      const weekStart = startOfWeek(now);    // Monday
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);  // Sunday
 
-    return eventsList.filter((event) => {
-      const eventDate = new Date(event.date);
-      eventDate.setHours(0, 0, 0, 0);
+      return eventsList.filter((event) => {
+        const eventDate = new Date(event.date);
+        eventDate.setHours(0, 0, 0, 0);
 
-      return eventDate >= weekStart && eventDate <= weekEnd;
-    });
-  }
+        return eventDate >= weekStart && eventDate <= weekEnd;
+      });
+    }
 
-  if (filterType === "month") {
-    const month = now.getMonth();
-    const year = now.getFullYear();
+    if (filterType === "month") {
+      const month = now.getMonth();
+      const year = now.getFullYear();
 
-    return eventsList.filter((event) => {
-      const eventDate = new Date(event.date);
-      return (
-        eventDate.getMonth() === month &&
-        eventDate.getFullYear() === year
-      );
-    });
-  }
+      return eventsList.filter((event) => {
+        const eventDate = new Date(event.date);
+        return (
+          eventDate.getMonth() === month &&
+          eventDate.getFullYear() === year
+        );
+      });
+    }
 
-  return eventsList;
-};
+    return eventsList;
+  };
 
 
   // Group events by date
@@ -447,12 +383,12 @@ const Event = () => {
   // const groupedEvents = groupEventsByDate(events);
   const filteredUpcomingEvents = filterEvents(events);
   // Sort upcoming events by date (ascending)
-const sortedUpcomingEvents = [...filteredUpcomingEvents].sort((a, b) => {
-  return new Date(a.date) - new Date(b.date);
-});
+  const sortedUpcomingEvents = [...filteredUpcomingEvents].sort((a, b) => {
+    return new Date(a.date) - new Date(b.date);
+  });
 
-// Now group sorted events
-const groupedEvents = groupEventsByDate(sortedUpcomingEvents);
+  // Now group sorted events
+  const groupedEvents = groupEventsByDate(sortedUpcomingEvents);
 
   const filteredTodayEvents = filterEvents(todayEvents);
 

@@ -148,18 +148,36 @@ export const updateEvent = async (req, res) => {
     if (date) event.date = date;
     if (time) event.time = time;
 
-    let picturePaths = event.pictures || [];  // Keep existing pictures
+    let picturePaths = event.pictures || [];
+
     if (req.body.pictures && Array.isArray(req.body.pictures)) {
-      picturePaths = [];  // Reset if new pictures provided
-      for (const pictureData of req.body.pictures) {
-        if (pictureData.startsWith('data:image')) {
-          const base64Data = pictureData.replace(/^data:image\/\w+;base64,/, '');
-          const buffer = Buffer.from(base64Data, 'base64');
+      picturePaths = [];
+
+      for (let pic of req.body.pictures) {
+
+        if (pic.startsWith("http://") || pic.startsWith("https://")) {
+          const relative = pic.replace(/^https?:\/\/[^/]+/, "");
+          picturePaths.push(relative);
+          continue;
+        }
+
+        if (pic.startsWith("/uploads/")) {
+          picturePaths.push(pic);
+          continue;
+        }
+
+        if (pic.startsWith("data:image")) {
+          const base64Data = pic.replace(/^data:image\/\w+;base64,/, "");
+          const buffer = Buffer.from(base64Data, "base64");
           const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
           const filepath = path.join(uploadFolder, filename);
+
           fs.writeFileSync(filepath, buffer);
+
           picturePaths.push(`/uploads/events/${filename}`);
+          continue;
         }
+
       }
     }
 

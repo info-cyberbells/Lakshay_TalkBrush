@@ -39,135 +39,159 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
 
 
     const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
+        const { name, value, files } = e.target;
 
-    setErrors((prev) => {
-        if (!prev[name]) return prev;
-        return { ...prev, [name]: false };
-    });
+        setErrors((prev) => {
+            if (!prev[name]) return prev;
+            return { ...prev, [name]: false };
+        });
 
-    if (name === "pictures" && files && files.length > 0) {
-        const fileArray = Array.from(files);
+        if (name === "pictures" && files && files.length > 0) {
+            const fileArray = Array.from(files);
 
-        // 🚫 Limit to max 10 images
-        if (formData.pictures.length + fileArray.length > 10) {
+            if (formData.pictures.length + fileArray.length > 10) {
+                dispatch(showToast({
+                    message: "You can upload a maximum of 10 images.",
+                    type: "error"
+                }));
+                return;
+            }
+
+            const processImages = fileArray.map(file => {
+                return new Promise((resolve) => {
+                    if (file.size > 5 * 1024 * 1024) {
+                        dispatch(showToast({
+                            message: `File ${file.name} is too large. Maximum 5MB allowed.`,
+                            type: "error"
+                        }));
+                        return resolve(null);
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+
+                    img.onload = () => {
+                        let { width, height } = img;
+
+                        if (width > 1024) {
+                            height = (height * 1024) / width;
+                            width = 1024;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        resolve(compressedBase64);
+                    };
+
+                    img.src = URL.createObjectURL(file);
+                });
+            });
+
+            Promise.all(processImages).then(results => {
+                const validResults = results.filter(result => result !== null);
+                setFormData(prev => ({
+                    ...prev,
+                    pictures: [...prev.pictures, ...validResults]
+                }));
+            });
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    const picturesChanged = () => {
+        if (!editingEvent) return true;
+
+        const original = editingEvent.pictures || [];
+        const current = formData.pictures || [];
+
+        if (original.length !== current.length) return true;
+
+        for (let i = 0; i < original.length; i++) {
+            if (original[i] !== current[i]) return true;
+        }
+
+        return false;
+    };
+
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const newErrors = {};
+        if (!formData.fullName) newErrors.fullName = true;
+        if (!formData.description) newErrors.description = true;
+        if (!formData.date) newErrors.date = true;
+        if (!formData.time) newErrors.time = true;
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             dispatch(showToast({
-                message: "You can upload a maximum of 10 images.",
+                message: "Please fill all required * fields!",
                 type: "error"
             }));
             return;
         }
 
-        const readers = fileArray.map(file => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(file);
-            });
-        });
+        if (!editingEvent) {
+            onSubmit(formData);
 
-        Promise.all(readers).then(results => {
-            setFormData(prev => ({
-                ...prev,
-                pictures: [...prev.pictures, ...results]
+            dispatch(showToast({
+                message: "Event Added Successfully!!!",
+                type: "success"
             }));
-        });
-    } else {
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    }
-};
 
-    const picturesChanged = () => {
-    if (!editingEvent) return true; // For create mode
+            setFormData({
+                fullName: "",
+                description: "",
+                date: "",
+                time: "",
+                pictures: [],
+            });
 
-    const original = editingEvent.pictures || [];
-    const current = formData.pictures || [];
+            return;
+        }
 
-    // If different length → changed
-    if (original.length !== current.length) return true;
+        const updatedFields = {};
 
-    // If any picture removed/added/changed → changed
-    for (let i = 0; i < original.length; i++) {
-        if (original[i] !== current[i]) return true;
-    }
+        if (editingEvent.fullName !== formData.fullName)
+            updatedFields.fullName = formData.fullName;
 
-    return false; // No changes detected
-};
+        if (editingEvent.description !== formData.description)
+            updatedFields.description = formData.description;
 
+        if (editingEvent.date.split("T")[0] !== formData.date)
+            updatedFields.date = formData.date;
 
-    const handleSubmit = (e) => {
-    e.preventDefault();
+        if (editingEvent.time !== formData.time)
+            updatedFields.time = formData.time;
 
-    const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = true;
-    if (!formData.description) newErrors.description = true;
-    if (!formData.date) newErrors.date = true;
-    if (!formData.time) newErrors.time = true;
+        // pictures (only when changed)
+        if (picturesChanged()) {
+            updatedFields.pictures = formData.pictures;
+        }
 
-    if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        dispatch(showToast({
-            message: "Please fill all required * fields!",
-            type: "error"
-        }));
-        return;
-    }
+        if (Object.keys(updatedFields).length === 0) {
+            dispatch(showToast({ message: "No changes detected!", type: "info" }));
+            return;
+        }
 
-    if (!editingEvent) {
-        onSubmit(formData);
+        onSubmit(updatedFields);
 
         dispatch(showToast({
-            message: "Event Added Successfully!!!",
+            message: "Event Updated successfully!!",
             type: "success"
         }));
 
-        setFormData({
-            fullName: "",
-            description: "",
-            date: "",
-            time: "",
-            pictures: [],
-        });
-
-        return;
-    }
-
-    const updatedFields = {};
-
-    if (editingEvent.fullName !== formData.fullName)
-        updatedFields.fullName = formData.fullName;
-
-    if (editingEvent.description !== formData.description)
-        updatedFields.description = formData.description;
-
-    if (editingEvent.date.split("T")[0] !== formData.date)
-        updatedFields.date = formData.date;
-
-    if (editingEvent.time !== formData.time)
-        updatedFields.time = formData.time;
-
-    // pictures (only when changed)
-    if (picturesChanged()) {
-        updatedFields.pictures = formData.pictures;
-    }
-
-    if (Object.keys(updatedFields).length === 0) {
-        dispatch(showToast({ message: "No changes detected!", type: "info" }));
-        return;
-    }
-
-    onSubmit(updatedFields);
-
-    dispatch(showToast({
-        message: "Event Updated successfully!!",
-        type: "success"
-    }));
-
-    setErrors({});
-};
+        setErrors({});
+    };
 
 
 
