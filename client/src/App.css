@@ -38,7 +38,7 @@
 
 
 /* Better looking toast */
-.custom-toast {
+/* .custom-toast {
   position: fixed;
   top: 30px;
   right: 30px;
@@ -50,7 +50,36 @@
   font-family: 'Poppins', sans-serif;
   animation: fadeSlideIn 0.4s ease;
   z-index: 9999;
+} */
+
+.custom-toast {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeSlideIn 0.4s ease;
+  z-index: 9999;
+  color: #fff;
 }
+
+/* SUCCESS */
+.custom-toast.success {
+  background: rgba(0, 180, 81, 0.9); /* green */
+}
+
+/* ERROR */
+.custom-toast.error {
+  background: rgba(220, 20, 60, 0.9); /* red */
+}
+
+/* INFO */
+.custom-toast.info {
+  background: rgba(17, 17, 207, 0.9); /* blue */
+}
+
 
 @keyframes slideIn {
   from {
