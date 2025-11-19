@@ -50,52 +50,233 @@ import { fetchAllEvents } from "../../features/eventSlice";
 //     </div>
 // );
 
-const ScheduleCard = ({ event }) => (
-    <div
-    className="font-[Poppins] border-l-8 border border-[#E5E7EB] bg-white rounded-lg p-3 sm:p-4 md:p-5 hover:shadow-md transition-shadow w-full overflow-hidden"
-    style={{ borderLeftColor: "#2D4CCA" }}
-  >
-    <div className="flex flex-col w-full">
-      <div className="flex justify-between items-start gap-2 w-full">
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <span className="text-[#A098AE] font-medium text-xs sm:text-sm md:text-[14px]">
-            {event.time}
-          </span>
-          <h3 className="text-[#252525] text-sm sm:text-base md:text-[18px] font-semibold mt-1">
-            {event.fullName}
-          </h3>
-          <p
-            className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden"
-          >
-            {event.description}
-          </p>
-        </div>
+// const ScheduleCard = ({ event }) => (
+//     <div
+//     className="font-[Poppins] border-l-8 border border-[#E5E7EB] bg-white rounded-lg p-3 sm:p-4 md:p-5 hover:shadow-md transition-shadow w-full overflow-hidden"
+//     style={{ borderLeftColor: "#2D4CCA" }}
+//   >
+//     <div className="flex flex-col w-full">
+//       <div className="flex justify-between items-start gap-2 w-full">
+//         <div className="flex-1 min-w-0 overflow-hidden">
+//           <span className="text-[#A098AE] font-medium text-xs sm:text-sm md:text-[14px]">
+//             {event.time}
+//           </span>
+//           <h3 className="text-[#252525] text-sm sm:text-base md:text-[18px] font-semibold mt-1">
+//             {event.fullName}
+//           </h3>
+//           <p
+//             className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden"
+//           >
+//             {event.description}
+//           </p>
+//         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4">
-          {event.pictures && event.pictures.length > 0 ? (
-            <div className="flex -space-x-2">
-              {event.pictures.slice(0, 3).map((pic, idx) => (
-                <img
-                  key={idx}
-                  src={pic}
-                  alt={`Event ${idx + 1}`}
-                  className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white"
-                />
-              ))}
-              {event.pictures.length > 3 && (
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gray-200 rounded-full flex items-center justify-center border-2 border-white">
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">
-                    +{event.pictures.length - 3}
-                  </span>
+//         <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4">
+//           {event.pictures && event.pictures.length > 0 ? (
+//             <div className="flex -space-x-2">
+//               {event.pictures.slice(0, 3).map((pic, idx) => (
+//                 <img
+//                   key={idx}
+//                   src={pic}
+//                   alt={`Event ${idx + 1}`}
+//                   className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white"
+//                 />
+//               ))}
+//               {event.pictures.length > 3 && (
+//                 <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gray-200 rounded-full flex items-center justify-center border-2 border-white">
+//                   <span className="text-xs sm:text-sm font-semibold text-gray-600">
+//                     +{event.pictures.length - 3}
+//                   </span>
+//                 </div>
+//               )}
+//             </div>
+//           ) : null}
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+
+import { X, ZoomIn, Image as ImageIcon, ZoomOut } from 'lucide-react';
+
+const ScheduleCard = ({ event }) => {
+  const [previewImg, setPreviewImg] = useState(null);
+  const [showGrid, setShowGrid] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  // Helper to close preview and reset zoom state
+  const closePreview = () => {
+    setPreviewImg(null);
+    setIsZoomed(false);
+  };
+
+  const toggleZoom = (e) => {
+    e.stopPropagation();
+    setIsZoomed(!isZoomed);
+  };
+
+  return (
+    <>
+     
+      {previewImg && (
+        <div 
+          className="fixed inset-0 z-[60] lg:ml-60 lg:mr-60 mt-12 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-hidden"
+          onClick={closePreview}
+        >
+          {/* Controls Container */}
+          <div className="absolute top-4 right-4 z-50 flex gap-3">
+             {/* Zoom Indicator / Toggle Button (Optional visual cue) */}
+             <button
+              className="p-2 cursor-pointer bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-md"
+              onClick={toggleZoom}
+            >
+              {isZoomed ? <ZoomOut size={24} /> : <ZoomIn size={24} />}
+            </button>
+
+            {/* Close Button */}
+            <button 
+              className="p-2 cursor-pointer bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-md"
+              onClick={(e) => { e.stopPropagation(); closePreview(); }}
+            >
+              <X size={24} />
+            </button>
+          </div>
+          
+          <img
+            src={previewImg}
+            alt="Preview"
+            className={`max-w-[95%] max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-in-out ${
+              isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
+            }`}
+            onClick={toggleZoom}
+          />
+        </div>
+      )}
+
+      {showGrid && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {/* Modal Container */}
+          <div 
+            className="bg-white w-full max-w-2xl mt-10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <ImageIcon size={20} />
                 </div>
-              )}
+                <div>
+                  <h3 className="font-bold text-gray-800 text-lg">Event Gallery</h3>
+                  <p className="text-xs text-gray-500">{event.pictures?.length || 0} photos</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowGrid(false)}
+                className="p-2 cursor-pointer hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
-          ) : null}
+
+            {/* Scrollable Grid Area */}
+            <div className="p-6 overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {event.pictures?.slice(0, 10).map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-xl bg-gray-100"
+                    onClick={() => setPreviewImg(img)}
+                  >
+                    {/* Image with Zoom Effect */}
+                    <img
+                      src={img}
+                      alt={`Gallery ${idx}`}
+                      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    />
+
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/20 flex items-center justify-center">
+                      <div className="opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                         <div className="bg-white/90 backdrop-blur text-gray-900 p-2 rounded-full shadow-lg">
+                            <ZoomIn size={18} />
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 px-6 py-3 text-center border-t border-gray-100">
+                <span className="text-xs text-gray-400 font-medium">Click an image to view full screen</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        className="font-[Poppins] border-l-8 border border-[#E5E7EB] bg-white rounded-lg p-3 sm:p-4 md:p-5 hover:shadow-md transition-shadow w-full overflow-hidden"
+        style={{ borderLeftColor: "#2D4CCA" }}
+      >
+        <div className="flex flex-col w-full">
+          <div className="flex justify-between items-start gap-2 w-full">
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <span className="text-[#A098AE] font-medium text-xs sm:text-sm md:text-[14px]">
+                {event.time}
+              </span>
+
+              <h3 className="text-[#252525] text-sm sm:text-base md:text-[18px] font-semibold mt-1">
+                {event.fullName}
+              </h3>
+            </div>
+            {/* Images Section on Card */}
+            <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4">
+              {event.pictures && event.pictures.length > 0 ? (
+                <div className="flex -space-x-2">
+                  {event.pictures.slice(0, 3).map((pic, idx) => (
+                    <img
+                      key={idx}
+                      src={pic}
+                      onClick={() => setPreviewImg(pic)}
+                      className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
+                    />
+                  ))}
+
+                    {event.pictures.length > 3 && (
+                    <div
+                      onClick={() => setShowGrid(true)}
+                      className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
+                    >
+                      <img 
+                        src={event.pictures[3]} 
+                        alt="More"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50" />
+                      
+                      <span className="relative z-10 text-xs sm:text-sm font-bold text-white">
+                        +{event.pictures.length - 3}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div>
+                <p className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden">
+                {event.description}
+              </p>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-);
+    </>
+  );
+};
+
+
 
 
 const Event = () => {
@@ -139,7 +320,11 @@ const Event = () => {
         return grouped;
     };
 
-    const groupedEvents = groupEventsByDate(events);
+    const sortedUpcomingEvents = [...events].sort((a, b) => {
+  return new Date(a.date) - new Date(b.date);
+});
+
+    const groupedEvents = groupEventsByDate(sortedUpcomingEvents);
 
     return (
 

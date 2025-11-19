@@ -39,53 +39,91 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
 
 
     const handleInputChange = (e) => {
-        const { name, value, files } = e.target;
-        setErrors((prev) => {
-            if (!prev[name]) return prev;
-            return { ...prev, [name]: false };
-        });
+    const { name, value, files } = e.target;
 
+    setErrors((prev) => {
+        if (!prev[name]) return prev;
+        return { ...prev, [name]: false };
+    });
 
-        if (name === 'pictures' && files && files.length > 0) {
-            const fileArray = Array.from(files);
-            const readers = fileArray.map(file => {
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(file);
-                });
-            });
+    if (name === "pictures" && files && files.length > 0) {
+        const fileArray = Array.from(files);
 
-            Promise.all(readers).then(results => {
-                setFormData(prev => ({
-                    ...prev,
-                    pictures: [...prev.pictures, ...results]
-                }));
-            });
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
+        // 🚫 Limit to max 10 images
+        if (formData.pictures.length + fileArray.length > 10) {
+            dispatch(showToast({
+                message: "You can upload a maximum of 10 images.",
+                type: "error"
             }));
-        }
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        const newErrors = {};
-        if (!formData.fullName) newErrors.fullName = true;
-        if (!formData.description) newErrors.description = true;
-        if (!formData.date) newErrors.date = true;
-        if (!formData.time) newErrors.time = true;
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            dispatch(showToast({ message: "Please fill all required * fields!", type: "error" }));
             return;
         }
 
+        const readers = fileArray.map(file => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        });
+
+        Promise.all(readers).then(results => {
+            setFormData(prev => ({
+                ...prev,
+                pictures: [...prev.pictures, ...results]
+            }));
+        });
+    } else {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    }
+};
+
+    const picturesChanged = () => {
+    if (!editingEvent) return true; // For create mode
+
+    const original = editingEvent.pictures || [];
+    const current = formData.pictures || [];
+
+    // If different length → changed
+    if (original.length !== current.length) return true;
+
+    // If any picture removed/added/changed → changed
+    for (let i = 0; i < original.length; i++) {
+        if (original[i] !== current[i]) return true;
+    }
+
+    return false; // No changes detected
+};
+
+
+    const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const newErrors = {};
+    if (!formData.fullName) newErrors.fullName = true;
+    if (!formData.description) newErrors.description = true;
+    if (!formData.date) newErrors.date = true;
+    if (!formData.time) newErrors.time = true;
+
+    if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        dispatch(showToast({
+            message: "Please fill all required * fields!",
+            type: "error"
+        }));
+        return;
+    }
+
+    if (!editingEvent) {
         onSubmit(formData);
+
+        dispatch(showToast({
+            message: "Event Added Successfully!!!",
+            type: "success"
+        }));
+
         setFormData({
             fullName: "",
             description: "",
@@ -93,9 +131,44 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
             time: "",
             pictures: [],
         });
-        setErrors({});
-        dispatch(showToast({ message: editingEvent ? "Event Updated successfully!!" : "Event Added Successfully!!!" }));
-    };
+
+        return;
+    }
+
+    const updatedFields = {};
+
+    if (editingEvent.fullName !== formData.fullName)
+        updatedFields.fullName = formData.fullName;
+
+    if (editingEvent.description !== formData.description)
+        updatedFields.description = formData.description;
+
+    if (editingEvent.date.split("T")[0] !== formData.date)
+        updatedFields.date = formData.date;
+
+    if (editingEvent.time !== formData.time)
+        updatedFields.time = formData.time;
+
+    // pictures (only when changed)
+    if (picturesChanged()) {
+        updatedFields.pictures = formData.pictures;
+    }
+
+    if (Object.keys(updatedFields).length === 0) {
+        dispatch(showToast({ message: "No changes detected!", type: "info" }));
+        return;
+    }
+
+    onSubmit(updatedFields);
+
+    dispatch(showToast({
+        message: "Event Updated successfully!!",
+        type: "success"
+    }));
+
+    setErrors({});
+};
+
 
 
     const handleClose = () => {
