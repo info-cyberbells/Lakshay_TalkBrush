@@ -34,7 +34,7 @@ app.use("/api/activities", activityRoutes);
 // Connect to DB
 connectDB().then(() => {
   if (process.env.NODE_ENV === 'production') {
-    ActivityWatcher.init();
+    startWatcher();
     console.log("Activity Watcher started on LIVE server");
   } else {
     console.log("Activity Watcher disabled (running on LOCAL)");

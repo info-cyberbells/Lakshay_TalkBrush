@@ -69,6 +69,7 @@ function AppContent() {
         <Route path='/events' element={<UserEvents />} />
         <Route path='/voice-conversation' element={<VoiceConversation />} />
         <Route path='/analytics' element={<Analytics />} />
+        <Route path="/accent/room/:roomCode" element={<VoiceConversation />} />
       </Routes>
     </div >
   );
