@@ -15,6 +15,8 @@ import ConvoSpace from './pages/ConvoSpace/ConvoSpace';
 import UserEvents from './pages/UserEvents/UserEvents';
 import VoiceConversation from "./pages/VoiceConversation/VoiceConversation";
 import Analytics from './pages/Analytics/Analytis';
+import AdminDashboard from './pages/Dashboard/Admin-dashboard';
+import UseDashboard from './pages/Dashboard/UserDashboard';
 
 
 function AppContent() {
@@ -24,24 +26,31 @@ function AppContent() {
   const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
-    const verifyUser = async () => {
-      setIsVerifying(true);
-      const result = await dispatch(verify());
+    const checkInitialAuth = () => {
+      const authToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('authToken='))
+        ?.split('=')[1];
 
-      if (verify.fulfilled.match(result)) {
+      if (authToken) {
         if (location.pathname === "/") {
-          navigate("/dashboard");
-        }
-      } else {
-        if (location.pathname !== "/") {
-          navigate("/");
+          const userType = localStorage.getItem('userType');
+          if (userType === "1") {
+            navigate("/dashboard", { replace: true });
+          } else if (userType === "2") {
+            navigate("/admin-dashboard", { replace: true });
+          } else if (userType === "3") {
+            navigate("/user-dashboard", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
         }
       }
 
       setIsVerifying(false);
     };
 
-    verifyUser();
+    checkInitialAuth();
   }, []);
 
 
@@ -61,6 +70,8 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/user-dashboard" element={<UseDashboard />} />
         <Route path='/manage-profile' element={<Profile />} />
         <Route path='/manage-admins' element={<ManageAdmins />} />
         <Route path='/manage-users' element={<ManageUsers />} />

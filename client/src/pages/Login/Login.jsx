@@ -68,9 +68,16 @@ export default function Login() {
         showToast('Login successful!');
 
         setTimeout(() => {
-          navigate("/dashboard");
+          if (userRole === "1") {
+            navigate("/dashboard");
+          } else if (userRole === "2") {
+            navigate("/admin-dashboard");
+          } else if (userRole === "3") {
+            navigate("/user-dashboard");
+          } else {
+            navigate("/user-dashboard");
+          }
         }, 1500);
-
       } else {
         showToast('Invalid credentials');
         console.log(result.payload || "Login failed");

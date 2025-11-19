@@ -132,7 +132,7 @@ const MenuItems = ({ onClose }) => {
             { name: "Analytics", icon: <Icon>{icons.BarAnalytics}</Icon>, path: "/analytics" },
         ],
         admin: [
-            { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
+            { name: "Dashboard", icon: <Home size={20} />, path: "/admin-dashboard" },
             { name: "Manage Profile", icon: <UserCog size={20} />, path: "/manage-profile" },
             { name: "User Management", icon: <Users size={20} />, path: "/manage-users" },
             { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-event" },
@@ -140,7 +140,7 @@ const MenuItems = ({ onClose }) => {
             { name: "Analytics", icon: <Icon>{icons.BarAnalytics}</Icon>, path: "/analytics" },
         ],
         user: [
-            { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
+            { name: "Dashboard", icon: <Home size={20} />, path: "/user-dashboard" },
             { name: "Manage Profile", icon: <UserCog size={20} />, path: "/manage-profile" },
             { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/events" },
             { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/voice-conversation" },

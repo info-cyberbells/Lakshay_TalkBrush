@@ -473,11 +473,9 @@ const VoiceConversation = () => {
     }, []);
 
     // Socket.IO Connection
-    // SOCKET.IO CONNECTION WITH RECONNECTION HANDLING
     useEffect(() => {
         if (!roomCode) {
             alert('No room code provided!');
-            navigate('/');
             return;
         }
 
