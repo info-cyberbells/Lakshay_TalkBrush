@@ -9,6 +9,7 @@ export const getDashboardOverview = async (req, res) => {
     const activeSince = new Date();
     activeSince.setDate(activeSince.getDate() - 7);
     const totalActiveUsers = await User.countDocuments({
+      type: "3", 
       lastLogin: { $gte: activeSince },
     });
 

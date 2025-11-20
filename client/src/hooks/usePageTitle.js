@@ -4,31 +4,41 @@ import { Home, User, Settings } from 'lucide-react';
 const routeConfig = {
     '/dashboard': {
         title: 'Dashboard',
-        icon: Home
+    },
+    '/admin-dashboard': {
+        title: 'Admin Dashboard',
+
+    },
+    '/user-dashboard': {
+        title: 'User Dashboard',
+
     },
     '/manage-admins': {
-        title: 'Admin Mangement',
-        // icon: User
+        title: 'Admin Management',
+
     },
     '/manage-users': {
         title: 'User Management',
-        // icon: Settings
+
     },
     '/manage-event': {
         title: 'Events',
-        // icon: Settings
+    },
+    '/events': {
+        title: 'Events',
     },
     '/analytics': {
         title: 'Analytics',
-        // icon: Settings
+    },
+    '/voice-conversation': {
+        title: 'Convo Space',
     },
     '/manage-profile': {
         title: 'Manage Profile',
-        // icon: Settings
+
     },
     '/convo-space': {
         title: 'Convo Space',
-        // icon: Settings
     },
 };
 

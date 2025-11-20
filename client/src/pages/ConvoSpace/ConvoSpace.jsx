@@ -5,6 +5,12 @@ import { Mic, Link2, ChevronLeft, ChevronRight } from "lucide-react";
 const ConvoSpace = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+
+  // Backend URL
+  // const BACKEND_URL = "https://talkbrush.com/accent";
+  const BACKEND_URL = "http://127.0.0.1:4444/accent";
+
 
   // Add your image URLs here
   const slides = [
@@ -45,12 +51,40 @@ const ConvoSpace = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  const handleStartConversation = () => {
-    navigate('/voice-conversation');
+  //  NEW: Create Room API Integration
+  const handleStartConversation = async () => {
+    setIsCreatingRoom(true);
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/create_room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for session
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.room_code) {
+        console.log('✅ Room created:', data.room_code);
+
+        // Navigate to room with code in URL (so link sharing works)
+        navigate(`/accent/room/${data.room_code}`);
+      } else {
+        alert('Failed to create room. Please try again.');
+      }
+    } catch (error) {
+      console.error(' Error creating room:', error);
+      alert('Could not connect to server. Please check if backend is running at http://localhost:4444');
+    } finally {
+      setIsCreatingRoom(false);
+    }
   };
 
   const handleCopyLink = () => {
-    // Add your copy link logic here
+    // This will copy current page URL
+    // In real scenario, you'd create a room first then copy that link
     navigator.clipboard.writeText(window.location.href);
     alert("Link copied to clipboard!");
   };
@@ -75,18 +109,12 @@ const ConvoSpace = () => {
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 lg:gap-4">
             <button
               onClick={handleStartConversation}
-              className="flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md cursor-pointer text-sm lg:text-base"
+              disabled={isCreatingRoom}
+              className={`flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md cursor-pointer text-sm lg:text-base ${isCreatingRoom ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               <Mic className="w-5 h-5" />
-              Start Conversation
-            </button>
-
-            <button
-              onClick={handleCopyLink}
-              className="flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer text-sm lg:text-base"
-            >
-              <Link2 className="w-5 h-5" />
-              Copy the link and share
+              {isCreatingRoom ? 'Creating Room...' : 'Start Conversation'}
             </button>
           </div>
 

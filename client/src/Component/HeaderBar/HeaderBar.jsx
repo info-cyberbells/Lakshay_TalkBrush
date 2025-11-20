@@ -1,14 +1,28 @@
 import { useState, useEffect } from "react";
 import "./HeaderBar.css";
-import { FaHome, FaBell, FaUserCircle, FaCog, FaSearch } from "react-icons/fa";
-import { MdDashboard } from "react-icons/md";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { Menu, X } from 'lucide-react';
+import { Link } from "react-router-dom";
+
 
 const Header = ({ isSidebarOpen, setIsSidebarOpen, isRightPanelOpen, setIsRightPanelOpen }) => {
 
   const { title } = usePageTitle();
   const [isMobile, setIsMobile] = useState(false);
+
+  const getHomePath = () => {
+    const userType = localStorage.getItem('role');
+
+    if (userType === "1") {
+      return "/dashboard";
+    } else if (userType === "2") {
+      return "/admin-dashboard";
+    } else if (userType === "3") {
+      return "/user-dashboard";
+    } else {
+      return "/user-dashboard";
+    }
+  };
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -26,21 +40,26 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, isRightPanelOpen, setIsRightP
         <ul className="header-menu">
           {!isMobile && (
             <>
-              <li className="menu-item"> <img src="/headers/window.png" alt="" /> </li>
-              <li className="menu-item"> <img src="/headers/fav.png" alt="" /> </li>
-              <li className="menu-item"> <span className="menu-text">TalkBrush</span></li>
-              <li className="menu-item"> <span className="menu-text">/</span></li>
+              <li className="menu-item">
+                <Link to={getHomePath()}>
+                  <img
+                    src="https://img.icons8.com/ios-filled/50/000000/home.png"
+                    alt="home"
+                    className="w-4 h-4 mr-1"
+                  />
+                </Link>
+              </li>
+              <li className="menu-item -ml-1 mt-1">
+                <Link to={getHomePath()} className="menu-text">Home</Link>
+              </li>
+              <li className="menu-item"> <span className="menu-text mt-1">/</span></li>
             </>
           )}
-          <li className="menu-item active"> <span className="menu-text">{title}</span></li>
+          <li className="menu-item active"> <span className="menu-text mt-1">{title}</span></li>
         </ul>
       </div>
 
       <div className="header-right">
-        <div className="search-box">
-          <FaSearch className="search-icon" />
-          {!isMobile && <input type="text" placeholder="Search..." aria-label="Search" />}
-        </div>
         {!isMobile && (
           <>
             <img src="/headers/lighttheme.png" alt="Profile" className="right-side-icons" />          </>

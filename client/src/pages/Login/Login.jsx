@@ -75,9 +75,16 @@ export default function Login() {
               }));
 
         setTimeout(() => {
-          navigate("/dashboard");
+          if (userRole === "1") {
+            navigate("/dashboard");
+          } else if (userRole === "2") {
+            navigate("/admin-dashboard");
+          } else if (userRole === "3") {
+            navigate("/user-dashboard");
+          } else {
+            navigate("/user-dashboard");
+          }
         }, 1500);
-
       } else {
         
         dispatch(showToast({

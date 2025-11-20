@@ -37,13 +37,23 @@ export const loginUser = async (req, res) => {
 
         const maxAge = 7 * 24 * 60 * 60 * 1000;
 
-        // Return user info + token
+        // for live https deployment
         res.cookie("authToken", token, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
             maxAge,
         })
+
+
+        //for local/ip teting for http
+        // res.cookie("authToken", token, {
+        //     httpOnly: true,
+        //     secure: false,
+        //     sameSite: "lax",
+        //     maxAge,
+        // })
+
             .status(200)
             .json({
                 token,

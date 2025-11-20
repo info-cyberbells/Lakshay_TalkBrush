@@ -1,15 +1,32 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDashboardData } from "../../features/dashboardSlice";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { data, loading } = useSelector((state) => state.dashboard);
-  const [hoveredPoint, setHoveredPoint] = React.useState(null);
 
   useEffect(() => {
     dispatch(fetchDashboardData());
   }, [dispatch]);
+
+  const handleCardClick = (cardTitle) => {
+    if (cardTitle === "Total Admins") {
+      navigate('/manage-admins');
+    } else if (cardTitle === "Active Users (7 days)") {
+      navigate('/manage-users');
+    }
+    else if (cardTitle === "Conversations Today") {
+      navigate('/analytics')
+    }
+    else if (cardTitle === "Avg Conversation Time") {
+      navigate('/analytics')
+    }
+    // Add more conditions if needed for other cards
+  };
 
   if (loading) {
     return (
@@ -35,7 +52,7 @@ const Dashboard = () => {
       arrow: "↑"
     },
     {
-      title: "Total Active Users",
+      title: "Active Users (7 days)",
       value: data.totalActiveUsers || 0,
       change: "+0%",
       arrow: "↑"
@@ -54,24 +71,49 @@ const Dashboard = () => {
     }
   ];
 
+  // Transform data for Recharts
+  const chartData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => ({
+    name: day,
+    thisWeek: data.statistics?.thisWeekData[index] || 0,
+    lastWeek: data.statistics?.lastWeekData[index] || 0,
+  }));
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border-2 border-gray-200 rounded-lg p-3 shadow-lg">
+          <p className="text-sm font-semibold text-gray-800 mb-2">{payload[0].payload.name}</p>
+          {payload.map((entry, index) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.name}: <span className="font-bold">{entry.value}</span>
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3 px-4 lg:px-0 mt-4">
+      {/* Stats Cards */}
       <header className="px-3 lg:px-[12px] mx-0 lg:mx-[6px] py-[6px]">
         <div className="flex flex-wrap justify-center lg:justify-between p-2 lg:p-[8px] gap-3 lg:gap-6 font-Inter rounded-[20px]">
           {stats.map((stat, index) => (
             <div
               key={index}
-              className={`flex-1 min-w-[calc(50%-12px)] sm:min-w-[140px] max-w-xs rounded-xl shadow p-3 lg:p-4 ${index === 1 || index === 3 ? "bg-[#2D4CCA2B]" : "bg-[#FFF1CF]"
+              onClick={() => handleCardClick(stat.title)}
+              className={`flex-1 min-w-[calc(50%-12px)] sm:min-w-[140px] max-w-xs rounded-xl shadow-md p-4 lg:p-5 transition-transform hover:scale-105 cursor-pointer ${index === 1 || index === 3 ? "bg-[#2D4CCA2B]" : "bg-[#FFF1CF]"
                 }`}
             >
-              <p className="font-normal not-italic text-[14px] leading-[20px] tracking-[0px]">
+              <p className="font-medium text-[14px] leading-[20px] text-gray-700">
                 {stat.title}
               </p>
-              <div className="flex justify-between items-center mt-2">
-                <h2 className="text-2xl font-medium text-gray-800">
+              <div className="flex justify-between items-center mt-3">
+                <h2 className="text-3xl font-bold text-gray-800">
                   {stat.value}
                 </h2>
-                <p className="text-[12px] leading-[16px] font-normal">
+                <p className="text-[12px] leading-[16px] font-semibold text-green-600">
                   {stat.change} {stat.arrow}
                 </p>
               </div>
@@ -80,247 +122,102 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Stats and graph Area */}
-      <main className="mx-0 lg:mx-6 p-3 lg:p-6 border-[0.5px] border-[#F5EFFC] rounded-2xl mt-5">
+      {/* Main Chart Area */}
+      <main className="mx-0 lg:mx-6 p-4 lg:p-6 border border-gray-200 rounded-2xl mt-5 bg-white shadow-sm">
         <div className="mb-6">
-          <h2 className="text-lg lg:text-2xl font-semibold text-gray-800">User Activity Statistics</h2>
-          <p className="text-xs lg:text-sm text-gray-500 mt-1">Weekly comparison of user engagement</p>
-          <div className="flex gap-6 mt-3">
+          <h2 className="text-xl lg:text-2xl font-bold text-gray-800">User Activity Statistics</h2>
+          <p className="text-sm text-gray-500 mt-2">Weekly comparison of user engagement</p>
+          <div className="flex gap-6 mt-4">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-[#2D4CCA]"></div>
-              <span className="text-sm text-gray-600">This Week</span>
+              <span className="text-sm font-medium text-gray-600">This Week</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-[#F8C140]"></div>
-              <span className="text-sm text-gray-600">Last Week</span>
+              <span className="text-sm font-medium text-gray-600">Last Week</span>
             </div>
           </div>
         </div>
 
-        <div className="flex">
-          {/* Statistics Chart */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Chart */}
           <div className="flex-1">
-            <div className="relative h-64 lg:h-80 w-full mt-4 lg:mt-8 overflow-x-auto">
-              <svg viewBox="0 0 500 240" className="w-full h-full min-w-[400px]">
-                {/* Y-axis labels */}
-                {data.statistics?.labels.map((label, index) => (
-                  <text
-                    key={`label-${index}`}
-                    x="20"
-                    y={220 - (index * 200) / 6}
-                    className="text-xs fill-gray-400"
-                  >
-                    {label}
-                  </text>
-                ))}
-
-                {/* Grid lines */}
-                {data.statistics?.labels.map((_, index) => (
-                  <line
-                    key={`grid-${index}`}
-                    x1="50"
-                    y1={220 - (index * 200) / 6}
-                    x2="480"
-                    y2={220 - (index * 200) / 6}
-                    stroke="#E5E7EB"
-                    strokeWidth="1"
-                  />
-                ))}
-
-                {/* Last Week Data (Yellow Line) */}
-                {data.statistics?.lastWeekData.map((value, index) => {
-                  if (index === data.statistics.lastWeekData.length - 1) return null;
-                  const x1 = 50 + (index * 430) / 6;
-                  const y1 = 220 - (value * 200) / 10;
-                  const x2 = 50 + ((index + 1) * 430) / 6;
-                  const y2 = 220 - (data.statistics.lastWeekData[index + 1] * 200) / 10;
-                  return (
-                    <line
-                      key={`lastweek-${index}`}
-                      x1={x1}
-                      y1={y1}
-                      x2={x2}
-                      y2={y2}
-                      stroke="#F8C140"
-                      strokeWidth="3"
-                    />
-                  );
-                })}
-
-                {/* This Week Data (Blue Line) */}
-                {data.statistics?.thisWeekData.map((value, index) => {
-                  if (index === data.statistics.thisWeekData.length - 1) return null;
-                  const x1 = 50 + (index * 430) / 6;
-                  const y1 = 220 - (value * 200) / 10;
-                  const x2 = 50 + ((index + 1) * 430) / 6;
-                  const y2 = 220 - (data.statistics.thisWeekData[index + 1] * 200) / 10;
-                  return (
-                    <line
-                      key={`thisweek-${index}`}
-                      x1={x1}
-                      y1={y1}
-                      x2={x2}
-                      y2={y2}
-                      stroke="#2D4CCA"
-                      strokeWidth="3"
-                    />
-                  );
-                })}
-
-                {/* Data points */}
-                {data.statistics?.thisWeekData.map((value, index) => {
-                  const x = 50 + (index * 430) / 6;
-                  const y = 220 - (value * 200) / 10;
-                  return (
-                    <circle
-                      key={`point-this-${index}`}
-                      cx={x}
-                      cy={y}
-                      r="4"
-                      fill="#2D4CCA"
-                      onMouseEnter={() => setHoveredPoint({ value, x, y, type: 'this' })}
-                      onMouseLeave={() => setHoveredPoint(null)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  );
-                })}
-
-                {data.statistics?.lastWeekData.map((value, index) => {
-                  const x = 50 + (index * 430) / 6;
-                  const y = 220 - (value * 200) / 10;
-                  return (
-                    <circle
-                      key={`point-last-${index}`}
-                      cx={x}
-                      cy={y}
-                      r="4"
-                      fill="#F8C140"
-                      onMouseEnter={() => setHoveredPoint({ value, x, y, type: 'last' })}
-                      onMouseLeave={() => setHoveredPoint(null)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  );
-                })}
-
-                {/* Tooltip */}
-                {hoveredPoint && (
-                  <g>
-                    <rect
-                      x={hoveredPoint.x - 25}
-                      y={hoveredPoint.y - 35}
-                      width="50"
-                      height="25"
-                      fill="white"
-                      stroke={hoveredPoint.type === 'this' ? '#2D4CCA' : '#F8C140'}
-                      strokeWidth="2"
-                      rx="4"
-                    />
-                    <text
-                      x={hoveredPoint.x}
-                      y={hoveredPoint.y - 18}
-                      textAnchor="middle"
-                      className="text-sm font-semibold"
-                      fill={hoveredPoint.type === 'this' ? '#2D4CCA' : '#F8C140'}
-                    >
-                      {hoveredPoint.value}
-                    </text>
-                  </g>
-                )}
-
-                {/* X-axis labels (Days) */}
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-                  const x = 50 + (index * 430) / 6;
-                  return (
-                    <text
-                      key={`day-${index}`}
-                      x={x}
-                      y="240"
-                      textAnchor="middle"
-                      className="text-xs fill-gray-600"
-                    >
-                      {day}
-                    </text>
-                  );
-                })}
-
-                {/* X-axis line */}
-                <line
-                  x1="50"
-                  y1="220"
-                  x2="480"
-                  y2="220"
-                  stroke="#E5E7EB"
-                  strokeWidth="2"
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis
+                  dataKey="name"
+                  stroke="#6B7280"
+                  style={{ fontSize: '14px', fontWeight: '500' }}
+                  label={{ value: 'Days of Week', position: 'insideBottom', offset: -10, style: { fontSize: '12px', fill: '#6B7280' } }}
                 />
-
-                {/* Y-axis line */}
-                <line
-                  x1="50"
-                  y1="20"
-                  x2="50"
-                  y2="220"
-                  stroke="#E5E7EB"
-                  strokeWidth="2"
+                <YAxis
+                  stroke="#6B7280"
+                  style={{ fontSize: '14px' }}
+                  label={{ value: 'Values', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fill: '#6B7280' } }}
                 />
-
-                {/* Y-axis label */}
-                <text
-                  x="10"
-                  y="120"
-                  transform="rotate(-90 10 120)"
-                  className="text-xs fill-gray-600 font-medium"
-                >
-                  Values
-                </text>
-
-                {/* X-axis label */}
-                <text
-                  x="265"
-                  y="260"
-                  textAnchor="middle"
-                  className="text-xs fill-gray-600 font-medium"
-                >
-                  Days of Week
-                </text>
-              </svg>
-            </div>
+                <Tooltip content={<CustomTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="thisWeek"
+                  stroke="#2D4CCA"
+                  strokeWidth={3}
+                  dot={{ fill: '#2D4CCA', r: 5 }}
+                  activeDot={{ r: 7 }}
+                  name="This Week"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="lastWeek"
+                  stroke="#F8C140"
+                  strokeWidth={3}
+                  dot={{ fill: '#F8C140', r: 5 }}
+                  activeDot={{ r: 7 }}
+                  name="Last Week"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
 
-          <section className="grid gap-5 w-full lg:w-auto mt-6 lg:mt-0">
-            <div className="pl-0 lg:pl-[60px] text-center lg:text-left">
-              <h1 className="font-medium text-sm lg:text-base">Weekly</h1>
-              <div className="flex flex-col sm:flex-row gap-4 lg:gap-7 font-cario text-base lg:text-lg font-normal text-[#A098AE] justify-center lg:justify-start">
-                <header>
-                  <h2>This Week</h2>
-                  <span className="font-bold text-2xl text-[#2D4CCA]">
-                    + {data.weekly?.thisWeek || 0}%
-                  </span>
-                </header>
-                <header>
-                  <h2>Last Week</h2>
-                  <span className="font-bold text-2xl text-[#F8C140]">
-                    + {data.weekly?.lastWeek || 0}%
-                  </span>
-                </header>
+          {/* Side Stats */}
+          <section className="flex flex-col gap-8 w-full lg:w-auto">
+            {/* Weekly Stats */}
+            <div className="lg:pl-8">
+              <h3 className="font-semibold text-lg mb-4 text-gray-800">Weekly Summary</h3>
+              <div className="flex flex-col gap-6">
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <p className="text-sm text-gray-600 mb-1">This Week</p>
+                  <p className="font-bold text-3xl text-[#2D4CCA]">
+                    +{data.weekly?.thisWeek || 0}%
+                  </p>
+                </div>
+                <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
+                  <p className="text-sm text-gray-600 mb-1">Last Week</p>
+                  <p className="font-bold text-3xl text-[#F8C140]">
+                    +{data.weekly?.lastWeek || 0}%
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="pl-0 lg:pl-[60px]">
-              {/* Impression Chart */}
-              <div className="h-[150px] flex flex-col justify-center">
-                <div className="text-center mb-4">
-                  <div className="text-2xl lg:text-4xl font-bold text-[#2D4CCA]">
-                    {data.impression?.count.toLocaleString() || 0}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">Total Impressions</div>
-                  <div
-                    className={`text-lg font-semibold mt-2 ${(data.impression?.change || 0) >= 0
-                      ? "text-green-500"
-                      : "text-red-500"
+
+            {/* Impressions */}
+            <div className="lg:pl-8">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+                <h3 className="text-sm font-medium text-gray-600 mb-2">Total Impressions</h3>
+                <div className="text-4xl font-bold text-[#2D4CCA] mb-2">
+                  {data.impression?.count.toLocaleString() || 0}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-lg font-bold ${(data.impression?.change || 0) >= 0
+                      ? "text-green-600"
+                      : "text-red-600"
                       }`}
                   >
-                    {(data.impression?.change || 0) >= 0 ? "+" : ""}
-                    {data.impression?.change || 0}%
-                  </div>
+                    {(data.impression?.change || 0) >= 0 ? "↑" : "↓"}
+                    {Math.abs(data.impression?.change || 0)}%
+                  </span>
+                  <span className="text-sm text-gray-500">vs last period</span>
                 </div>
               </div>
             </div>
