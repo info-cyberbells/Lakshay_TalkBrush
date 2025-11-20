@@ -17,6 +17,9 @@ import VoiceConversation from "./pages/VoiceConversation/VoiceConversation";
 import Analytics from './pages/Analytics/Analytis';
 import AdminDashboard from './pages/Dashboard/Admin-dashboard';
 import UseDashboard from './pages/Dashboard/UserDashboard';
+import TermsConditions from "./pages/SettingPages/TermsConditions";
+import PrivacyPolicy from "./pages/SettingPages/PrivacyPolicy";
+import Contactus from "./pages/SettingPages/Contactus";
 
 
 function AppContent() {
@@ -81,6 +84,9 @@ function AppContent() {
         <Route path='/voice-conversation' element={<VoiceConversation />} />
         <Route path='/analytics' element={<Analytics />} />
         <Route path="/accent/room/:roomCode" element={<VoiceConversation />} />
+        <Route path="/terms-and-conditions" element={<TermsConditions />} />
+        <Route path="/privacy-and-policy" element={<PrivacyPolicy />} />
+        <Route path="/contact-us" element={<Contactus />} />
       </Routes>
     </div >
   );
