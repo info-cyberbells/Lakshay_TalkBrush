@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { requestPasswordReset, verifyResetCode } from "../../features/userSlice.js";
+import { showToast } from "../../features/toastSlice";
 
-const PasswordResetModal = ({ isOpen, onClose, showToast }) => {
+
+const PasswordResetModal = ({ isOpen, onClose}) => {
     const dispatch = useDispatch();
     const [resetStep, setResetStep] = useState(1);
     const [resetEmail, setResetEmail] = useState("");
@@ -32,17 +34,28 @@ const PasswordResetModal = ({ isOpen, onClose, showToast }) => {
 
         if (!resetEmail) {
             setResetErrors({ email: true });
-            showToast("Please enter your email");
+            dispatch(showToast({
+                              message: "Please enter your email",
+                              type: "error"
+                          }));
+                  
             return;
         }
 
         try {
             const response = await dispatch(requestPasswordReset(resetEmail)).unwrap();
-            showToast(response.message || "OTP sent to your email");
+            
+            dispatch(showToast({
+                              message: response.message || "OTP sent to your email",
+                              type: "success"
+                          }));
             setResetStep(2);
             setResetErrors({});
         } catch (error) {
-            showToast(error || "Email not found");
+             dispatch(showToast({
+                              message: error || "Email not found",
+                              type: "error"
+                          }));
         }
 
     };
@@ -57,13 +70,20 @@ const PasswordResetModal = ({ isOpen, onClose, showToast }) => {
 
         if (newPassword !== newConfirmPassword) {
             errors.newConfirmPassword = true;
-            showToast("Passwords do not match");
+            dispatch(showToast({
+                              message: "Passwords do not match",
+                              type: "error"
+                          }));
+            
             return;
         }
 
         if (Object.keys(errors).length > 0) {
             setResetErrors(errors);
-            showToast("Please fill all fields");
+            dispatch(showToast({
+                              message: "Please fill all fields",
+                              type: "error"
+                          }));
             return;
         }
 
@@ -71,10 +91,16 @@ const PasswordResetModal = ({ isOpen, onClose, showToast }) => {
             const response = await dispatch(
                 verifyResetCode({ email: resetEmail, code: otp, newPassword })
             ).unwrap();
-            showToast(response.message || "Password reset successful!");
+             dispatch(showToast({
+                              message: response.message || "Password reset successful!",
+                              type: "success"
+                          }));
             handleClose();
         } catch (error) {
-            showToast(error || "Invalid OTP or reset failed");
+             dispatch(showToast({
+                              message: error || "Invalid OTP or reset failed",
+                              type: "error"
+                          }));
         }
     };
 
