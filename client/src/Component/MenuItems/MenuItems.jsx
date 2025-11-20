@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/userSlice';
 import { Home, LogOut, Users, UserCog, MessageSquare, Menu, X } from 'lucide-react';
@@ -156,8 +156,14 @@ const MenuItems = ({ onClose }) => {
                 <li
                     key={item.name}
                     onClick={() => handleNavigation(item.path)}
-                    className={location.pathname === item.path ? 'active' : ''}
-                >
+                    className={
+                        (item.name === "Convo Space" &&
+                            matchPath("/accent/room/:roomCode", location.pathname))
+                            ? "active"
+                            : location.pathname === item.path
+                                ? "active"
+                                : ""
+                    }                >
                     {item.icon}
                     <span>{item.name}</span>
                 </li>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login, signUp } from "../../features/userSlice";
 import PasswordResetModal from "../Model/PasswordResetModal.jsx"
 import { showToast } from "../../features/toastSlice";
@@ -9,6 +9,7 @@ import { showToast } from "../../features/toastSlice";
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isLoading } = useSelector((state) => state.auth);
   const [isLogin, setIsLogin] = useState(true);
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -50,11 +51,11 @@ export default function Login() {
 
     if (Object.keys(newErrors).length > 0) {
       setLoginErrors(newErrors);
-      
+
       dispatch(showToast({
-                  message: "Please fill all required * fields!",
-                  type: "error"
-              }));
+        message: "Please fill all required * fields!",
+        type: "error"
+      }));
       return;
     }
 
@@ -70,9 +71,9 @@ export default function Login() {
         localStorage.setItem("role", userRole);
 
         dispatch(showToast({
-                  message: "Login successful!!",
-                  type: "success"
-              }));
+          message: "Login successful!!",
+          type: "success"
+        }));
 
         setTimeout(() => {
           if (userRole === "1") {
@@ -86,11 +87,11 @@ export default function Login() {
           }
         }, 1500);
       } else {
-        
+
         dispatch(showToast({
-                  message: "Invalid credentials!",
-                  type: "error"
-              }));
+          message: "Invalid credentials!",
+          type: "error"
+        }));
         console.log(result.payload || "Login failed");
       }
     }
@@ -114,14 +115,14 @@ export default function Login() {
 
         if (password !== confirmPassword) {
           dispatch(showToast({
-                  message: "Your password mismatched!!",
-                  type: "error"
-              }));
+            message: "Your password mismatched!!",
+            type: "error"
+          }));
         } else {
           dispatch(showToast({
-                  message: "Please fill all feilds!",
-                  type: "error"
-              }));
+            message: "Please fill all feilds!",
+            type: "error"
+          }));
         }
         return;
       }
@@ -129,19 +130,19 @@ export default function Login() {
       setSignupErrors({});
       const result = await dispatch(signUp({ fullName, phoneNumber, email, type: "3", password, confirmPassword }));
       if (signUp.fulfilled.match(result)) {
-        
+
         dispatch(showToast({
-                  message: "SignUp successfull!!",
-                  type: "success"
-              }));
+          message: "SignUp successfull!!",
+          type: "success"
+        }));
         setTimeout(() => {
           switchForm(true);
         }, 1000);
       } else {
-         dispatch(showToast({
-                  message: result.payload || "SignUp failed",
-                  type: "error"
-              }));
+        dispatch(showToast({
+          message: result.payload || "SignUp failed",
+          type: "error"
+        }));
         console.log(result.payload || "SignUp failed")
       }
     }
@@ -259,9 +260,18 @@ export default function Login() {
                     </button>
                   </div>
 
-                  <button type="submit" className="submit-btn">
-                    LOGIN
+                  <button
+                    type="submit"
+                    className="submit-btn"
+                    disabled={isLoading}
+                    style={{
+                      opacity: isLoading ? 0.6 : 1,
+                      cursor: isLoading ? "not-allowed" : "pointer"
+                    }}
+                  >
+                    {isLoading ? "Logging..." : "LOGIN"}
                   </button>
+
 
                   <div className="DDHA">
                     {" "}
@@ -445,8 +455,8 @@ export default function Login() {
         <PasswordResetModal
           isOpen={showResetModal}
           onClose={() => setShowResetModal(false)}
-          // showToast={showToast}
-            // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
+        // showToast={showToast}
+        // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
         />
       </div>
     </>

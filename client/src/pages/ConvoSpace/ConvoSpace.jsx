@@ -8,31 +8,32 @@ const ConvoSpace = () => {
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   // Backend URL
-  // const BACKEND_URL = "https://talkbrush.com/accent";
-  const BACKEND_URL = "http://127.0.0.1:4444/accent";
+  const BACKEND_URL = "https://talkbrush.com/accent";
+  // const BACKEND_URL = "http://127.0.0.1:4444/accent";
 
 
   // Add your image URLs here
   const slides = [
     {
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=600&fit=crop",
-      title: "Obtén un vínculo para compartir",
+      title: "Start a Conversation Instantly",
       description:
-        "Haz clic en Nueva reunión para obtener un vínculo que puedas enviar a las personas con quienes quieras reunirte",
+        "Create a private room and practice English accents with friends, colleagues, or anyone you invite.",
     },
     {
       image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&h=600&fit=crop",
-      title: "Connect with Anyone",
+      title: "Share Your Room Link",
       description:
-        "Share your conversation link and start chatting in different accents instantly",
+        "Generate a unique join link and share it with others to start speaking together effortlessly.",
     },
     {
       image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop",
-      title: "Enhance Your Experience",
+      title: "Experience Real-Time Accent Conversion",
       description:
-        "Practice languages and enjoy diverse conversations with people worldwide",
+        "TalkBrush transforms voices in real time, helping you speak, learn, and enjoy different English accents naturally.",
     },
   ];
+
 
   // Auto-slide every 6 seconds
   useEffect(() => {
@@ -122,7 +123,7 @@ const ConvoSpace = () => {
             href="#"
             className="inline-block text-blue-600 hover:text-blue-700 font-medium"
           >
-            Más información sobre Talk Brush
+            Discover how TalkBrush works
           </a>
         </div>
 

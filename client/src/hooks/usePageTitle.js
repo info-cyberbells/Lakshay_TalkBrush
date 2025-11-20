@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, matchPath } from 'react-router-dom';
 import { Home, User, Settings } from 'lucide-react';
 
 const routeConfig = {
@@ -44,9 +44,22 @@ const routeConfig = {
 
 export const usePageTitle = () => {
     const location = useLocation();
-    const config = routeConfig[location.pathname];
-    return {
-        title: config?.title,
-        Icon: config?.icon,
-    };
+    const path = location.pathname;
+
+    const exactConfig = routeConfig[path];
+    if (exactConfig) {
+        return {
+            title: exactConfig.title,
+            Icon: exactConfig.icon,
+        };
+    }
+
+    if (matchPath('/accent/room/:id', path)) {
+        return {
+            title: 'Convo Space',
+            Icon: null,
+        };
+    }
+
+    return { title: '', Icon: null };
 };

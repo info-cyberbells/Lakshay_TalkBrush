@@ -66,13 +66,6 @@ const ManageAdmins = () => {
         sortOrder: filterConfig.sortOrder,
       })
     );
-    //  dispatch(
-    //    showToast({
-    //      message: `Filter applied: Sorted by "${filterConfig.sortBy}", Limit: ${filterConfig.limit}`,
-    //      type: "info",
-    //    })
-    // );
-
     dispatch(
       showToast({
         message: "Filter applied Successfully",
