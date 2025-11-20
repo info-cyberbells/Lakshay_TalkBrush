@@ -14,6 +14,7 @@ import activityRoutes from "./routes/activityRoutes.js";
 
 dotenv.config();
 const app = express();
+app.set('trust proxy', true);
 app.use(cookieParser());
 
 // Middleware
@@ -30,6 +31,7 @@ app.use("/api/users", userRouter);
 app.use("/api/event", eventRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/activities", activityRoutes);
+
 
 // Connect to DB
 connectDB().then(() => {
