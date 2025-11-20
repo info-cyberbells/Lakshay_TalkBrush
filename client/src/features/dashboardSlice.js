@@ -3,9 +3,9 @@ import { getDashboardService } from "../auth/authServices";
 
 export const fetchDashboardData = createAsyncThunk(
     "dashboard/fetchDashboardData",
-    async (_, { rejectWithValue }) => {
+    async (type = "week", { rejectWithValue }) => {
         try {
-            const data = await getDashboardService();
+            const data = await getDashboardService(type);
             return data;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);

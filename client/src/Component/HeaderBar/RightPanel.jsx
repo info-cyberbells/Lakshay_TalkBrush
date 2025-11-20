@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchActivities } from "../../features/activitiesSlice";
+import { fetchActivities, fetchUserActivities } from "../../features/activitiesSlice";
 import "./RightPanel.css";
 
 // Icon components
@@ -55,13 +55,21 @@ const RightComponent = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { notifications, activities, loading, error } = useSelector((state) => state.activities);
 
+  // Add these debug logs
+  console.log('Current role:', localStorage.getItem("role"));
+  console.log('Redux state:', { notifications, activities, loading, error });
+  console.log('Activities length:', activities.length);
+  console.log('First activity:', activities[0]);
+
   useEffect(() => {
-    dispatch(fetchActivities());
+    const role = localStorage.getItem("role");
+
+    if (role === "3") {
+      dispatch(fetchUserActivities());
+    } else {
+      dispatch(fetchActivities());
+    }
   }, [dispatch]);
-
-  // const role = localStorage.getItem("role");
-  // if (role === "3") return null;
-
 
   return (
     <aside className={`right-component ${isOpen ? 'open' : ''}`}>
@@ -82,29 +90,32 @@ const RightComponent = ({ isOpen, onClose }) => {
         </button>
       )}
       {/* Notifications Section (Events) */}
-      <div className="right-box">
-        <h4>Notifications</h4>
-        {loading && <p className="loading-text">Loading...</p>}
-        {error && <p className="error-text">{error}</p>}
-        {!loading && !error && notifications.length === 0 && (
-          <p className="empty-text">No notifications</p>
-        )}
-        {!loading && !error && notifications.length > 0 && (
-          <ul>
-            {notifications.slice(0, 4).map((notification) => (
-              <li key={notification.id} className="notification-item">
-                <div className={`item-icon ${notification.actionType === 'CREATE' ? 'success' : notification.actionType === 'DELETE' ? 'danger' : 'info'}`}>
-                  {getNotificationIcon(notification.actionType, notification.entityType, notification.metadata)}
-                </div>
-                <div className="item-content">
-                  <p title={notification.description}>{notification.description}</p>
-                  <small>{notification.timeAgo}</small>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Notifications Section (Events) - Hidden for role 3 */}
+      {localStorage.getItem("role") !== "3" && (
+        <div className="right-box">
+          <h4>Notifications</h4>
+          {loading && <p className="loading-text">Loading...</p>}
+          {error && <p className="error-text">{error}</p>}
+          {!loading && !error && notifications.length === 0 && (
+            <p className="empty-text">No notifications</p>
+          )}
+          {!loading && !error && notifications.length > 0 && (
+            <ul>
+              {notifications.slice(0, 4).map((notification) => (
+                <li key={notification.id} className="notification-item">
+                  <div className={`item-icon ${notification.actionType === 'CREATE' ? 'success' : notification.actionType === 'DELETE' ? 'danger' : 'info'}`}>
+                    {getNotificationIcon(notification.actionType, notification.entityType, notification.metadata)}
+                  </div>
+                  <div className="item-content">
+                    <p title={notification.description}>{notification.description}</p>
+                    <small>{notification.timeAgo}</small>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Activities Section (Users) */}
       <div className="right-box">

@@ -1,4 +1,6 @@
 import Activity from "../models/activityModel.js";
+import jwt from "jsonwebtoken";
+import { User } from "../models/userModel.js";
 
 // Helper: calculate "time ago"
 const getTimeAgo = (date) => {
@@ -91,6 +93,88 @@ export const getActivities = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to fetch activities",
+            error: err.message,
+        });
+    }
+};
+
+
+export const getUserActivities = async (req, res) => {
+    try {
+        // Get token from cookies
+        const token = req.cookies?.authToken;
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "No token provided"
+            });
+        }
+
+        // Verify token and get user
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const userId = user._id;
+        const { limit = 50 } = req.query;
+
+        // Fetch ONLY activities related to THIS specific user
+        const userActivities = await Activity.find({
+            $and: [
+                {
+                    $or: [
+                        { "metadata.userId": userId },
+                        { "metadata.userId": userId.toString() },
+                        { entityId: userId },
+                        { entityId: userId.toString() }
+                    ]
+                }
+            ]
+        })
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit))
+            .lean();
+
+        const formattedActivities = userActivities.map((activity) => ({
+            id: activity._id,
+            actionType: activity.actionType,
+            title: activity.title,
+            description: activity.description,
+            entityType: activity.entityType,
+            category: activity.category,
+            metadata: activity.metadata,
+            timeAgo: getTimeAgo(activity.createdAt),
+            timestamp: activity.createdAt,
+            formattedDate: new Date(activity.createdAt).toLocaleString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            }),
+        }));
+
+        res.json({
+            success: true,
+            count: formattedActivities.length,
+            data: formattedActivities,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+    } catch (err) {
+        console.error("Error fetching user activities:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch user activities",
             error: err.message,
         });
     }

@@ -127,8 +127,9 @@ export const deleteEventService = async (eventId) => {
 };
 
 //dashboard overview
-export const getDashboardService = async () => {
-  const response = await axios.get(USER_ENDPOINTS.ADMIN_DASHBOARD_OVERVIEW,
+export const getDashboardService = async (type = "week") => {
+  const response = await axios.get(
+    `${USER_ENDPOINTS.ADMIN_DASHBOARD_OVERVIEW}?type=${type}`,
     { withCredentials: true }
   );
   return response.data;
@@ -142,6 +143,15 @@ export const getActivitiesService = async () => {
   );
   return response.data;
 };
+
+//get all  users activities
+export const getUSersActivitiesService = async () => {
+  const response = await axios.get(USER_ENDPOINTS.GET_ALL_USER_ACTIVITIES,
+    { withCredentials: true }
+  );
+  return response.data;
+};
+
 
 
 //change password

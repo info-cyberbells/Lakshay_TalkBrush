@@ -25,6 +25,7 @@ export const USER_ENDPOINTS = {
   ADMIN_DASHBOARD_OVERVIEW: `${API_BASE_URL}/dashboard/overview`,
 
   GET_ALL_ACTIVITIES: `${API_BASE_URL}/activities/getAllActivities`,
+  GET_ALL_USER_ACTIVITIES: `${API_BASE_URL}/activities/getUserActivities`,
 };
 
 

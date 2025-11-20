@@ -2,14 +2,34 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDashboardData } from "../../features/dashboardSlice";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
+
 
 const Dashboard = () => {
     const dispatch = useDispatch();
     const { data, loading } = useSelector((state) => state.dashboard);
+    const navigate = useNavigate();
+    const [selectedType, setSelectedType] = React.useState("week");
 
     useEffect(() => {
-        dispatch(fetchDashboardData());
-    }, [dispatch]);
+        dispatch(fetchDashboardData(selectedType));
+    }, [dispatch, selectedType]);
+
+    const handleCardClick = (cardTitle) => {
+        if (cardTitle === "Total Admins") {
+            navigate('/manage-admins');
+        } else if (cardTitle === "Active Users") {
+            navigate('/manage-users');
+        }
+        else if (cardTitle === "Conversations Today") {
+            navigate('/analytics')
+        }
+        else if (cardTitle === "Avg Conversation Time") {
+            navigate('/analytics')
+        }
+        // Add more conditions if needed for other cards
+    };
+
 
     if (loading) {
         return (
@@ -35,7 +55,7 @@ const Dashboard = () => {
             arrow: "↑"
         },
         {
-              title: "Active Users (7d)",
+            title: "Active Users",
             value: data.totalActiveUsers || 0,
             change: "+0%",
             arrow: "↑"
@@ -55,11 +75,23 @@ const Dashboard = () => {
     ];
 
     // Transform data for Recharts
-    const chartData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => ({
-        name: day,
+    const getChartLabels = () => {
+        if (selectedType === 'week') return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        if (selectedType === 'month') return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    };
+
+    const chartData = getChartLabels().map((label, index) => ({
+        name: label,
         thisWeek: data.statistics?.thisWeekData[index] || 0,
         lastWeek: data.statistics?.lastWeekData[index] || 0,
     }));
+
+    const getPeriodLabel = (current = true) => {
+        if (selectedType === 'week') return current ? 'This Week' : 'Last Week';
+        if (selectedType === 'month') return current ? 'This Month' : 'Last Month';
+        return current ? 'This Year' : 'Last Year';
+    };
 
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
@@ -68,7 +100,7 @@ const Dashboard = () => {
                     <p className="text-sm font-semibold text-gray-800 mb-2">{payload[0].payload.name}</p>
                     {payload.map((entry, index) => (
                         <p key={index} className="text-sm" style={{ color: entry.color }}>
-                            {entry.name}: <span className="font-bold">{entry.value}</span>
+                            {index === 0 ? getPeriodLabel(true) : getPeriodLabel(false)}: <span className="font-bold">{entry.value}</span>
                         </p>
                     ))}
                 </div>
@@ -85,7 +117,8 @@ const Dashboard = () => {
                     {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className={`flex-1 min-w-[calc(50%-12px)] sm:min-w-[140px] max-w-xs rounded-xl shadow-md p-4 lg:p-5 transition-transform hover:scale-105 ${index === 1 || index === 3 ? "bg-[#2D4CCA2B]" : "bg-[#FFF1CF]"
+                            onClick={() => handleCardClick(stat.title)}
+                            className={`flex-1 min-w-[calc(50%-12px)] sm:min-w-[140px] max-w-xs rounded-xl shadow-md p-4 lg:p-5 transition-transform hover:scale-105 cursor-pointer ${index === 1 || index === 3 ? "bg-[#2D4CCA2B]" : "bg-[#FFF1CF]"
                                 }`}
                         >
                             <p className="font-medium text-[14px] leading-[20px] text-gray-700">
@@ -106,20 +139,42 @@ const Dashboard = () => {
 
             {/* Main Chart Area */}
             <main className="mx-0 lg:mx-6 p-4 lg:p-6 border border-gray-200 rounded-2xl mt-5 bg-white shadow-sm">
+
                 <div className="mb-6">
-                    <h2 className="text-xl lg:text-2xl font-bold text-gray-800">User Activity Statistics</h2>
-                    <p className="text-sm text-gray-500 mt-2">Weekly comparison of user engagement</p>
-                    <div className="flex gap-6 mt-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+                        <h2 className="text-xl lg:text-2xl font-bold text-gray-800">User Activity Statistics</h2>
+                        <select
+                            className="border border-gray-300 rounded-lg px-4 py-2 bg-white shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer text-sm font-medium text-gray-700 w-fit"
+                            value={selectedType}
+                            onChange={(e) => setSelectedType(e.target.value)}
+                        >
+                            <option value="week">Weekly</option>
+                            <option value="month">Monthly</option>
+                            <option value="year">Yearly</option>
+                        </select>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                        {selectedType === 'week' ? 'Weekly' : selectedType === 'month' ? 'Monthly' : 'Yearly'} comparison of user engagement
+                    </p>
+
+
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4">
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-4 rounded-full bg-[#2D4CCA]"></div>
-                            <span className="text-sm font-medium text-gray-600">This Week</span>
+                            <span className="text-sm font-medium text-gray-600">
+                                {selectedType === 'week' ? 'This Week' : selectedType === 'month' ? 'This Month' : 'This Year'}
+                            </span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-4 rounded-full bg-[#F8C140]"></div>
-                            <span className="text-sm font-medium text-gray-600">Last Week</span>
+                            <span className="text-sm font-medium text-gray-600">
+                                {selectedType === 'week' ? 'Last Week' : selectedType === 'month' ? 'Last Month' : 'Last Year'}
+                            </span>
                         </div>
                     </div>
                 </div>
+
+
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Chart */}
@@ -165,18 +220,24 @@ const Dashboard = () => {
                     <section className="flex flex-col gap-8 w-full lg:w-auto">
                         {/* Weekly Stats */}
                         <div className="lg:pl-8">
-                            <h3 className="font-semibold text-lg mb-4 text-gray-800">Weekly Summary</h3>
+                            <h3 className="font-semibold text-lg mb-4 text-gray-800">
+                                {selectedType === 'week' ? 'Weekly' : selectedType === 'month' ? 'Monthly' : 'Yearly'} Summary
+                            </h3>
                             <div className="flex flex-col gap-6">
                                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                                    <p className="text-sm text-gray-600 mb-1">This Week</p>
+                                    <p className="text-sm text-gray-600 mb-1">
+                                        {selectedType === 'week' ? 'This Week' : selectedType === 'month' ? 'This Month' : 'This Year'}
+                                    </p>
                                     <p className="font-bold text-3xl text-[#2D4CCA]">
-                                        +{data.weekly?.thisWeek || 0}%
+                                        +{data.stats?.thisPeriod || 0}%
                                     </p>
                                 </div>
                                 <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
-                                    <p className="text-sm text-gray-600 mb-1">Last Week</p>
+                                    <p className="text-sm text-gray-600 mb-1">
+                                        {selectedType === 'week' ? 'Last Week' : selectedType === 'month' ? 'Last Month' : 'Last Year'}
+                                    </p>
                                     <p className="font-bold text-3xl text-[#F8C140]">
-                                        +{data.weekly?.lastWeek || 0}%
+                                        +{data.stats?.lastPeriod || 0}%
                                     </p>
                                 </div>
                             </div>

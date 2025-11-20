@@ -315,7 +315,7 @@ export const requestResetPassword = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(200).json({
+            return res.status(404).json({
                 message: "No account found with this email."
             });
         }
@@ -340,7 +340,7 @@ export const requestResetPassword = async (req, res) => {
         }
 
 
-        res.status(200).json({ message: 'No account found with this email.' });
+        res.status(404).json({ message: 'No account found with this email.' });
     } catch (error) {
         console.error('Error requesting password reset:', error);
         res.status(500).json({ message: 'Server error. Please try again later.' });

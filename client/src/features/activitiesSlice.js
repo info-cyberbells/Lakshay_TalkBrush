@@ -1,12 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getActivitiesService } from '../auth/authServices'; 
+import { getActivitiesService, getUSersActivitiesService } from '../auth/authServices';
 
 export const fetchActivities = createAsyncThunk(
     'activities/fetchActivities',
     async (_, { rejectWithValue }) => {
         try {
             const response = await getActivitiesService();
-            return response.data; 
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch activities');
+        }
+    }
+);
+
+export const fetchUserActivities = createAsyncThunk(
+    'activities/fetchUserActivities',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await getUSersActivitiesService();
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch activities');
         }
@@ -16,9 +28,9 @@ export const fetchActivities = createAsyncThunk(
 const activitiesSlice = createSlice({
     name: 'activities',
     initialState: {
-        notifications: [], 
-        activities: [], 
-        allActivities: [], 
+        notifications: [],
+        activities: [],
+        allActivities: [],
         loading: false,
         error: null,
         lastFetched: null,
@@ -33,6 +45,8 @@ const activitiesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+
+            //fetch all activities
             .addCase(fetchActivities.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -45,6 +59,25 @@ const activitiesSlice = createSlice({
                 state.lastFetched = new Date().toISOString();
             })
             .addCase(fetchActivities.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            //fetch all user activities
+            .addCase(fetchUserActivities.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchUserActivities.fulfilled, (state, action) => {
+                state.loading = false;
+                state.notifications = [];
+                state.activities = Array.isArray(action.payload) ? action.payload : [];
+                state.allActivities = Array.isArray(action.payload) ? action.payload : [];
+                state.lastFetched = new Date().toISOString();
+
+                console.log('State after update:', state.activities.length, 'activities');
+            })
+            .addCase(fetchUserActivities.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
