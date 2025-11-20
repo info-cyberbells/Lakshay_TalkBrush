@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login, signUp } from "../../features/userSlice";
 import PasswordResetModal from "../Model/PasswordResetModal.jsx"
-
+import { showToast } from "../../features/toastSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -50,7 +50,11 @@ export default function Login() {
 
     if (Object.keys(newErrors).length > 0) {
       setLoginErrors(newErrors);
-      showToast('Please fill in all required fields');
+      
+      dispatch(showToast({
+                  message: "Please fill all required * fields!",
+                  type: "error"
+              }));
       return;
     }
 
@@ -65,7 +69,10 @@ export default function Login() {
 
         localStorage.setItem("role", userRole);
 
-        showToast('Login successful!');
+        dispatch(showToast({
+                  message: "Login successful!!",
+                  type: "success"
+              }));
 
         setTimeout(() => {
           if (userRole === "1") {
@@ -79,7 +86,11 @@ export default function Login() {
           }
         }, 1500);
       } else {
-        showToast('Invalid credentials');
+        
+        dispatch(showToast({
+                  message: "Invalid credentials!",
+                  type: "error"
+              }));
         console.log(result.payload || "Login failed");
       }
     }
@@ -102,9 +113,15 @@ export default function Login() {
         setSignupErrors(newErrors);
 
         if (password !== confirmPassword) {
-          showToast("Your password mismatched!");
+          dispatch(showToast({
+                  message: "Your password mismatched!!",
+                  type: "error"
+              }));
         } else {
-          showToast("Please fill in all fields");
+          dispatch(showToast({
+                  message: "Please fill all feilds!",
+                  type: "error"
+              }));
         }
         return;
       }
@@ -112,29 +129,36 @@ export default function Login() {
       setSignupErrors({});
       const result = await dispatch(signUp({ fullName, phoneNumber, email, type: "3", password, confirmPassword }));
       if (signUp.fulfilled.match(result)) {
-        showToast('SignUp successfull!');
+        
+        dispatch(showToast({
+                  message: "SignUp successfull!!",
+                  type: "success"
+              }));
         setTimeout(() => {
           switchForm(true);
         }, 1000);
       } else {
-        showToast(result.payload || "SignUp failed");
+         dispatch(showToast({
+                  message: result.payload || "SignUp failed",
+                  type: "error"
+              }));
         console.log(result.payload || "SignUp failed")
       }
     }
   };
 
-  const showToast = (message) => {
-    setToastMsg(message);
-    clearTimeout(showToast.timeout);
-    showToast.timeout = setTimeout(() => {
-      setToastMsg('');
-    }, 2500);
-  };
+  // const showToast = (message) => {
+  //   setToastMsg(message);
+  //   clearTimeout(showToast.timeout);
+  //   showToast.timeout = setTimeout(() => {
+  //     setToastMsg('');
+  //   }, 2500);
+  // };
 
 
   return (
     <>
-      {toastMsg && <div className="custom-toast">{toastMsg}</div>}
+      {/* {toastMsg && <div className="custom-toast">{toastMsg}</div>} */}
       <div className="talkbrush-container">
         <div className="inner-container">
           <div className="left-panel">
@@ -421,7 +445,8 @@ export default function Login() {
         <PasswordResetModal
           isOpen={showResetModal}
           onClose={() => setShowResetModal(false)}
-          showToast={showToast}
+          // showToast={showToast}
+            // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
         />
       </div>
     </>
