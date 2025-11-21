@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./login.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login, signUp } from "../../features/userSlice";
 import PasswordResetModal from "../Model/PasswordResetModal.jsx"
@@ -9,6 +9,8 @@ import { showToast } from "../../features/toastSlice";
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const roomCode = searchParams.get('room');
   const { isLoading } = useSelector((state) => state.auth);
   const [isLogin, setIsLogin] = useState(true);
   const [fullName, setFullName] = useState("");
@@ -76,14 +78,18 @@ export default function Login() {
         }));
 
         setTimeout(() => {
-          if (userRole === "1") {
-            navigate("/dashboard");
-          } else if (userRole === "2") {
-            navigate("/admin-dashboard");
-          } else if (userRole === "3") {
-            navigate("/user-dashboard");
+          if (roomCode) {
+            navigate(`/accent/room/${roomCode}`, { replace: true });
           } else {
-            navigate("/user-dashboard");
+            if (userRole === "1") {
+              navigate("/dashboard");
+            } else if (userRole === "2") {
+              navigate("/admin-dashboard");
+            } else if (userRole === "3") {
+              navigate("/user-dashboard");
+            } else {
+              navigate("/user-dashboard");
+            }
           }
         }, 1500);
       } else {

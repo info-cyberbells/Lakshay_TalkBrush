@@ -3,7 +3,9 @@ import authReducer from "../features/userSlice"
 import eventReducer from "../features/eventSlice"
 import toastReducer from "../features/toastSlice"
 import dashboardReducer from "../features/dashboardSlice";
-import activitiesReducer from '../features/activitiesSlice'
+import activitiesReducer from '../features/activitiesSlice';
+import analyticsReducer from '../features/AnalyticsSlice';
+
 
 export const store = configureStore({
     reducer: {
@@ -12,6 +14,7 @@ export const store = configureStore({
         toast: toastReducer,
         dashboard: dashboardReducer,
         activities: activitiesReducer,
+        analytics: analyticsReducer,
     }
 })
 

@@ -176,3 +176,19 @@ export const verifyResetCodeService = async ({ email, code, newPassword }) => {
   const response = await axios.post(`${USER_ENDPOINTS.VERIFY_RESET_CODE}`, { email, code, newPassword });
   return response.data;
 };
+
+
+
+export const analyticsService = {
+  getType3Analytics: async (period = 'week') => {
+    try {
+      const response = await axios.get(
+        `${USER_ENDPOINTS.GET_TYPE3_ANALYTICS}?period=${period}`,
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch analytics data' };
+    }
+  },
+};

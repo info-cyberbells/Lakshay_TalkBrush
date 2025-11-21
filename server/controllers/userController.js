@@ -2,12 +2,14 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from 'nodemailer';
+import fs from "fs";
+import path from "path";
 import { User } from "../models/userModel.js";
 
 // User Signup Controller
 export const signupUser = async (req, res) => {
     try {
-        let { fullName, email, password, phoneNumber, location, type } = req.body; 4
+        let { fullName, email, password, phoneNumber, type } = req.body;
 
         if (fullName) {
             fullName = fullName.trim();
@@ -33,7 +35,6 @@ export const signupUser = async (req, res) => {
             phoneNumber,
             email,
             password: hashedPassword,
-            // location,
             type,
         });
 
@@ -46,8 +47,6 @@ export const signupUser = async (req, res) => {
                 fullName: user.fullName,
                 phoneNumber: user.phoneNumber,
                 email: user.email,
-                // number: user.number,
-                // location: user.location,
                 type: user.type,
             },
         });
@@ -116,27 +115,50 @@ export const updateProfile = async (req, res) => {
             return res.status(401).json({ message: "User not found" });
         }
 
-        const { fullName, email, phoneNumber } = req.body;
+        const { fullName, email, phoneNumber, image } = req.body;
 
         if (fullName) user.fullName = fullName;
         if (email) user.email = email;
         if (phoneNumber) user.phoneNumber = phoneNumber;
 
+
+        if (req.file) {
+            user.image = `/uploads/profile/${req.file.filename}`;
+        }
+
+        if (!req.file && image && image.startsWith("data:image")) {
+            const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+            const buffer = Buffer.from(base64Data, "base64");
+
+            const filename = `${Date.now()}_${Math.random()
+                .toString(36)
+                .substring(2)}.png`;
+
+            const savePath = path.join(process.cwd(), "uploads/profile", filename);
+            fs.writeFileSync(savePath, buffer);
+
+            user.image = `/uploads/profile/${filename}`;
+        }
+
         await user.save();
 
-        res.json({
-            message: "Profile updated successfully", user: {
+        return res.json({
+            message: "Profile updated successfully",
+            user: {
                 id: user._id,
                 fullName: user.fullName,
                 email: user.email,
-                phoneNumber: user.phoneNumber
+                phoneNumber: user.phoneNumber,
+                image: user.image || null
             }
-        })
+        });
+
+
     } catch (error) {
-        console.error("Update Profile failed: ", error);
+        console.error("Update Profile failed:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
 
 
 //get current loged in user data
@@ -157,6 +179,9 @@ export const getProfile = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Build Base URL
+        const baseURL = `${req.protocol}://${req.get("host")}`;
+
         // Return only the needed fields
         res.json({
             user: {
@@ -167,7 +192,11 @@ export const getProfile = async (req, res) => {
                 type: user.type,
                 lastLogin: user.lastLogin,
                 createdAt: user.createdAt,
-                updatedAt: user.updatedAt
+                updatedAt: user.updatedAt, image: user.image
+                    ? user.image.startsWith("http")
+                        ? user.image
+                        : baseURL + user.image
+                    : null
             }
         });
     } catch (error) {

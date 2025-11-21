@@ -48,13 +48,19 @@ function AppContent() {
             navigate("/dashboard", { replace: true });
           }
         }
+      } else {
+        if (location.pathname.startsWith('/accent/room/')) {
+          const roomCode = location.pathname.split('/accent/room/')[1];
+          navigate(`/?room=${roomCode}`, { replace: true });
+          return;
+        }
       }
 
       setIsVerifying(false);
     };
 
     checkInitialAuth();
-  }, []);
+  }, [location.pathname, navigate]);
 
 
   if (isVerifying) {

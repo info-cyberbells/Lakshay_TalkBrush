@@ -15,19 +15,19 @@ const ConvoSpace = () => {
   // Add your image URLs here
   const slides = [
     {
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=600&fit=crop",
+      image: "https://images.pexels.com/photos/3182827/pexels-photo-3182827.jpeg",
       title: "Start a Conversation Instantly",
       description:
         "Create a private room and practice English accents with friends, colleagues, or anyone you invite.",
     },
     {
-      image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&h=600&fit=crop",
+      image: "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg",
       title: "Share Your Room Link",
       description:
         "Generate a unique join link and share it with others to start speaking together effortlessly.",
     },
     {
-      image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop",
+      image: "https://images.pexels.com/photos/6457561/pexels-photo-6457561.jpeg",
       title: "Experience Real-Time Accent Conversion",
       description:
         "TalkBrush transforms voices in real time, helping you speak, learn, and enjoy different English accents naturally.",

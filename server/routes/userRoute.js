@@ -1,6 +1,7 @@
 import express from "express";
 import { signupUser, getUsersByType, updateProfile, getProfile, updateUser, deleteUser, changePassword, requestResetPassword, verifyResetCodeAndChangePassword } from "../controllers/userController.js";
 import { loginUser, verifyToken, logoutUser } from "../controllers/loginController.js";
+import { uploadProfile } from "../multer/multerConfig.js";
 
 export const userRouter = express.Router();
 
@@ -20,7 +21,7 @@ userRouter.post("/logout", logoutUser);
 userRouter.get("/getAllUsersByType", getUsersByType);
 
 //Update profile
-userRouter.put("/updateProfile", updateProfile);
+userRouter.put("/updateProfile", uploadProfile.single("image"), updateProfile);
 
 //get logged in user data
 userRouter.get("/profile", getProfile);

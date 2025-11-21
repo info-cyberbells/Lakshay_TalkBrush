@@ -45,8 +45,8 @@ export const getDashboardOverview = async (req, res) => {
 
       responseData.statistics = {
         labels: [0, 20, 40, 60, 80, 100],
-        thisWeekData: [4, 3, 5, 7, 6, 8],
-        lastWeekData: [3, 4, 6, 5, 7, 6]
+        thisWeekData: [4, 3, 5, 7, 6, 8, 10],
+        lastWeekData: [3, 4, 6, 5, 7, 6, 8]
       };
 
       responseData.impression = {
@@ -68,8 +68,8 @@ export const getDashboardOverview = async (req, res) => {
 
       responseData.statistics = {
         labels: [0, 50, 100, 150, 200, 250],
-        thisWeekData: [10, 12, 14, 18, 20, 22],
-        lastWeekData: [8, 11, 12, 13, 15, 18]
+        thisWeekData: [10, 12, 14, 18],
+        lastWeekData: [8, 11, 12, 13]
       };
 
       responseData.impression = {
@@ -91,8 +91,8 @@ export const getDashboardOverview = async (req, res) => {
 
       responseData.statistics = {
         labels: ["Q1", "Q2", "Q3", "Q4"],
-        thisWeekData: [100, 120, 140, 160],
-        lastWeekData: [80, 110, 130, 150]
+        thisWeekData: [100, 120, 140, 160, 180, 155, 142, 160, 190, 210, 220, 230],
+        lastWeekData: [80, 110, 130, 150, 120, 130, 130, 155, 170, 182, 195, 200]
       };
 
       responseData.impression = {

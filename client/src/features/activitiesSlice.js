@@ -74,8 +74,6 @@ const activitiesSlice = createSlice({
                 state.activities = Array.isArray(action.payload) ? action.payload : [];
                 state.allActivities = Array.isArray(action.payload) ? action.payload : [];
                 state.lastFetched = new Date().toISOString();
-
-                console.log('State after update:', state.activities.length, 'activities');
             })
             .addCase(fetchUserActivities.rejected, (state, action) => {
                 state.loading = false;

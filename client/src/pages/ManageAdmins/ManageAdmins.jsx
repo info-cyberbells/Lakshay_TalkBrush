@@ -188,11 +188,16 @@ const ManageAdmins = () => {
   };
 
   const handleExport = () => {
-    if (!allUsers || allUsers.length === 0) {
-      alert("No data to export");
-      return;
-    }
-
+   if (selectedAdmins.length === 0) {
+    dispatch(showToast({ message: "No admin selected!", type: "error" }));
+    return;
+  }
+ 
+  const selectedUsers = allUsers.filter(user =>
+    selectedAdmins.includes(user._id)
+  );
+ 
+ 
     const tableHTML = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
       <head>
@@ -213,7 +218,7 @@ const ManageAdmins = () => {
             </tr>
           </thead>
           <tbody>
-            ${allUsers
+            ${selectedUsers
         .map(
           (user) => `
               <tr>
@@ -233,7 +238,7 @@ const ManageAdmins = () => {
       </body>
     </html>
   `;
-
+ 
     const blob = new Blob([tableHTML], { type: "application/vnd.ms-excel" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -246,6 +251,13 @@ const ManageAdmins = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+ 
+    dispatch(
+    showToast({
+      message: `${selectedAdmins.length} admin${selectedAdmins.length > 1 ? "s" : ""} exported successfully.`,
+      type: "success",
+    })
+  );
   };
 
   return (

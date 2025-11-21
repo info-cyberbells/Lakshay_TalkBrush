@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile, updateProfile, changePassword } from "../../features/userSlice";
-import { User, Mail, Phone, Calendar, Shield } from "lucide-react";
+import { User, Mail, Phone, Calendar, Shield, Pencil } from "lucide-react";
 import { showToast } from "../../features/toastSlice";
 import ChnagePasswordModal from "../Model/ChangePasswordModal.jsx";
 
@@ -46,6 +46,57 @@ const Profile = () => {
   const handleChangePassword = () => {
     setIsModalOpen(true);
   };
+
+  const handleProfileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      dispatch(showToast({
+        message: "Image must be less than 5 MB!",
+        type: "error"
+      }));
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const MAX_WIDTH = 800;
+        const scale = MAX_WIDTH / img.width;
+
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+
+        setFormData((prev) => ({ ...prev, image: compressedBase64 }));
+
+        dispatch(updateProfile({ image: compressedBase64 }))
+          .unwrap()
+          .then(() => {
+            dispatch(showToast({ message: "Profile photo updated!", type: "success" }));
+            dispatch(fetchProfile());
+          })
+          .catch(() => {
+            dispatch(showToast({ message: "Failed to update photo.", type: "error" }));
+          });
+      };
+    };
+
+    reader.readAsDataURL(file);
+  };
+
 
 
   const handleCloseModal = () => {
@@ -133,13 +184,41 @@ const Profile = () => {
           <div className="lg:col-span-1 lg:min-w-[200px] min-w-[260px] ">
             <div className="bg-white rounded-lg shadow p-6 lg:min-h-[433px]">
               <div className="flex flex-col items-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mb-4">
-                  <User className="w-12 h-12 text-white" />
+
+                <div className="relative w-24 h-24 mb-4">
+
+                  <img
+                    src={formData?.image || user?.image || "/default-profile.png"}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full object-cover border border-gray-300 shadow"
+                  />
+
+                  {/* EDIT ICON */}
+                  <label
+                    htmlFor="profileInput"
+                    className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full cursor-pointer shadow"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </label>
+
+                  <input
+                    id="profileInput"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProfileChange}
+                  />
                 </div>
+
+                {/* NAME */}
                 <h2 className="text-xl font-semibold text-gray-900">
                   {user?.fullName || "User"}
                 </h2>
+
+                {/* EMAIL */}
                 <p className="text-gray-600 text-sm mt-1">{user?.email}</p>
+
+                {/* USER TYPE */}
                 <div className="mt-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                   {getUserType(user?.type)}
                 </div>
@@ -204,8 +283,14 @@ const Profile = () => {
                     type="email"
                     name="email"
                     value={formData.email}
+                    disabled={true}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`
+    w-full px-4 py-3 border rounded-lg focus:outline-none
+    ${true
+                        ? "bg-gray-100 text-gray-500 border-gray-300 cursor-not-allowed"
+                        : "bg-white text-gray-700 border-gray-300 focus:ring-2 focus:ring-blue-500"}
+  `}
                     placeholder="Enter your email"
                   />
                 </div>

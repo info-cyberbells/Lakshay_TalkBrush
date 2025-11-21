@@ -187,10 +187,14 @@ const ManageUsers = () => {
   };
 
   const handleExport = () => {
-    if (!allUsers || allUsers.length === 0) {
-      alert("No data to export");
+    if (selectedUsers.length === 0) {
+      dispatch(showToast({ message: "No user selected!", type: "error" }));
       return;
     }
+
+    const selectedUserss = allUsers.filter(user =>
+      selectedUsers.includes(user._id)
+    );
 
     const tableHTML = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
@@ -212,7 +216,7 @@ const ManageUsers = () => {
             </tr>
           </thead>
           <tbody>
-            ${allUsers
+            ${selectedUserss
         .map(
           (user) => `
               <tr>
@@ -245,6 +249,13 @@ const ManageUsers = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    dispatch(
+      showToast({
+        message: `${selectedUserss.length} user${selectedUserss.length > 1 ? "s" : ""} exported successfully.`,
+        type: "success",
+      })
+    );
   };
 
   return (

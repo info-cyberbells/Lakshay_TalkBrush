@@ -55,12 +55,6 @@ const RightComponent = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { notifications, activities, loading, error } = useSelector((state) => state.activities);
 
-  // Add these debug logs
-  console.log('Current role:', localStorage.getItem("role"));
-  console.log('Redux state:', { notifications, activities, loading, error });
-  console.log('Activities length:', activities.length);
-  console.log('First activity:', activities[0]);
-
   useEffect(() => {
     const role = localStorage.getItem("role");
 

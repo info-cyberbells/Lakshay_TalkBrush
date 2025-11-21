@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
     type: {
         type: String,
     },
+    image: {
+        type: String,
+        default: null,
+    },
     resetCode: String,
     resetCodeExpires: Date,
     lastLogin: {

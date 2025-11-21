@@ -11,6 +11,7 @@ import { userRouter } from "./routes/userRoute.js";
 import { eventRouter } from "./routes/eventRoutes.js";
 import { dashboardRouter } from "./routes/dashboardRoute.js";
 import activityRoutes from "./routes/activityRoutes.js";
+import analysisRoutes from "./routes/analysisRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/users", userRouter);
 app.use("/api/event", eventRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/activities", activityRoutes);
+app.use("/api/analysis", analysisRoutes);
 
 
 // Connect to DB

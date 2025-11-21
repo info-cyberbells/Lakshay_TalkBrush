@@ -1,38 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import multer from 'multer';
 import Event from '../models/eventModel.js';
-
-// Ensure upload folder exists
-const uploadFolder = path.join(process.cwd(), 'uploads/events');
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder, { recursive: true });
-}
-
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadFolder),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext).replace(/\s+/g, '-');
-    cb(null, `${Date.now()}-${base}${ext}`);
-  },
-});
-
-// File filter: only JPG and PNG
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-  if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error('Only JPG and PNG images are allowed!'), false);
-  }
-  cb(null, true);
-};
-
-export const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
 
 // add new event
 export const addEvent = async (req, res) => {
@@ -57,7 +25,7 @@ export const addEvent = async (req, res) => {
           const base64Data = pictureData.replace(/^data:image\/\w+;base64,/, '');
           const buffer = Buffer.from(base64Data, 'base64');
           const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
-          const filepath = path.join(uploadFolder, filename);
+          const filepath = path.join(process.cwd(), "uploads/events", filename);
           fs.writeFileSync(filepath, buffer);
           picturePaths.push(`/uploads/events/${filename}`);
         }
@@ -170,7 +138,7 @@ export const updateEvent = async (req, res) => {
           const base64Data = pic.replace(/^data:image\/\w+;base64,/, "");
           const buffer = Buffer.from(base64Data, "base64");
           const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
-          const filepath = path.join(uploadFolder, filename);
+          const filepath = path.join(process.cwd(), "uploads/events", filename);
 
           fs.writeFileSync(filepath, buffer);
 

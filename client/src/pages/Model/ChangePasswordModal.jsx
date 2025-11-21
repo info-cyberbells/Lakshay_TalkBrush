@@ -50,7 +50,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit }) => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const { currentPassword, newPassword, confirmPassword } = formData;
@@ -64,7 +64,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit }) => {
         if (newPassword && confirmPassword && newPassword !== confirmPassword) {
             newErrors.newPassword = true;
             newErrors.confirmPassword = true;
-            dispatch(showToast({ message: "New passwords do not match!" }));
+            dispatch(showToast({ message: "New passwords do not match!", type: "error" }));
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -73,26 +73,33 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit }) => {
             return;
         }
 
-        // ✅ If no errors
         setErrors({});
 
 
-        // Submit form
-        onSubmit({
-            currentPassword,
-            newPassword,
-        });
+        try {
+            const response = await onSubmit({
+                currentPassword,
+                newPassword,
+            });
 
-        // Reset form
-        setFormData({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-        });
 
-        dispatch(showToast({ message: "Password changed successfully!" }));
-        onClose();
+            if (response?.status === true) {
+                dispatch(showToast({ message: "Password changed successfully!", type: "success" }));
+
+                setFormData({
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
+                });
+
+                onClose();
+            }
+
+        } catch (error) {
+            dispatch(showToast({ message: error.message || "Something went wrong", type: "error" }));
+        }
     };
+
 
     const handleClose = () => {
         setFormData({
