@@ -19,6 +19,11 @@ const Profile = () => {
     email: "",
     phoneNumber: "",
   });
+  const [errors, setErrors] = useState({
+    fullName: "",
+    phoneNumber: ""
+  });
+
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -35,13 +40,23 @@ const Profile = () => {
   }, [user]);
 
   const handleChange = (e) => {
-    const updatedData = { ...formData, [e.target.name]: e.target.value };
+    const { name, value } = e.target;
+
+    // live remove error when typing
+    setErrors(prev => ({
+      ...prev,
+      [name]: value.trim() ? "" : prev[name]
+    }));
+
+    const updatedData = { ...formData, [name]: value };
     setFormData(updatedData);
+
     const hasChanges = Object.keys(formData).some(
-      (key) => updatedData[key]?.trim?.() !== user[key]?.trim?.()
+      key => updatedData[key]?.trim?.() !== user[key]?.trim?.()
     );
     setIsChanged(hasChanges);
   };
+
 
   const handleChangePassword = () => {
     setIsModalOpen(true);
@@ -115,6 +130,32 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({ fullName: "", phoneNumber: "" });
+
+    // BOTH EMPTY
+    if (!formData.fullName.trim() && !formData.phoneNumber.trim()) {
+      setErrors({
+        fullName: "Full name is required",
+        phoneNumber: "Phone number is required"
+      });
+      dispatch(showToast({ message: "Please fill all fields!", type: "error" }));
+      return;
+    }
+
+    // NAME EMPTY
+    if (!formData.fullName.trim()) {
+      setErrors(prev => ({ ...prev, fullName: "Full name is required" }));
+      dispatch(showToast({ message: "Full name cannot be empty!", type: "error" }));
+      return;
+    }
+
+    // PHONE EMPTY
+    if (!formData.phoneNumber.trim()) {
+      setErrors(prev => ({ ...prev, phoneNumber: "Phone number is required" }));
+      dispatch(showToast({ message: "Phone number cannot be empty!", type: "error" }));
+      return;
+    }
+
 
     if (!isChanged) {
       dispatch(showToast({ message: "No changes detected!", type: "info" }));
@@ -267,7 +308,9 @@ const Profile = () => {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none 
+  ${errors.fullName ? "border-red-500" : "border-gray-300"}
+  focus:ring-2 focus:ring-blue-500`}
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -306,8 +349,17 @@ const Profile = () => {
                     type="tel"
                     name="phoneNumber"
                     value={formData.phoneNumber}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\+?\d*$/.test(value)) {
+                        if (value.length <= 15) {
+                          handleChange(e);
+                        }
+                      }
+                    }}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none 
+  ${errors.phoneNumber ? "border-red-500" : "border-gray-300"}
+  focus:ring-2 focus:ring-blue-500`}
                     placeholder="Enter your phone number"
                   />
                 </div>
@@ -316,12 +368,9 @@ const Profile = () => {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={!isChanged || isLoading}
+                    disabled={isLoading}
                     className={`flex-1 py-3 font-medium rounded-lg transition  
-                        ${isChanged
-                        ? "bg-blue-600 cursor-pointer text-white hover:bg-blue-700"
-                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      }`}
+      bg-blue-600 cursor-pointer text-white hover:bg-blue-700`}
                   >
                     {isLoading ? "Updating..." : "Update Profile"}
                   </button>

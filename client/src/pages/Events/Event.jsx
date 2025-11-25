@@ -165,41 +165,7 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4">
-              {/* --- Interactive Images Section --- */}
-              {event.pictures && event.pictures.length > 0 ? (
-                <div className="flex -space-x-2">
-                  {event.pictures.slice(0, 3).map((pic, idx) => (
-                    <img
-                      key={idx}
-                      src={pic}
-                      alt={`Event ${idx + 1}`}
-                      onClick={() => setPreviewImg(pic)}
-                      className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
-                    />
-                  ))}
 
-                  {event.pictures.length > 3 && (
-                    <div
-                      onClick={() => setShowGrid(true)}
-                      className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
-                    >
-                      {/* 4th Image as background */}
-                      <img
-                        src={event.pictures[3]}
-                        alt="More"
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      {/* Dark Overlay */}
-                      <div className="absolute inset-0 bg-black/50" />
-
-                      {/* Count Text */}
-                      <span className="relative z-10 text-xs sm:text-sm font-bold text-white">
-                        +{event.pictures.length - 3}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : null}
 
               {/* --- Action Buttons --- */}
               <button
@@ -223,6 +189,42 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => {
             <p className="text-[#A098AE] text-xs sm:text-sm md:text-[14px] font-normal mt-2 sm:mt-3 break-words whitespace-pre-wrap overflow-hidden">
               {event.description}
             </p>
+
+            {/* --- Interactive Images Section --- */}
+            {event.pictures && event.pictures.length > 0 ? (
+              <div className="flex -space-x-2 mt-3">
+                {event.pictures.slice(0, 3).map((pic, idx) => (
+                  <img
+                    key={idx}
+                    src={pic}
+                    alt={`Event ${idx + 1}`}
+                    onClick={() => setPreviewImg(pic)}
+                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
+                  />
+                ))}
+
+                {event.pictures.length > 3 && (
+                  <div
+                    onClick={() => setShowGrid(true)}
+                    className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
+                  >
+                    {/* 4th Image as background */}
+                    <img
+                      src={event.pictures[3]}
+                      alt="More"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    {/* Dark Overlay */}
+                    <div className="absolute inset-0 bg-black/50" />
+
+                    {/* Count Text */}
+                    <span className="relative z-10 text-xs sm:text-sm font-bold text-white">
+                      +{event.pictures.length - 3}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -559,7 +561,6 @@ const Event = () => {
                 </div>
 
                 {/* Upcoming Events Section */}
-                {/* Upcoming Events Section */}
                 {filteredUpcomingEvents &&
                   filteredUpcomingEvents.length > 0 && (
                     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -653,7 +654,7 @@ const Event = () => {
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-gray-800">
-                  {totalPages}
+                  {totalEvents}
                 </span>
               </span>
 

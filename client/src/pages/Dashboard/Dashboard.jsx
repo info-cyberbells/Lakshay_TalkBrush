@@ -76,10 +76,24 @@ const Dashboard = () => {
 
     // Transform data for Recharts
     const getChartLabels = () => {
-        if (selectedType === 'week') return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        if (selectedType === 'month') return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const isSmallScreen = window.innerWidth < 600;
+
+        if (selectedType === 'week')
+            return isSmallScreen
+                ? ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+                : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        if (selectedType === 'month')
+            return isSmallScreen
+                ? ['W1', 'W2', 'W3', 'W4']
+                : ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+
+        // YEARLY
+        return isSmallScreen
+            ? ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+            : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     };
+
 
     const chartData = getChartLabels().map((label, index) => ({
         name: label,
@@ -141,18 +155,40 @@ const Dashboard = () => {
             <main className="mx-0 lg:mx-6 p-4 lg:p-6 border border-gray-200 rounded-2xl mt-5 bg-white shadow-sm">
 
                 <div className="mb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
-                        <h2 className="text-xl lg:text-2xl font-bold text-gray-800">User Activity Statistics</h2>
-                        <select
-                            className="border border-gray-300 rounded-lg px-4 py-2 bg-white shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer text-sm font-medium text-gray-700 w-fit"
-                            value={selectedType}
-                            onChange={(e) => setSelectedType(e.target.value)}
-                        >
-                            <option value="week">Weekly</option>
-                            <option value="month">Monthly</option>
-                            <option value="year">Yearly</option>
-                        </select>
+                    <div className="flex items-center bg-gray-100 rounded-xl p-1 w-fit">
+                        {["week", "month", "year"].map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setSelectedType(type)}
+                                className={`
+                flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                ${selectedType === type
+                                        ? "bg-white shadow text-blue-600"
+                                        : "text-gray-600 hover:bg-white"}
+            `}
+                            >
+                                {/* Small SVG icon */}
+                                {type === "week" && (
+                                    <svg width="16" height="16" fill="currentColor" className="opacity-80">
+                                        <rect x="2" y="2" width="12" height="12" rx="3" />
+                                    </svg>
+                                )}
+                                {type === "month" && (
+                                    <svg width="16" height="16" fill="currentColor" className="opacity-80">
+                                        <path d="M2 4h12v2H2zM2 9h12v2H2zM2 14h12v2H2z" />
+                                    </svg>
+                                )}
+                                {type === "year" && (
+                                    <svg width="16" height="16" fill="currentColor" className="opacity-80">
+                                        <circle cx="8" cy="8" r="6" />
+                                    </svg>
+                                )}
+
+                                {type === "week" ? "Weekly" : type === "month" ? "Monthly" : "Yearly"}
+                            </button>
+                        ))}
                     </div>
+
                     <p className="text-sm text-gray-500">
                         {selectedType === 'week' ? 'Weekly' : selectedType === 'month' ? 'Monthly' : 'Yearly'} comparison of user engagement
                     </p>
@@ -180,18 +216,27 @@ const Dashboard = () => {
                     {/* Chart */}
                     <div className="flex-1">
                         <ResponsiveContainer width="100%" height={350}>
-                            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                                 <XAxis
                                     dataKey="name"
                                     stroke="#6B7280"
                                     style={{ fontSize: '14px', fontWeight: '500' }}
-                                    label={{ value: 'Days of Week', position: 'insideBottom', offset: -10, style: { fontSize: '12px', fill: '#6B7280' } }}
-                                />
+                                    label={{
+                                        value:
+                                            selectedType === "week"
+                                                ? "Days of Week"
+                                                : selectedType === "month"
+                                                    ? "Weeks of Month"
+                                                    : "Months of Year",
+                                        position: "insideBottom",
+                                        offset: -25,
+                                        style: { fontSize: "12px", fill: "#6B7280" }
+                                    }} />
                                 <YAxis
                                     stroke="#6B7280"
                                     style={{ fontSize: '14px' }}
-                                    label={{ value: 'Values', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fill: '#6B7280' } }}
+                                    label={{ value: 'Values', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fill: '#6B7280' } }} dx={-10}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Line

@@ -9,12 +9,13 @@ const Analytics = () => {
         totalUsers,
         activeUsers,
         inactiveUsers,
+        missingLoginUsers,
         period,
         loading,
         error
     } = useSelector((state) => state.analytics);
 
-    const [activeTab, setActiveTab] = useState(period);
+    const [activeTab, setActiveTab] = useState("7 days");
 
     // Period mapping for API calls
     const periodMapping = {
@@ -26,10 +27,10 @@ const Analytics = () => {
 
     // Fetch data on component mount
     useEffect(() => {
-        dispatch(fetchAnalyticsData('week')); // Default to week
+        setActiveTab("7 days");
+        dispatch(fetchAnalyticsData('week'));
     }, [dispatch]);
 
-    // Handle tab change and API call
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         const apiPeriod = periodMapping[tab];
@@ -37,23 +38,22 @@ const Analytics = () => {
         dispatch(fetchAnalyticsData(apiPeriod));
     };
 
-    // Transform API data for chart display
     const getChartData = () => {
         if (!data || data.length === 0) {
             return [];
         }
 
-        // Convert API data to chart format
-        return data.map((item, index) => ({
+        const maxValue = Math.max(...data.map(d => d.count));
+
+        return data.map(item => ({
             label: item.label,
+            count: item.count,
             values: [
-                Math.max(item.count * 0.7, 10), // Main value
-                Math.max(item.count * 0.2, 5),  // Secondary
-                Math.max(item.count * 0.08, 3), // Tertiary  
-                Math.max(item.count * 0.02, 1)  // Minimal
+                (item.count / maxValue) * 100,
             ]
         }));
     };
+
 
     // Calculate active/inactive percentages
     const getActivePercentage = () => {
@@ -66,9 +66,15 @@ const Analytics = () => {
         return Math.round((inactiveUsers / totalUsers) * 100);
     };
 
+    const getmissingLoginUsers = () => {
+        if (totalUsers === 0) return 0;
+        return Math.round((missingLoginUsers / totalUsers) * 100);
+    };
+
     const chartData = getChartData();
     const activePercentage = getActivePercentage();
     const inactivePercentage = getInactivePercentage();
+    const findmissingLoginUsers = getmissingLoginUsers();
 
     // Color shades for the bars (dark to light blue/purple)
     const colors = [
@@ -102,7 +108,7 @@ const Analytics = () => {
                                 key={tab}
                                 onClick={() => handleTabChange(tab)}
                                 disabled={loading}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab
+                                className={`px-4 py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors ${activeTab === tab
                                     ? "bg-gray-900 text-white"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                     } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -132,15 +138,13 @@ const Analytics = () => {
 
                                     {/* Stacked bar */}
                                     <div className="flex-1 flex h-10 rounded-full overflow-hidden bg-gray-100">
-                                        {data.values.map((value, idx) => (
-                                            <div
-                                                key={idx}
-                                                className={`${colors[idx]} transition-all duration-300`}
-                                                style={{ width: `${Math.min(value, 100)}%` }}
-                                                title={`Value: ${value}`}
-                                            ></div>
-                                        ))}
+                                        <div
+                                            className="bg-[#4338ca] transition-all duration-300"
+                                            style={{ width: `${data.values[0]}%` }}
+                                            title={`Conversations: ${data.count}`}
+                                        ></div>
                                     </div>
+
                                 </div>
                             ))}
 
@@ -166,18 +170,23 @@ const Analytics = () => {
                 {/* Active vs Inactive User Section */}
                 <div className="bg-white rounded-2xl shadow-sm p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                        Active user vs inactive user ratio
+                        User Activity Distribution
                     </h2>
+
 
                     {/* User Stats Summary */}
                     <div className="mb-4 text-sm text-gray-600">
-                        Total Users: {totalUsers} | Active: {activeUsers} | Inactive: {inactiveUsers}
+                        Total Users: {totalUsers} |
+                        Active: {activeUsers} |
+                        Inactive: {inactiveUsers} |
+                        Never Logged In: {missingLoginUsers}
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         {/* Donut Chart */}
                         <div className="relative w-48 h-48">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+
                                 {/* Background circle */}
                                 <circle
                                     cx="50"
@@ -188,7 +197,7 @@ const Analytics = () => {
                                     strokeWidth="12"
                                 />
 
-                                {/* Active user segment */}
+                                {/* ACTIVE segment */}
                                 <circle
                                     cx="50"
                                     cy="50"
@@ -201,19 +210,33 @@ const Analytics = () => {
                                     className="transition-all duration-500"
                                 />
 
-                                {/* Inactive user segment */}
+                                {/* INACTIVE segment */}
                                 <circle
                                     cx="50"
                                     cy="50"
                                     r="35"
                                     fill="none"
-                                    stroke="#a5b4fc"
+                                    stroke="#818cf8"
                                     strokeWidth="12"
                                     strokeDasharray={`${inactivePercentage * 2.2} 220`}
                                     strokeDashoffset={`-${activePercentage * 2.2}`}
                                     className="transition-all duration-500"
                                 />
+
+                                {/* MISSING LOGIN segment */}
+                                <circle
+                                    cx="50"
+                                    cy="50"
+                                    r="35"
+                                    fill="none"
+                                    stroke="#c4b5fd"
+                                    strokeWidth="12"
+                                    strokeDasharray={`${findmissingLoginUsers * 2.2} 220`}
+                                    strokeDashoffset={`-${(activePercentage + inactivePercentage) * 2.2}`}
+                                    className="transition-all duration-500"
+                                />
                             </svg>
+
                         </div>
 
                         {/* Legend */}
@@ -230,11 +253,22 @@ const Analytics = () => {
 
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-[#a5b4fc]"></div>
+                                    <div className="w-3 h-3 rounded-full bg-[#818cf8]"></div>
                                     <span className="text-sm text-gray-700 font-medium">Inactive</span>
                                 </div>
                                 <span className="text-sm font-semibold text-gray-900 ml-auto">
                                     {inactivePercentage}%
+                                </span>
+                            </div>
+
+
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-[#c4b5fd]"></div>
+                                    <span className="text-sm text-gray-700 font-medium">Never Logged In</span>
+                                </div>
+                                <span className="text-sm font-semibold text-gray-900 ml-auto">
+                                    {findmissingLoginUsers}%
                                 </span>
                             </div>
                         </div>

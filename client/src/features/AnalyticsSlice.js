@@ -54,6 +54,7 @@ const analyticsSlice = createSlice({
                 state.totalUsers = action.payload.totalUsers || 0;
                 state.activeUsers = action.payload.activeUsers || 0;
                 state.inactiveUsers = action.payload.inactiveUsers || 0;
+                state.missingLoginUsers = action.payload.missingLoginUsers || 0;
                 state.period = action.payload.period || state.period;
                 state.lastFetch = new Date().toISOString();
             })
