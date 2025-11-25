@@ -161,7 +161,7 @@ const Dashboard = () => {
                                 key={type}
                                 onClick={() => setSelectedType(type)}
                                 className={`
-                flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all
                 ${selectedType === type
                                         ? "bg-white shadow text-blue-600"
                                         : "text-gray-600 hover:bg-white"}
@@ -169,17 +169,17 @@ const Dashboard = () => {
                             >
                                 {/* Small SVG icon */}
                                 {type === "week" && (
-                                    <svg width="16" height="16" fill="currentColor" className="opacity-80">
+                                    <svg width="16" height="16" fill="currentColor" className="opacity-80 cursor-pointer">
                                         <rect x="2" y="2" width="12" height="12" rx="3" />
                                     </svg>
                                 )}
                                 {type === "month" && (
-                                    <svg width="16" height="16" fill="currentColor" className="opacity-80">
+                                    <svg width="16" height="16" fill="currentColor" className="opacity-80 cursor-pointer">
                                         <path d="M2 4h12v2H2zM2 9h12v2H2zM2 14h12v2H2z" />
                                     </svg>
                                 )}
                                 {type === "year" && (
-                                    <svg width="16" height="16" fill="currentColor" className="opacity-80">
+                                    <svg width="16" height="16" fill="currentColor" className="opacity-80 cursor-pointer">
                                         <circle cx="8" cy="8" r="6" />
                                     </svg>
                                 )}
