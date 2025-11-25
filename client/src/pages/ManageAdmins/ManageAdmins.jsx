@@ -297,18 +297,22 @@ const ManageAdmins = () => {
                   Filters
                 </button>
                 <button
-                  className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                disabled={selectedAdmins.length === 0}
+                  className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg transition-colors border ${selectedAdmins.length > 0
+                    ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
+                    : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+                    }`}
                   onClick={handleExport}
                 >
                   <Download className="w-4 h-4" />
                   Export
                 </button>
                 <button
-                  className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Plus className="w-4 h-4" />
-                  Add <p className="hidden md:inline">New Admin</p>
+                  <p className="hidden md:inline">Add New Admin</p>
                 </button>
               </div>
             </div>
@@ -340,7 +344,7 @@ const ManageAdmins = () => {
                       className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                     />
                   </th>
-                  <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4">
+                  <th className="px-3 py-1 md:px-6 md:py-3 text-left w-[30%]">
                     <div
                       className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
                       onClick={() => handleSort("fullName")}
@@ -359,7 +363,7 @@ const ManageAdmins = () => {
                   </th>
 
                   {/* <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4"> */}
-                  <th className="px-6 py-3 text-left w-[35%] sm:w-[30%]">
+                  <th className="px-3 py-3 text-left md:w-[40%] sm:w-[30%]">
                     <div
                       className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
                       onClick={() => handleSort("email")}
@@ -378,7 +382,7 @@ const ManageAdmins = () => {
                   </th>
 
                   {/* <th className="px-6 py-3 text-left w-1/4"> */}
-                  <th className="px-6 py-3 text-left w-1/4 hidden md:table-cell">
+                  <th className="px-6 py-3 text-left w-[22%] hidden md:table-cell">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
                       Phone No.
                     </div>
@@ -417,7 +421,7 @@ const ManageAdmins = () => {
                       </td>
                       <td
                         // className="px-6 py-4 text-sm text-gray-600"
-                        className="px-2 py-1 md:px-6 md:py-4 text-sm text-gray-600"
+                        className="px-2 py-1 sm:max-w-[220px] md:px-3 md:py-4 text-sm text-gray-600"
                       >
                         {admin.email}
                       </td>
@@ -426,10 +430,16 @@ const ManageAdmins = () => {
                         {admin.phoneNumber || "N/A"}
                       </td>
                       {/* <td className="px-6 py-4 text-sm text-gray-600"> */}
-                      <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
+                      <td className="px-6 py-4 text-xs whitespace-nowrap text-gray-600 hidden lg:table-cell">
                         {admin.lastLogin
-                          ? new Date(admin.lastLogin).toLocaleString()
-                          : "Never"}
+  ? new Date(admin.lastLogin).toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  : "Never"}
                       </td>
                       {/* <td className="px-6 py-4 text-right">
                       <button className="text-gray-400 hover:text-gray-600 transition-colors">

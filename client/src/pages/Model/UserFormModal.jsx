@@ -34,60 +34,95 @@ const UserFormModal = ({ isOpen, onClose, onSubmit, type, userData = null }) => 
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
-  const validateForm = () => {
-    const newErrors = {};
+const validateForm = () => {
+  const newErrors = {};
 
-    if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
+  const trimmedName = formData.fullName.trim();
+  const trimmedEmail = formData.email.trim();
+  const trimmedPhone = formData.phoneNumber.trim();
+  const password = formData.password || "";
+  const confirmPassword = formData.confirmPassword || "";
 
-    if (!isEditMode) {
-      if (!formData.phoneNumber.trim())
-        newErrors.phoneNumber = "Phone number is required";
-      if (!formData.password.trim()) newErrors.password = "Password is required";
-      if (!formData.confirmPassword.trim())
-        newErrors.confirmPassword = "Confirm password is required";
-      else if (formData.password !== formData.confirmPassword)
-        newErrors.confirmPassword = "Passwords do not match";
-    } else {
-      if (formData.password || formData.confirmPassword) {
-        if (formData.password !== formData.confirmPassword) {
-          newErrors.confirmPassword = "Passwords do not match";
-          dispatch(
-            showToast({ message: "Passwords do not match!", type: "error" })
-          );
-          return false;
-        }
-      }
-    }
+  if (!trimmedName) newErrors.fullName = "Full name is required";
+  if (!trimmedEmail) newErrors.email = "Email is required";
+  if (!trimmedPhone) newErrors.phoneNumber = "Phone number is required";
 
+
+  if (!isEditMode) {
+    if (!password) newErrors.password = "Password is required";
+    if (!confirmPassword) newErrors.confirmPassword = "Confirm password is required";
+  }
+
+  // If any required field missing → stop here
+  if (Object.keys(newErrors).length > 0) {
     setErrors(newErrors);
 
-    if (!isEditMode) {
-      const hasEmptyFields =
-        !formData.fullName.trim() ||
-        !formData.email.trim() ||
-        !formData.phoneNumber.trim() ||
-        !formData.password.trim() ||
-        !formData.confirmPassword.trim();
+    dispatch(
+      showToast({
+        message: "All fields are required!",
+        type: "error",
+      })
+    );
+    return false;
+  }
 
-      if (hasEmptyFields) {
-        dispatch(
-          showToast({ message: "All fields are required!", type: "error" })
-        );
-        return false;
-      }
-    } else {
-      // In edit mode, only name and email are required
-      if (!formData.fullName.trim() || !formData.email.trim()) {
-        dispatch(
-          showToast({ message: "Name and Email are required!", type: "error" })
-        );
-        return false;
-      }
+  const nameRegex = /^[A-Za-z ]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\+?\d+$/;
+
+ 
+  if (!nameRegex.test(trimmedName)) {
+    newErrors.fullName = "Name must contain only letters";
+    dispatch(showToast({ message: newErrors.fullName, type: "error" }));
+    setErrors(newErrors);
+    return false;
+  }
+
+  
+  if (!emailRegex.test(trimmedEmail)) {
+    newErrors.email = "Invalid email format";
+    dispatch(showToast({ message: newErrors.email, type: "error" }));
+    setErrors(newErrors);
+    return false;
+  }
+
+  if (trimmedEmail.length > 40) {
+    newErrors.email = "Email must not exceed 40 characters";
+    dispatch(showToast({ message: newErrors.email, type: "error" }));
+    setErrors(newErrors);
+    return false;
+  }
+
+  // Phone regex (only add mode)
+  if (!phoneRegex.test(trimmedPhone)) {
+    newErrors.phoneNumber = "Invalid phone number";
+    dispatch(showToast({ message: newErrors.phoneNumber, type: "error" }));
+    setErrors(newErrors);
+    return false;
+  }
+
+  if (!isEditMode) {
+    if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      dispatch(showToast({ message: newErrors.password, type: "error" }));
+      setErrors(newErrors);
+      return false;
     }
 
-    return Object.keys(newErrors).length === 0;
-  };
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+      dispatch(showToast({ message: newErrors.confirmPassword, type: "error" }));
+      setErrors(newErrors);
+      return false;
+    }
+  }
+
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -241,9 +276,10 @@ const UserFormModal = ({ isOpen, onClose, onSubmit, type, userData = null }) => 
                 Email
               </label>
               <input
-                type="email"
+                type="text"
                 name="email"
                 placeholder="Enter email address"
+                maxLength={30}
                 value={formData.email}
                 onChange={handleChange}
                 // required
@@ -265,6 +301,7 @@ const UserFormModal = ({ isOpen, onClose, onSubmit, type, userData = null }) => 
                 type="text"
                 name="phoneNumber"
                 placeholder="Enter phone number"
+                maxLength={15}
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 className={`w-full px-4 py-2.5 border ${errors.phoneNumber ? "border-red-500" : "border-gray-300"
