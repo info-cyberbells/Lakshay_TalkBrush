@@ -199,14 +199,14 @@ const ScheduleCard = ({ event, onEdit, onDelete }) => {
                     src={pic}
                     alt={`Event ${idx + 1}`}
                     onClick={() => setPreviewImg(pic)}
-                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
+                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-md object-cover border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
                   />
                 ))}
 
                 {event.pictures.length > 3 && (
                   <div
                     onClick={() => setShowGrid(true)}
-                    className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
+                    className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-md flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
                   >
                     {/* 4th Image as background */}
                     <img
@@ -312,10 +312,10 @@ const Event = () => {
         dispatch(fetchAllEvents({ page, limit }));
         setDeleteModel(false);
         setEventToDelete(null);
-        dispatch(showToast({ message: "Event Deleted Successfully!!!" }));
+        dispatch(showToast({ message: "Event Deleted Successfully!!!", type: "success" }));
       } catch (error) {
         console.error("Error deleting event:", error);
-        dispatch(showToast({ message: "Failed to Delete Event!!!!" }));
+        dispatch(showToast({ message: "Failed to Delete Event!!!!", type: "error" }));
       }
     }
   };
