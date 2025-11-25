@@ -294,18 +294,21 @@ const ManageUsers = () => {
                 Filters
               </button>
               <button
-                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={handleExport}
+                disabled={selectedUsers.length === 0}
+className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg transition-colors border ${selectedUsers.length > 0
+                  ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  : "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+                  }`}onClick={handleExport}
               >
                 <Download className="w-4 h-4" />
                 Export
               </button>
               <button
-                className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-2 py-1 md:px-4 md:py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
                 <Plus className="w-4 h-4" />
-                Add <p className="hidden md:inline">New User</p>
+                <p className="hidden md:inline">Add New User</p>
               </button>
             </div>
           </div>
@@ -336,7 +339,7 @@ const ManageUsers = () => {
                   />
                 </th>
 
-                <th className="px-3 py-1 md:px-6 md:py-3 text-left w-1/4">
+                <th className="px-3 py-1 md:px-6 md:py-3 text-left w-[30%]">
                   <div
                     className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
                     onClick={() => handleSort("fullName")}
@@ -354,7 +357,7 @@ const ManageUsers = () => {
                   </div>
                 </th>
 
-                <th className="px-6 py-3 text-left w-[35%] sm:w-[30%]">
+                <th className="px-6 py-3 text-left md:w-[40%] sm:w-[30%]">
                   <div
                     className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer select-none"
                     onClick={() => handleSort("email")}
@@ -373,7 +376,7 @@ const ManageUsers = () => {
                 </th>
 
 
-                <th className="px-6 py-3 text-left w-1/4 hidden md:table-cell">
+                <th className="px-6 py-3 text-left w-[22%] hidden md:table-cell">
                   <div
                     className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none"
                   >
@@ -424,10 +427,17 @@ const ManageUsers = () => {
                     >
                       {admin.phoneNumber || "N/A"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
+                    <td className="px-6 py-4 text-xs text-gray-600 whitespace-nowrap hidden lg:table-cell">
                       {admin.lastLogin
-                        ? new Date(admin.lastLogin).toLocaleString()
-                        : "Never"}
+  ? new Date(admin.lastLogin).toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  : "Never"}
+
                     </td>
                     <td className="px-2 py-1 md:px-4 md:py-2 lg:px-6 lg:py-4 text-right relative">
                       <button

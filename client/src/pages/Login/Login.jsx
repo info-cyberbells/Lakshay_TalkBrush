@@ -3,14 +3,14 @@ import "./login.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login, signUp } from "../../features/userSlice";
-import PasswordResetModal from "../Model/PasswordResetModal.jsx"
+import PasswordResetModal from "../Model/PasswordResetModal.jsx";
 import { showToast } from "../../features/toastSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const roomCode = searchParams.get('room');
+  const roomCode = searchParams.get("room");
   const { isLoading } = useSelector((state) => state.auth);
   const [isLogin, setIsLogin] = useState(true);
   const [fullName, setFullName] = useState("");
@@ -18,7 +18,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [toastMsg, setToastMsg] = useState('');
+  const [toastMsg, setToastMsg] = useState("");
   const [loginErrors, setLoginErrors] = useState({});
   const [signupErrors, setSignupErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -28,19 +28,16 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
 
-
-
   const switchForm = (loginState) => {
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setFullName('');
-    setPhoneNumber('');
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setFullName("");
+    setPhoneNumber("");
     setIsLogin(loginState);
     setLoginErrors({});
     setSignupErrors({});
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,32 +47,33 @@ export default function Login() {
     if (isLogin && !email) newErrors.email = true;
     if (isLogin && !password) newErrors.password = true;
 
-
     if (Object.keys(newErrors).length > 0) {
       setLoginErrors(newErrors);
 
-      dispatch(showToast({
-        message: "Please fill all required * fields!",
-        type: "error"
-      }));
+      dispatch(
+        showToast({
+          message: "Please fill all fields!",
+          type: "error",
+        })
+      );
       return;
     }
 
     setLoginErrors({});
 
-
     if (isLogin) {
       const result = await dispatch(login({ email, password, rememberMe }));
       if (login.fulfilled.match(result)) {
-
         const userRole = result.payload.user.type;
 
         localStorage.setItem("role", userRole);
 
-        dispatch(showToast({
-          message: "Login successful!!",
-          type: "success"
-        }));
+        dispatch(
+          showToast({
+            message: "Login successful!!",
+            type: "success",
+          })
+        );
 
         setTimeout(() => {
           if (roomCode) {
@@ -93,75 +91,148 @@ export default function Login() {
           }
         }, 1500);
       } else {
-
-        dispatch(showToast({
-          message: "Invalid credentials!",
-          type: "error"
-        }));
+        dispatch(
+          showToast({
+            message: "Invalid credentials!",
+            type: "error",
+          })
+        );
         console.log(result.payload || "Login failed");
       }
     }
-    // handle signup logic here
-    if (!isLogin) {
-      const newErrors = {};
-      if (!fullName) newErrors.fullName = true;
-      if (!phoneNumber) newErrors.phoneNumber = true;
-      if (!email) newErrors.email = true;
-      if (!password) newErrors.password = true;
-      if (!confirmPassword) newErrors.confirmPassword = true;
 
-      if (password !== confirmPassword) {
-        newErrors.confirmPassword = true;
-      }
+if (!isLogin) {
+  const newErrors = {};
+
+  if (!fullName) newErrors.fullName = true;
+  if (!phoneNumber) newErrors.phoneNumber = true;
+  if (!email) newErrors.email = true;
+  if (!password) newErrors.password = true;
+  if (!confirmPassword) newErrors.confirmPassword = true;
+
+  if (Object.keys(newErrors).length > 0) {
+    setSignupErrors(newErrors);
+    dispatch(
+      showToast({
+        message: "Please fill all fields!",
+        type: "error",
+      })
+    );
+    return; 
+  }
+
+
+if (trimmedName.length > 15) {
+  setSignupErrors({ fullName: true });
+  dispatch(
+    showToast({
+      message: "Name must not exceed 15 characters!",
+      type: "error",
+    })
+  );
+  return;
+}
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    setSignupErrors({ email: true });
+    dispatch(
+      showToast({
+        message: "Please enter a valid email address!",
+        type: "error",
+      })
+    );
+    return;
+  }
+
+
+const phoneRegex = /^\+?\d+$/;
+
+if (!phoneRegex.test(trimmedPhone)) {
+  setSignupErrors({ phoneNumber: true });
+  dispatch(
+    showToast({
+      message: "Please enter digits only in phone number!",
+      type: "error",
+    })
+  );
+  return;
+}
+
+if (password.length < 6) {
+  setSignupErrors({ password: true });
+  dispatch(
+    showToast({
+      message: "Password must be at least 6 characters!",
+      type: "error",
+    })
+  );
+  return;
+}
 
 
 
-      if (Object.keys(newErrors).length > 0) {
-        setSignupErrors(newErrors);
+  if (password !== confirmPassword) {
+    setSignupErrors({ confirmPassword: true });
 
-        if (password !== confirmPassword) {
-          dispatch(showToast({
-            message: "Your password mismatched!!",
-            type: "error"
-          }));
-        } else {
-          dispatch(showToast({
-            message: "Please fill all feilds!",
-            type: "error"
-          }));
-        }
-        return;
-      }
+    dispatch(
+      showToast({
+        message: "Your password mismatched!!",
+        type: "error",
+      })
+    );
+    return;
+  }
 
-      setSignupErrors({});
-      const result = await dispatch(signUp({ fullName, phoneNumber, email, type: "3", password, confirmPassword }));
-      if (signUp.fulfilled.match(result)) {
+  if (!agreedToTerms) {
+    dispatch(
+      showToast({
+        message: "Please agree to Terms & Conditions!",
+        type: "error",
+      })
+    );
+    return; 
+  }
 
-        dispatch(showToast({
-          message: "SignUp successfull!!",
-          type: "success"
-        }));
-        setTimeout(() => {
-          switchForm(true);
-        }, 1000);
-      } else {
-        dispatch(showToast({
-          message: result.payload || "SignUp failed",
-          type: "error"
-        }));
-        console.log(result.payload || "SignUp failed")
-      }
-    }
+  setSignupErrors({});
+
+  const result = await dispatch(
+    signUp({
+      fullName,
+      phoneNumber,
+      email,
+      type: "3",
+      password,
+      confirmPassword,
+    })
+  );
+
+  if (signUp.fulfilled.match(result)) {
+    dispatch(
+      showToast({
+        message: "SignUp successfull!!",
+        type: "success",
+      })
+    );
+
+    setTimeout(() => {
+      switchForm(true);
+    }, 1000);
+  } else {
+    dispatch(
+      showToast({
+        message: result.payload || "SignUp failed",
+        type: "error",
+      })
+    );
+    console.log(result.payload || "SignUp failed");
+  }
+}
+
   };
 
-  // const showToast = (message) => {
-  //   setToastMsg(message);
-  //   clearTimeout(showToast.timeout);
-  //   showToast.timeout = setTimeout(() => {
-  //     setToastMsg('');
-  //   }, 2500);
-  // };
-
+ 
 
   return (
     <>
@@ -180,22 +251,35 @@ export default function Login() {
               <div className="form-toggle">
                 <h2
                   className={isLogin ? "" : "active"}
-                // onClick={() => setIsLogin(true)}
+                  // onClick={() => setIsLogin(true)}
                 >
                   Login
                 </h2>
-                <h2 style={{ color: "rgba(255, 255, 255, 0.5)", fontWeight: 200 }}>|</h2>
+                <h2
+                  style={{ color: "rgba(255, 255, 255, 0.5)", fontWeight: 200 }}
+                >
+                  |
+                </h2>
                 <h2
                   className={!isLogin ? "" : "active"}
-                // onClick={() => setIsLogin(false)}
+                  // onClick={() => setIsLogin(false)}
                 >
                   Signup
                 </h2>
               </div>
               <p className={`form-description ${!isLogin ? "register" : ""}`}>
-                {isLogin
-                  ? <>Log in to Personalize the English<br />accent you listen to</>
-                  : <>Register Now to Personalize the <br /> English accent you listen to</>}
+                {isLogin ? (
+                  <>
+                    Log in to Personalize the English
+                    <br />
+                    accent you listen to
+                  </>
+                ) : (
+                  <>
+                    Register Now to Personalize the <br /> English accent you
+                    listen to
+                  </>
+                )}
               </p>
 
               {isLogin && (
@@ -203,20 +287,22 @@ export default function Login() {
                   <input
                     type="text"
                     name="fake_email"
-                    style={{ position: 'absolute', top: '-9999px' }}
+                    style={{ position: "absolute", top: "-9999px" }}
                     tabIndex={-1}
                   />
                   <input
                     type="password"
                     name="fake_password"
-                    style={{ position: 'absolute', top: '-9999px' }}
+                    style={{ position: "absolute", top: "-9999px" }}
                     tabIndex={-1}
                   />
                   <div className="input-wrapper">
                     <input
                       type="email"
                       placeholder="Email Address"
-                      className={`input-field ${loginErrors.email ? 'error' : ''}`}
+                      className={`input-field ${
+                        loginErrors.email ? "error" : ""
+                      }`}
                       autoComplete="new-email"
                       name="email"
                       value={email}
@@ -233,28 +319,39 @@ export default function Login() {
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Password"
-                      className={`input-field ${loginErrors.password ? 'error' : ''}`}
+                      className={`input-field ${
+                        loginErrors.password ? "error" : ""
+                      }`}
                       autoComplete="new-password"
                       name="password"
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
                         if (loginErrors.password) {
-                          setLoginErrors((prev) => ({ ...prev, password: false }));
+                          setLoginErrors((prev) => ({
+                            ...prev,
+                            password: false,
+                          }));
                         }
                       }}
-
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
-                      className={`fas ${showPassword ? "fa-eye" : "fa-eye-slash"} toggle-icon`}
+                      className={`fas ${
+                        showPassword ? "fa-eye" : "fa-eye-slash"
+                      } toggle-icon`}
                       onClick={() => setShowPassword(!showPassword)}
                     ></i>
                   </div>
 
                   <div className="remember-me">
                     <div className="remember-left">
-                      <input type="checkbox" id="remember" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                      <input
+                        type="checkbox"
+                        id="remember"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
                       <label htmlFor="remember">Remember Me</label>
                     </div>
                     <button
@@ -272,17 +369,16 @@ export default function Login() {
                     disabled={isLoading}
                     style={{
                       opacity: isLoading ? 0.6 : 1,
-                      cursor: isLoading ? "not-allowed" : "pointer"
+                      cursor: isLoading ? "not-allowed" : "pointer",
                     }}
                   >
                     {isLoading ? "Logging..." : "LOGIN"}
                   </button>
 
-
                   <div className="DDHA">
                     {" "}
                     <div className="DHA">
-                      Don't have an Account?
+                      Don't have an account?{" "}
                       <button
                         type="button"
                         className="DHAS"
@@ -301,36 +397,45 @@ export default function Login() {
                     <input
                       type="text"
                       placeholder="Full Name"
-                      className={`input-field ${signupErrors.fullName ? 'error' : ''}`}
+                      className={`input-field ${
+                        signupErrors.fullName ? "error" : ""
+                      }`}
                       autoComplete="off"
                       name="userName"
                       value={fullName}
                       onChange={(e) => {
                         setFullName(e.target.value);
                         if (signupErrors.fullName) {
-                          setSignupErrors((prev) => ({ ...prev, fullName: false }))
+                          setSignupErrors((prev) => ({
+                            ...prev,
+                            fullName: false,
+                          }));
                         }
-                      }
-                      }
+                      }}
                     />
                     <i className="fas fa-user input-icon"></i>
                   </div>
 
                   <div className="input-wrapper">
                     <input
-                      type="email"
+                      type="text"
                       placeholder="Email Address"
-                      className={`input-field ${signupErrors.email ? 'error' : ''}`}
+                      className={`input-field ${
+                        signupErrors.email ? "error" : ""
+                      }`}
                       autoComplete="new-email"
                       name="email"
+                      maxLength={40}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
                         if (signupErrors.email) {
-                          setSignupErrors((prev) => ({ ...prev, email: false }))
+                          setSignupErrors((prev) => ({
+                            ...prev,
+                            email: false,
+                          }));
                         }
-                      }
-                      }
+                      }}
                     />
                     <i className="fas fa-envelope input-icon"></i>
                   </div>
@@ -339,39 +444,51 @@ export default function Login() {
                     <input
                       type="text"
                       placeholder="Phone Number"
-                      className={`input-field ${signupErrors.phoneNumber ? 'error' : ''}`}
+                      className={`input-field ${
+                        signupErrors.phoneNumber ? "error" : ""
+                      }`}
                       autoComplete="off"
+                      maxLength={15}
                       name="userPhoneNumber"
                       value={phoneNumber}
                       onChange={(e) => {
                         setPhoneNumber(e.target.value);
                         if (signupErrors.phoneNumber) {
-                          setSignupErrors((prev) => ({ ...prev, phoneNumber: false }));
+                          setSignupErrors((prev) => ({
+                            ...prev,
+                            phoneNumber: false,
+                          }));
                         }
                       }}
                     />
                     <i className="fas fa-phone-alt input-icon"></i>
                   </div>
 
-
                   <div className="input-wrapper">
                     <input
                       type={showSignPassword ? "text" : "password"}
                       placeholder="Password"
-                      className={`input-field ${signupErrors.password ? 'error' : ''}`}
+                      className={`input-field ${
+                        signupErrors.password ? "error" : ""
+                      }`}
                       autoComplete="new-password"
                       name="password"
                       value={password}
                       onChange={(e) => {
-                        setPassword(e.target.value)
+                        setPassword(e.target.value);
                         if (signupErrors.password) {
-                          setSignupErrors((prev) => ({ ...prev, password: false }))
+                          setSignupErrors((prev) => ({
+                            ...prev,
+                            password: false,
+                          }));
                         }
                       }}
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
-                      className={`fas ${showSignPassword ? "fa-eye" : "fa-eye-slash"} toggle-icon`}
+                      className={`fas ${
+                        showSignPassword ? "fa-eye" : "fa-eye-slash"
+                      } toggle-icon`}
                       onClick={() => setShowSignPassword(!showSignPassword)}
                     ></i>
                   </div>
@@ -380,22 +497,30 @@ export default function Login() {
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm Password"
-                      className={`input-field ${signupErrors.confirmPassword ? 'error' : ''}`}
+                      className={`input-field ${
+                        signupErrors.confirmPassword ? "error" : ""
+                      }`}
                       autoComplete="off"
                       name="userPasswordc"
                       value={confirmPassword}
                       onChange={(e) => {
-                        setConfirmPassword(e.target.value)
+                        setConfirmPassword(e.target.value);
                         if (signupErrors.confirmPassword) {
-                          setSignupErrors((prev) => ({ ...prev, confirmPassword: false }))
+                          setSignupErrors((prev) => ({
+                            ...prev,
+                            confirmPassword: false,
+                          }));
                         }
-                      }
-                      }
+                      }}
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
-                      className={`fas ${showConfirmPassword ? "fa-eye" : "fa-eye-slash"} toggle-icon`}
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className={`fas ${
+                        showConfirmPassword ? "fa-eye" : "fa-eye-slash"
+                      } toggle-icon`}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                     ></i>
                   </div>
 
@@ -431,11 +556,13 @@ export default function Login() {
                   <button
                     type="submit"
                     className="submit-btn"
-                    disabled={!agreedToTerms}
-                    style={{
-                      opacity: agreedToTerms ? 1 : 0.5,
-                      cursor: agreedToTerms ? 'pointer' : 'not-allowed'
-                    }}
+                    // disabled={!agreedToTerms}
+                    style={
+                      {
+                        // opacity: agreedToTerms ? 1 : 0.5,
+                        // cursor: agreedToTerms ? 'pointer' : 'not-allowed'
+                      }
+                    }
                   >
                     SIGNUP
                   </button>
@@ -443,9 +570,9 @@ export default function Login() {
                   <div className="DDHA">
                     {" "}
                     <div className="DHA">
-                      Already have an Account?
+                      Already have an account?{" "}
                       <button
-                        type="button"
+                        type="submit"
                         className="DHAS"
                         onClick={() => switchForm(true)}
                       >
@@ -461,8 +588,8 @@ export default function Login() {
         <PasswordResetModal
           isOpen={showResetModal}
           onClose={() => setShowResetModal(false)}
-        // showToast={showToast}
-        // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
+          // showToast={showToast}
+          // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
         />
       </div>
     </>
