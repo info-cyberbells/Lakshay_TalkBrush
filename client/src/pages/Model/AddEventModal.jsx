@@ -37,76 +37,108 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
   }, [editingEvent, isOpen]);
 
   const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
+  const { name, value, files } = e.target;
 
-    setErrors((prev) => {
-      if (!prev[name]) return prev;
-      return { ...prev, [name]: false };
-    });
+  // Remove error for the field being edited
+  setErrors((prev) => {
+    if (!prev[name]) return prev;
+    return { ...prev, [name]: false };
+  });
 
-    if (name === "pictures" && files && files.length > 0) {
-      const fileArray = Array.from(files);
+  // IMAGE HANDLING
+  if (name === "pictures" && files && files.length > 0) {
+    let fileArray = Array.from(files);
 
-      if (formData.pictures.length + fileArray.length > 10) {
+    // Allowed file types
+    const allowedTypes = ["image/jpeg", "image/png"];
+
+    // Check total limit (max 10 images)
+    if (formData.pictures.length + fileArray.length > 10) {
+      dispatch(
+        showToast({
+          message: "You can upload a maximum of 10 images.",
+          type: "error",
+        })
+      );
+      return;
+    }
+
+    // Filter + validate files
+    fileArray = fileArray.filter((file) => {
+   
+      if (!allowedTypes.includes(file.type)) {
         dispatch(
           showToast({
-            message: "You can upload a maximum of 10 images.",
+            message: `File ${file.name} is not allowed. Only JPG and PNG images are accepted.`,
             type: "error",
           })
         );
-        return;
+        return false;
       }
 
-      const processImages = fileArray.map((file) => {
-        return new Promise((resolve) => {
-          if (file.size > 5 * 1024 * 1024) {
-            dispatch(
-              showToast({
-                message: `File ${file.name} is too large. Maximum 5MB allowed.`,
-                type: "error",
-              })
-            );
-            return resolve(null);
+      if (file.size > 5 * 1024 * 1024) {
+        dispatch(
+          showToast({
+            message: `File ${file.name} is too large. Maximum 5MB allowed.`,
+            type: "error",
+          })
+        );
+        return false;
+      }
+
+      return true;
+    });
+
+    // If no valid files remain, stop
+    if (fileArray.length === 0) return;
+
+    // Process valid images (compression)
+    const processImages = fileArray.map((file) => {
+      return new Promise((resolve) => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+
+        img.onload = () => {
+          let { width, height } = img;
+
+          // Resize if width > 1024px
+          if (width > 1024) {
+            height = (height * 1024) / width;
+            width = 1024;
           }
 
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          const img = new Image();
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
 
-          img.onload = () => {
-            let { width, height } = img;
+          // Compress to JPEG (quality 0.8)
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+          resolve(compressedBase64);
+        };
 
-            if (width > 1024) {
-              height = (height * 1024) / width;
-              width = 1024;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
-            resolve(compressedBase64);
-          };
-
-          img.src = URL.createObjectURL(file);
-        });
+        img.src = URL.createObjectURL(file);
       });
+    });
 
-      Promise.all(processImages).then((results) => {
-        const validResults = results.filter((result) => result !== null);
-        setFormData((prev) => ({
-          ...prev,
-          pictures: [...prev.pictures, ...validResults],
-        }));
-      });
-    } else {
+    // Add compressed images to formData
+    Promise.all(processImages).then((results) => {
+      const validResults = results.filter((result) => result !== null);
       setFormData((prev) => ({
         ...prev,
-        [name]: value,
+        pictures: [...prev.pictures, ...validResults],
       }));
-    }
-  };
+    });
+
+    return;
+  }
+
+  // DEFAULT TEXT INPUT HANDLING
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
   const picturesChanged = () => {
     if (!editingEvent) return true;
@@ -306,12 +338,15 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
           </div>
 
           <div>
-            <label
+            <div className="flex justify-between"><label
               className="block text-sm font-[Poppins] font-medium text-gray-700 mb-2"
               htmlFor=""
             >
               Pictures (Optional)
             </label>
+            <label htmlFor=""  className="mt-1 font-[Poppins] text-xs text-gray-500">
+  Only JPG/PNG allowed — Max size: 5MB
+</label></div>
             <label
               htmlFor="pictures"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer bg-white text-gray-600 flex justify-between items-center"

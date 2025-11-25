@@ -149,19 +149,19 @@ const ScheduleCard = ({ event }) => {
                     key={idx}
                     src={pic}
                     onClick={() => setPreviewImg(pic)}
-                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
+                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover rounded-md border-2 border-white cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-200"
                   />
                 ))}
 
                 {event.pictures.length > 3 && (
                   <div
                     onClick={() => setShowGrid(true)}
-                    className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
+                    className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-md flex items-center justify-center border-2 border-white cursor-pointer hover:scale-105 transition-transform duration-200 z-0 overflow-hidden"
                   >
                     <img
                       src={event.pictures[3]}
                       alt="More"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black/50" />
 
