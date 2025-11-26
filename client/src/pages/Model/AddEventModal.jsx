@@ -7,6 +7,17 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
   const dispatch = useDispatch();
   const [errors, setErrors] = useState({});
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const getCurrentTime = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+
+
   const [formData, setFormData] = useState({
     fullName: "",
     description: "",
@@ -132,6 +143,33 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
 
     return;
   }
+
+// TIME VALIDATION — block past time always when date = today
+if (name === "time") {
+  const today = new Date().toISOString().split("T")[0];
+
+  const currentTime = new Date();
+  const now = `${String(currentTime.getHours()).padStart(2, "0")}:${String(
+    currentTime.getMinutes()
+  ).padStart(2, "0")}`;
+
+  if (formData.date === today && value < now) {
+    dispatch(
+      showToast({
+        message: "You cannot select a past time!",
+        type: "error",
+      })
+    );
+
+    // Clear time
+    setFormData((prev) => ({
+      ...prev,
+      time: "",
+    }));
+
+    return; // stop here
+  }
+}
 
   // DEFAULT TEXT INPUT HANDLING
   setFormData((prev) => ({
@@ -308,6 +346,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                 type="date"
                 name="date"
                 value={formData.date}
+                  min={today}
                 onChange={handleInputChange}
                 // required
                 className={`w-full px-4 py-3 border rounded-lg outline-none font-[Poppins] transition-colors duration-200 ${
@@ -327,6 +366,7 @@ const AddEventModal = ({ isOpen, onClose, onSubmit, editingEvent }) => {
                 name="time"
                 value={formData.time}
                 onChange={handleInputChange}
+                // min={formData.date === today ? getCurrentTime() : "00:00"}
                 // required
                 className={`w-full px-4 py-3 border rounded-lg outline-none font-[Poppins] transition-colors duration-200 ${
                   errors.time

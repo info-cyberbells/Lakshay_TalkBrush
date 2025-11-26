@@ -51,6 +51,7 @@ export const addEvent = async (req, res) => {
 // Get all events
 export const getAllEvents = async (req, res) => {
   try {
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
@@ -64,15 +65,38 @@ export const getAllEvents = async (req, res) => {
       date: { $gte: todayStart, $lte: todayEnd },
     }).sort({ time: 1 });
 
+    // const events = await Event.find({
+    //   date: { $not: { $gte: todayStart, $lte: todayEnd } },
+    // })
+    //   .sort({ createdAt: -1 })
+    //   .skip(skip)
+    //   .limit(limit);
+
+    // const totalEvents = await Event.countDocuments({
+    //   date: { $not: { $gte: todayStart, $lte: todayEnd } },
+    // });
+
     const events = await Event.find({
-      date: { $not: { $gte: todayStart, $lte: todayEnd } },
+      date: { $gt: todayEnd },
     })
-      .sort({ createdAt: -1 })
+      .sort({ date: 1, time: 1 })
       .skip(skip)
       .limit(limit);
 
     const totalEvents = await Event.countDocuments({
-      date: { $not: { $gte: todayStart, $lte: todayEnd } },
+      date: { $gt: todayEnd },
+    });
+
+    // Past events
+    const pastEvents = await Event.find({   
+      date: { $lt: todayStart },
+    })
+      .sort({ date: -1 }) // newest past event first
+      .skip(skip)
+      .limit(limit);
+
+    const totalPastEvents = await Event.countDocuments({
+      date: { $lt: todayStart },
     });
 
     const host = `${req.protocol}://${req.get('host')}`;
@@ -85,11 +109,18 @@ export const getAllEvents = async (req, res) => {
       }));
 
     return res.status(200).json({
-      todayEvents,
+      todayEvents: mapEventPictures(todayEvents),
       events: mapEventPictures(events),
+       pastEvents: mapEventPictures(pastEvents),
+
       currentPage: page,
+
       totalPages: Math.ceil(totalEvents / limit),
+
       totalEvents,
+      
+       pastTotalPages: Math.ceil(totalPastEvents / limit),
+      pastTotalEvents: totalPastEvents,
     });
   } catch (error) {
     return res.status(500).json({
@@ -99,8 +130,68 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
+// today events , past and upcomming events
+// export const getAllEvents = async (req, res) => {
+//   try {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 20;
+//     const skip = (page - 1) * limit;
+
+//     const todayStart = new Date();
+//     todayStart.setHours(0, 0, 0, 0);
+//     const todayEnd = new Date();
+//     todayEnd.setHours(23, 59, 59, 999);
+
+//     const todayEvents = await Event.find({
+//       date: { $gte: todayStart, $lte: todayEnd },
+//     }).sort({ time: 1 });
+
+//     // 🔹 NEW: Upcoming Events (after today)
+// const upcomingEvents = await Event.find({
+//   date: { $gt: todayEnd },
+// }).sort({ date: 1, time: 1 });
+
+
+//     const pastEvents = await Event.find({
+//   date: { $lt: todayStart },
+// })
+//   .sort({ date: -1 }) // newest past event first
+//   .skip(skip)
+//   .limit(limit);
+
+// const totalPastEvents = await Event.countDocuments({
+//   date: { $lt: todayStart },
+// });
+
+//     const host = `${req.protocol}://${req.get('host')}`;
+//     const mapEventPictures = (arr) =>
+//       arr.map(event => ({
+//         ...event._doc,
+//         pictures: event.pictures && event.pictures.length > 0
+//           ? event.pictures.map(pic => host + pic)
+//           : [],
+//       }));
+
+//     return res.status(200).json({
+//       todayEvents: mapEventPictures(todayEvents),
+//   upcomingEvents: mapEventPictures(upcomingEvents),
+//   pastEvents: mapEventPictures(pastEvents),
+//       currentPage: page,
+//       totalPages: Math.ceil(totalPastEvents / limit),
+//       totalPastEvents,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: "Server error",
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 
 // Update an event by ID
+
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
