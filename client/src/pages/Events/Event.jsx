@@ -449,7 +449,7 @@ const Event = () => {
                     {/* Card 2 */}
                     <div className="flex flex-1 items-center justify-between p-3 bg-purple-50 rounded-lg">
                       <span className="text-sm font-[Poppins] text-gray-600">
-                        Total Events
+                        Total Upcoming Events
                       </span>
                       <span className="text-xl font-bold text-purple-600">
                         {events?.length || 0}
