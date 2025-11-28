@@ -55,15 +55,23 @@ const RightComponent = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { notifications, activities, loading, error } = useSelector((state) => state.activities);
 
-  useEffect(() => {
-    const role = localStorage.getItem("role");
+  // useEffect(() => {
+  //   const role = localStorage.getItem("role");
 
-    if (role === "3") {
-      dispatch(fetchUserActivities());
-    } else {
-      dispatch(fetchActivities());
-    }
-  }, [dispatch]);
+  //   if (role === "3") {
+  //     dispatch(fetchUserActivities());
+  //   } else {
+  //     dispatch(fetchActivities());
+  //   }
+  // }, [dispatch]);
+
+  const role = localStorage.getItem("role");
+
+useEffect(() => {
+  if (role === "3") dispatch(fetchUserActivities());
+  else dispatch(fetchActivities());
+}, [dispatch, role]);
+
 
   return (
     <aside className={`right-component ${isOpen ? 'open' : ''}`}>
@@ -88,6 +96,7 @@ const RightComponent = ({ isOpen, onClose }) => {
       {localStorage.getItem("role") !== "3" && (
         <div className="right-box">
           <h4>Notifications</h4>
+          
           {loading && <p className="loading-text">Loading...</p>}
           {error && <p className="error-text">{error}</p>}
           {!loading && !error && notifications.length === 0 && (

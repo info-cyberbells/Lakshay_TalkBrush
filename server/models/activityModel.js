@@ -12,7 +12,12 @@ const activitySchema = new mongoose.Schema({
     },
     entityType: { type: String },
     entityId: { type: mongoose.Schema.Types.Mixed },
-    createdAt: { type: Date, default: Date.now },
-});
+    // createdAt: { type: Date, default: Date.now },
+    metadata: { type: Object }, 
+},
+{
+    timestamps: true                  // <-- SUPER IMPORTANT
+}
+);
 
 export default mongoose.model("Activity", activitySchema);

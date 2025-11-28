@@ -136,21 +136,14 @@ export const getDashboardService = async (type = "week") => {
 };
 
 
-//get all activities
 export const getActivitiesService = async () => {
-  const response = await axios.get(USER_ENDPOINTS.GET_ALL_ACTIVITIES,
-    { withCredentials: true }
-  );
-  return response.data;
+  return axios.get(USER_ENDPOINTS.GET_ALL_ACTIVITIES, { withCredentials: true });
 };
 
-//get all  users activities
 export const getUSersActivitiesService = async () => {
-  const response = await axios.get(USER_ENDPOINTS.GET_ALL_USER_ACTIVITIES,
-    { withCredentials: true }
-  );
-  return response.data;
+  return axios.get(USER_ENDPOINTS.GET_ALL_USER_ACTIVITIES, { withCredentials: true });
 };
+
 
 
 

@@ -4,11 +4,20 @@ import Activity from "../models/activityModel.js";
 const startWatcher = () => {
     const db = mongoose.connection;
 
-    const changeStream = db.watch([], { fullDocument: "updateLookup" });
+    // const changeStream = db.watch([], { fullDocument: "updateLookup" });
+    const changeStream = db.watch(
+  [{ $match: { "ns.coll": { $in: ["users", "events"] } } }],
+  { fullDocument: "updateLookup" }
+);
+
 
     console.log("✅ MongoDB watcher started...");
 
     changeStream.on("change", async (change) => {
+        if (!global.lastChangeId) global.lastChangeId = null;
+if (global.lastChangeId === change._id._data) return;
+global.lastChangeId = change._id._data;
+
         try {
             if (change.ns.coll === "activities") {
                 return;
@@ -169,7 +178,7 @@ const startWatcher = () => {
                 entityType: collectionName,
                 entityId: change.documentKey._id,
                 metadata,
-                timestamp: new Date()
+                // timestamp: new Date()
             });
 
             console.log(`📦 [${category.toUpperCase()}] ${title} - ${description}`);
