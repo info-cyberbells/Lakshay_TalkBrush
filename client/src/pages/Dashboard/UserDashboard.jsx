@@ -21,10 +21,10 @@ const Dashboard = () => {
         } else if (cardTitle === "Active Users") {
             navigate('/manage-users');
         }
-        else if (cardTitle === "Conversations Today") {
+        else if (cardTitle === "Conversations Today g") {
             navigate('/analytics')
         }
-        else if (cardTitle === "Avg Conversation Time") {
+        else if (cardTitle === "Avg Conversation Time g") {
             navigate('/analytics')
         }
         // Add more conditions if needed for other cards
