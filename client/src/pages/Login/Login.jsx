@@ -101,138 +101,141 @@ export default function Login() {
       }
     }
 
-if (!isLogin) {
-  const newErrors = {};
+    if (!isLogin) {
+      const newErrors = {};
 
-  if (!fullName) newErrors.fullName = true;
-  if (!phoneNumber) newErrors.phoneNumber = true;
-  if (!email) newErrors.email = true;
-  if (!password) newErrors.password = true;
-  if (!confirmPassword) newErrors.confirmPassword = true;
+      if (!fullName) newErrors.fullName = true;
+      if (!phoneNumber) newErrors.phoneNumber = true;
+      if (!email) newErrors.email = true;
+      if (!password) newErrors.password = true;
+      if (!confirmPassword) newErrors.confirmPassword = true;
 
-  if (Object.keys(newErrors).length > 0) {
-    setSignupErrors(newErrors);
-    dispatch(
-      showToast({
-        message: "Please fill all fields!",
-        type: "error",
-      })
-    );
-    return; 
-  }
+      if (Object.keys(newErrors).length > 0) {
+        setSignupErrors(newErrors);
+        dispatch(
+          showToast({
+            message: "Please fill all fields!",
+            type: "error",
+          })
+        );
+        return;
+      }
 
-
-if (trimmedName.length > 15) {
-  setSignupErrors({ fullName: true });
-  dispatch(
-    showToast({
-      message: "Name must not exceed 15 characters!",
-      type: "error",
-    })
-  );
-  return;
-}
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailRegex.test(email)) {
-    setSignupErrors({ email: true });
-    dispatch(
-      showToast({
-        message: "Please enter a valid email address!",
-        type: "error",
-      })
-    );
-    return;
-  }
+      const trimmedName = fullName.trim();
+      const trimmedPhone = phoneNumber.trim();
 
 
-const phoneRegex = /^\+?\d+$/;
+      if (trimmedName.length > 15) {
+        setSignupErrors({ fullName: true });
+        dispatch(
+          showToast({
+            message: "Name must not exceed 15 characters!",
+            type: "error",
+          })
+        );
+        return;
+      }
 
-if (!phoneRegex.test(trimmedPhone)) {
-  setSignupErrors({ phoneNumber: true });
-  dispatch(
-    showToast({
-      message: "Please enter digits only in phone number!",
-      type: "error",
-    })
-  );
-  return;
-}
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if (password.length < 6) {
-  setSignupErrors({ password: true });
-  dispatch(
-    showToast({
-      message: "Password must be at least 6 characters!",
-      type: "error",
-    })
-  );
-  return;
-}
+      if (!emailRegex.test(email)) {
+        setSignupErrors({ email: true });
+        dispatch(
+          showToast({
+            message: "Please enter a valid email address!",
+            type: "error",
+          })
+        );
+        return;
+      }
 
 
+      const phoneRegex = /^\+?\d+$/;
 
-  if (password !== confirmPassword) {
-    setSignupErrors({ confirmPassword: true });
+      if (!phoneRegex.test(trimmedPhone)) {
+        setSignupErrors({ phoneNumber: true });
+        dispatch(
+          showToast({
+            message: "Please enter digits only in phone number!",
+            type: "error",
+          })
+        );
+        return;
+      }
 
-    dispatch(
-      showToast({
-        message: "Your password mismatched!!",
-        type: "error",
-      })
-    );
-    return;
-  }
+      if (password.length < 6) {
+        setSignupErrors({ password: true });
+        dispatch(
+          showToast({
+            message: "Password must be at least 6 characters!",
+            type: "error",
+          })
+        );
+        return;
+      }
 
-  if (!agreedToTerms) {
-    dispatch(
-      showToast({
-        message: "Please agree to Terms & Conditions!",
-        type: "error",
-      })
-    );
-    return; 
-  }
 
-  setSignupErrors({});
 
-  const result = await dispatch(
-    signUp({
-      fullName,
-      phoneNumber,
-      email,
-      type: "3",
-      password,
-      confirmPassword,
-    })
-  );
+      if (password !== confirmPassword) {
+        setSignupErrors({ confirmPassword: true });
 
-  if (signUp.fulfilled.match(result)) {
-    dispatch(
-      showToast({
-        message: "SignUp successfull!!",
-        type: "success",
-      })
-    );
+        dispatch(
+          showToast({
+            message: "Your password mismatched!!",
+            type: "error",
+          })
+        );
+        return;
+      }
 
-    setTimeout(() => {
-      switchForm(true);
-    }, 1000);
-  } else {
-    dispatch(
-      showToast({
-        message: result.payload || "SignUp failed",
-        type: "error",
-      })
-    );
-    console.log(result.payload || "SignUp failed");
-  }
-}
+      if (!agreedToTerms) {
+        dispatch(
+          showToast({
+            message: "Please agree to Terms & Conditions!",
+            type: "error",
+          })
+        );
+        return;
+      }
+
+      setSignupErrors({});
+
+      const result = await dispatch(
+        signUp({
+          fullName,
+          phoneNumber,
+          email,
+          type: "3",
+          password,
+          confirmPassword,
+        })
+      );
+
+      if (signUp.fulfilled.match(result)) {
+        dispatch(
+          showToast({
+            message: "SignUp successfull!!",
+            type: "success",
+          })
+        );
+
+        setTimeout(() => {
+          switchForm(true);
+        }, 1000);
+      } else {
+        dispatch(
+          showToast({
+            message: result.payload || "SignUp failed",
+            type: "error",
+          })
+        );
+        console.log(result.payload || "SignUp failed");
+      }
+    }
 
   };
 
- 
+
 
   return (
     <>
@@ -251,7 +254,7 @@ if (password.length < 6) {
               <div className="form-toggle">
                 <h2
                   className={isLogin ? "" : "active"}
-                  // onClick={() => setIsLogin(true)}
+                // onClick={() => setIsLogin(true)}
                 >
                   Login
                 </h2>
@@ -262,7 +265,7 @@ if (password.length < 6) {
                 </h2>
                 <h2
                   className={!isLogin ? "" : "active"}
-                  // onClick={() => setIsLogin(false)}
+                // onClick={() => setIsLogin(false)}
                 >
                   Signup
                 </h2>
@@ -300,9 +303,8 @@ if (password.length < 6) {
                     <input
                       type="email"
                       placeholder="Email Address"
-                      className={`input-field ${
-                        loginErrors.email ? "error" : ""
-                      }`}
+                      className={`input-field ${loginErrors.email ? "error" : ""
+                        }`}
                       autoComplete="new-email"
                       name="email"
                       value={email}
@@ -319,9 +321,8 @@ if (password.length < 6) {
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Password"
-                      className={`input-field ${
-                        loginErrors.password ? "error" : ""
-                      }`}
+                      className={`input-field ${loginErrors.password ? "error" : ""
+                        }`}
                       autoComplete="new-password"
                       name="password"
                       value={password}
@@ -337,9 +338,8 @@ if (password.length < 6) {
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
-                      className={`fas ${
-                        showPassword ? "fa-eye" : "fa-eye-slash"
-                      } toggle-icon`}
+                      className={`fas ${showPassword ? "fa-eye" : "fa-eye-slash"
+                        } toggle-icon`}
                       onClick={() => setShowPassword(!showPassword)}
                     ></i>
                   </div>
@@ -397,9 +397,8 @@ if (password.length < 6) {
                     <input
                       type="text"
                       placeholder="Full Name"
-                      className={`input-field ${
-                        signupErrors.fullName ? "error" : ""
-                      }`}
+                      className={`input-field ${signupErrors.fullName ? "error" : ""
+                        }`}
                       autoComplete="off"
                       name="userName"
                       value={fullName}
@@ -420,9 +419,8 @@ if (password.length < 6) {
                     <input
                       type="text"
                       placeholder="Email Address"
-                      className={`input-field ${
-                        signupErrors.email ? "error" : ""
-                      }`}
+                      className={`input-field ${signupErrors.email ? "error" : ""
+                        }`}
                       autoComplete="new-email"
                       name="email"
                       maxLength={40}
@@ -444,9 +442,8 @@ if (password.length < 6) {
                     <input
                       type="text"
                       placeholder="Phone Number"
-                      className={`input-field ${
-                        signupErrors.phoneNumber ? "error" : ""
-                      }`}
+                      className={`input-field ${signupErrors.phoneNumber ? "error" : ""
+                        }`}
                       autoComplete="off"
                       maxLength={15}
                       name="userPhoneNumber"
@@ -468,9 +465,8 @@ if (password.length < 6) {
                     <input
                       type={showSignPassword ? "text" : "password"}
                       placeholder="Password"
-                      className={`input-field ${
-                        signupErrors.password ? "error" : ""
-                      }`}
+                      className={`input-field ${signupErrors.password ? "error" : ""
+                        }`}
                       autoComplete="new-password"
                       name="password"
                       value={password}
@@ -486,9 +482,8 @@ if (password.length < 6) {
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
-                      className={`fas ${
-                        showSignPassword ? "fa-eye" : "fa-eye-slash"
-                      } toggle-icon`}
+                      className={`fas ${showSignPassword ? "fa-eye" : "fa-eye-slash"
+                        } toggle-icon`}
                       onClick={() => setShowSignPassword(!showSignPassword)}
                     ></i>
                   </div>
@@ -497,9 +492,8 @@ if (password.length < 6) {
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm Password"
-                      className={`input-field ${
-                        signupErrors.confirmPassword ? "error" : ""
-                      }`}
+                      className={`input-field ${signupErrors.confirmPassword ? "error" : ""
+                        }`}
                       autoComplete="off"
                       name="userPasswordc"
                       value={confirmPassword}
@@ -515,9 +509,8 @@ if (password.length < 6) {
                     />
                     <i className="fas fa-lock input-icon"></i>
                     <i
-                      className={`fas ${
-                        showConfirmPassword ? "fa-eye" : "fa-eye-slash"
-                      } toggle-icon`}
+                      className={`fas ${showConfirmPassword ? "fa-eye" : "fa-eye-slash"
+                        } toggle-icon`}
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
@@ -588,8 +581,8 @@ if (password.length < 6) {
         <PasswordResetModal
           isOpen={showResetModal}
           onClose={() => setShowResetModal(false)}
-          // showToast={showToast}
-          // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
+        // showToast={showToast}
+        // showToast={(msg, type) => dispatch(showToast({ message: msg, type }))}
         />
       </div>
     </>
