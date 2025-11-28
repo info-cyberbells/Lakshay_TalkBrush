@@ -53,9 +53,16 @@ const activitiesSlice = createSlice({
             })
             .addCase(fetchActivities.fulfilled, (state, action) => {
                 state.loading = false;
-                state.notifications = action.payload.notifications || [];
-                state.activities = action.payload.activities || [];
-                state.allActivities = action.payload.all || [];
+                // state.notifications = action.payload.notifications || [];
+                // state.activities = action.payload.activities || [];
+                 const d = action.payload?.data || {};
+
+    state.notifications = Array.isArray(d.notifications) ? d.notifications : [];
+    state.activities = Array.isArray(d.activities) ? d.activities : [];
+
+    state.allActivities = [...state.notifications, ...state.activities];
+
+                // state.allActivities = action.payload.all || [];
                 state.lastFetched = new Date().toISOString();
             })
             .addCase(fetchActivities.rejected, (state, action) => {
@@ -71,8 +78,15 @@ const activitiesSlice = createSlice({
             .addCase(fetchUserActivities.fulfilled, (state, action) => {
                 state.loading = false;
                 state.notifications = [];
-                state.activities = Array.isArray(action.payload) ? action.payload : [];
-                state.allActivities = Array.isArray(action.payload) ? action.payload : [];
+                // state.activities = Array.isArray(action.payload) ? action.payload : [];
+                // state.allActivities = Array.isArray(action.payload) ? action.payload : [];
+               
+    
+    const list = Array.isArray(action.payload?.data) ? action.payload.data : [];
+
+    state.notifications = [];
+    state.activities = list;
+    state.allActivities = list;
                 state.lastFetched = new Date().toISOString();
             })
             .addCase(fetchUserActivities.rejected, (state, action) => {
