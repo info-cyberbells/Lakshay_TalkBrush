@@ -103,24 +103,9 @@ const VoiceConversation = () => {
 
     // Socket.IO Connection
     useEffect(() => {
-        const authToken = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('authToken='))
-            ?.split('=')[1];
-
-        if (!authToken) {
-            console.log('❌ Not authenticated, redirecting to login...');
-            if (roomCode) {
-                navigate(`/?room=${roomCode}`, { replace: true });
-            } else {
-                navigate('/', { replace: true });
-            }
-            return;
-        }
-
         if (!roomCode) {
             alert('No room code provided!');
-            navigate('/convo-space', { replace: true });
+            navigate('/');
             return;
         }
 
