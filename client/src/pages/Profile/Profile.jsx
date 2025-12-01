@@ -13,6 +13,7 @@ const Profile = () => {
   );
   const [isChanged, setIsChanged] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -229,9 +230,23 @@ const Profile = () => {
                 <div className="relative w-24 h-24 mb-4">
 
                   <img
-                    src={formData?.image || user?.image || "/default-profile.png"}
+                    // src={formData?.image || user?.image || "/default-profile.png"}
+ src={
+  formData?.image ||
+  user?.image ||
+  "https://randomuser.me/api/portraits/men/75.jpg"
+}
+
+
                     alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover border border-gray-300 shadow"
+                    onClick={() =>
+    setPreviewImage(
+      formData?.image ||
+      user?.image ||
+      "https://randomuser.me/api/portraits/men/75.jpg"
+    )
+  }
+                    className="w-24 h-24 cursor-pointer rounded-full object-cover border border-gray-300 shadow"
                   />
 
                   {/* EDIT ICON */}
@@ -385,6 +400,31 @@ const Profile = () => {
         onClose={handleCloseModal}
         onSubmit={handleModalSubmit}
       />
+   {previewImage && (
+  <div
+    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+    onClick={() => setPreviewImage(null)}
+  >
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      {/* Close Button */}
+      <button
+        onClick={() => setPreviewImage(null)}
+        className="absolute -top-3 -right-3 bg-white cursor-pointer text-black rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-gray-200"
+      >
+        ✕
+      </button>
+
+      {/* Preview Image */}
+      <img
+        src={previewImage}
+        alt="Preview"
+        className="max-w-[50vw] max-h-[70vh] rounded-lg shadow-lg"
+      />
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 };

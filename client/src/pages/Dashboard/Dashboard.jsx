@@ -34,7 +34,7 @@ const Dashboard = () => {
     if (loading) {
         return (
             <div className="lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3 px-4 flex items-center justify-center h-screen">
-                <div className="text-xl font-semibold">Loading...</div>
+            <div className="spinner"></div>
             </div>
         );
     }
