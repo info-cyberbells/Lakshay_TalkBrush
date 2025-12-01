@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import Navbar from './Component/Navbar/Navbar';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
-import { verify } from './features/userSlice';
 import Profile from './pages/Profile/Profile'
 import './App.css';
 import ManageAdmins from './pages/ManageAdmins/ManageAdmins';
@@ -48,12 +47,6 @@ function AppContent() {
           } else {
             navigate("/dashboard", { replace: true });
           }
-        }
-      } else {
-        if (location.pathname.startsWith('/accent/room/')) {
-          const roomCode = location.pathname.split('/accent/room/')[1];
-          navigate(`/?room=${roomCode}`, { replace: true });
-          return;
         }
       }
 

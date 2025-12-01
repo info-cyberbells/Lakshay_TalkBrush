@@ -63,13 +63,10 @@ const ConvoSpace = () => {
     if (createRoomThunk.fulfilled.match(result)) {
       const roomCode = result.payload.room_code;
 
-      const shareLink = `${window.location.origin}/?room=${roomCode}`;
+      const shareLink = `${window.location.origin}/accent/room/${roomCode}`;
       console.log('📋 Share this link:', shareLink);
 
-      navigate(`/voice-conversation`, {
-        state: { roomCode },
-        replace: true
-      });
+      navigate(`/accent/room/${roomCode}`, { replace: true });
     } else {
       alert("Failed to create room. Please try again.");
     }

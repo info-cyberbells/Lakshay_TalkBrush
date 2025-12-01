@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./login.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login, signUp } from "../../features/userSlice";
 import PasswordResetModal from "../Model/PasswordResetModal.jsx";
 import { showToast } from "../../features/toastSlice";
-import RoomPreviewModal from "../../pages/RoomPreviewModal/RoomPreviewModal.jsx";
-import { getRoomDetailsThunk, joinRoomThunk } from "../../features/roomSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { roomDetails } = useSelector((state) => state.room);
   const [searchParams] = useSearchParams();
   const roomCode = searchParams.get("room");
   const { isLoading } = useSelector((state) => state.auth);
@@ -21,6 +18,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [toastMsg, setToastMsg] = useState("");
   const [loginErrors, setLoginErrors] = useState({});
   const [signupErrors, setSignupErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -29,15 +27,6 @@ export default function Login() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
-  const [showRoomPreview, setShowRoomPreview] = useState(false);
-
-
-  useEffect(() => {
-    if (roomCode) {
-      dispatch(getRoomDetailsThunk(roomCode));
-      setShowRoomPreview(true);
-    }
-  }, [roomCode, dispatch]);
 
   const switchForm = (loginState) => {
     setEmail("");
@@ -88,11 +77,7 @@ export default function Login() {
 
         setTimeout(() => {
           if (roomCode) {
-            dispatch(joinRoomThunk(roomCode));
-            navigate(`/voice-conversation`, {
-              state: { roomCode },
-              replace: true
-            });
+            navigate(`/accent/room/${roomCode}`, { replace: true });
           } else {
             if (userRole === "1") {
               navigate("/dashboard");
@@ -229,28 +214,13 @@ export default function Login() {
       if (signUp.fulfilled.match(result)) {
         dispatch(
           showToast({
-            message: "SignUp successful!!",
+            message: "SignUp successfull!!",
             type: "success",
           })
         );
 
         setTimeout(() => {
-          if (roomCode) {
-            dispatch(login({ email, password, rememberMe: false }))
-              .then((loginResult) => {
-                if (login.fulfilled.match(loginResult)) {
-                  dispatch(joinRoomThunk(roomCode));
-                  navigate(`/voice-conversation`, {
-                    state: { roomCode },
-                    replace: true
-                  });
-                } else {
-                  switchForm(true);
-                }
-              });
-          } else {
-            switchForm(true);
-          }
+          switchForm(true);
         }, 1000);
       } else {
         dispatch(
@@ -269,15 +239,7 @@ export default function Login() {
 
   return (
     <>
-      {/* Room Preview Modal */}
-      {showRoomPreview && roomCode && (
-        <RoomPreviewModal
-          roomCode={roomCode}
-          roomDetails={roomDetails}
-          onClose={() => setShowRoomPreview(false)}
-          onContinue={() => setShowRoomPreview(false)}
-        />
-      )}
+      {/* {toastMsg && <div className="custom-toast">{toastMsg}</div>} */}
       <div className="talkbrush-container">
         <div className="inner-container">
           <div className="left-panel">
@@ -289,21 +251,6 @@ export default function Login() {
           </div>
           <div className="right-panel">
             <div className="form-container">
-              {/* Room Indicator Banner */}
-              {roomCode && (
-                <div style={{
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                  color: 'white',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.5rem',
-                  marginBottom: '1rem',
-                  textAlign: 'center',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
-                  🎯 You'll join room: <strong>{roomCode}</strong> after login
-                </div>
-              )}
               <div className="form-toggle">
                 <h2
                   className={isLogin ? "" : "active"}
