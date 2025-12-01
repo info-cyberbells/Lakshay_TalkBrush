@@ -20,6 +20,7 @@ import UseDashboard from './pages/Dashboard/UserDashboard';
 import TermsConditions from "./pages/SettingPages/TermsConditions";
 import PrivacyPolicy from "./pages/SettingPages/PrivacyPolicy";
 import Contactus from "./pages/SettingPages/Contactus";
+import HowTalkBrushWorks from './pages/HowTalkBrushWorks/HowTalkBrushWorks';
 
 
 function AppContent() {
@@ -93,6 +94,8 @@ function AppContent() {
         <Route path="/terms-and-conditions" element={<TermsConditions />} />
         <Route path="/privacy-and-policy" element={<PrivacyPolicy />} />
         <Route path="/contact-us" element={<Contactus />} />
+        <Route path="/how-talkbrush-works" element={<HowTalkBrushWorks />} />
+
       </Routes>
     </div >
   );
