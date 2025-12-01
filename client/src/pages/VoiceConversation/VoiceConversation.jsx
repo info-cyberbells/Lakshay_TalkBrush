@@ -2,12 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Mic, Share2, Hand, Phone } from "lucide-react";
 import io from "socket.io-client";
+import { getRoomDetailsThunk } from "../../features/roomSlice";
+import { useDispatch } from "react-redux";
+
 
 const VoiceConversation = () => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const params = useParams();
 
+    // Backend URL - Updated for Azure STT integration
     const BACKEND_URL = "https://talkbrush.com/accent";
     // const BACKEND_URL = "http://127.0.0.1:4444/accent";
 
@@ -35,11 +40,12 @@ const VoiceConversation = () => {
     const [username, setUsername] = useState(`Guest_${Math.random().toString(36).substr(2, 6)}`);
     const [isConnected, setIsConnected] = useState(false);
     const [stats, setStats] = useState({ sent: 0, received: 0, latency: 0 });
+    const [roomDetails, setRoomDetails] = useState(null);
 
-    //  Audio Queue System (from HTML)
+    //  Audio Queue System - matches backend processing
     const audioQueueRef = useRef([]);
     const isPlayingAudioRef = useRef(false);
-    const NATURAL_PAUSE_MS = 250;
+    const NATURAL_PAUSE_MS = 450; // Matches room.js for consistent playback
 
     const ACCENT_OPTIONS = [
         { value: 'american', label: 'American' },
@@ -69,6 +75,25 @@ const VoiceConversation = () => {
         }
     }, [isListening]);
 
+    useEffect(() => {
+        dispatch(getRoomDetailsThunk(roomCode)).then((response) => {
+            if (response.payload) {
+                setRoomDetails(response.payload);
+                setUsername(response.payload.initiator_name);
+
+                const apiParticipants = response.payload.members.map(member => ({
+                    username: member.username,
+                    sid: member.user_id,
+                    muted: true,
+                    hand_raised: false,
+                    accent: 'american',
+                    gender: 'male'
+                }));
+                setParticipants(apiParticipants);
+            }
+        });
+    }, [dispatch, roomCode]);
+
     // Initialize Audio Context
     useEffect(() => {
         audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -78,11 +103,29 @@ const VoiceConversation = () => {
 
     // Socket.IO Connection
     useEffect(() => {
-        if (!roomCode) {
-            alert('No room code provided!');
+        const authToken = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('authToken='))
+            ?.split('=')[1];
+
+        if (!authToken) {
+            console.log('❌ Not authenticated, redirecting to login...');
+            if (roomCode) {
+                navigate(`/?room=${roomCode}`, { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
             return;
         }
 
+        if (!roomCode) {
+            alert('No room code provided!');
+            navigate('/convo-space', { replace: true });
+            return;
+        }
+
+        console.log('✅ Authenticated, joining room:', roomCode);
+        console.log(' Connecting to:', BACKEND_URL);
         console.log(' Connecting to:', BACKEND_URL);
 
         socketRef.current = io("https://talkbrush.com", {
@@ -99,12 +142,13 @@ const VoiceConversation = () => {
 
 
         socketRef.current.on('connect', () => {
-            console.log('  Connected to server - SID:', socketRef.current.id);
+            console.log('✅ Connected to server - SID:', socketRef.current.id);
             setIsConnected(true);
 
             socketRef.current.emit('join_room', {
                 room_code: roomCode,
-                username: username
+                username: username,
+                user_id: roomDetails?.initiator_id
             });
         });
 
@@ -165,7 +209,7 @@ const VoiceConversation = () => {
 
         socketRef.current.on('receive_audio', (data) => {
             const receiveTime = Date.now();
-            console.log(`  [RECEIVED] Audio from: ${data.username}`);
+            console.log(`📥 [RECEIVED] Audio from: ${data.username}`);
 
             //   LOG END-TO-END LATENCY
             if (data.timestamp) {
@@ -176,6 +220,14 @@ const VoiceConversation = () => {
             data.receivedTime = receiveTime;
             setStats(prev => ({ ...prev, received: prev.received + 1 }));
             queueAudio(data);
+        });
+
+        socketRef.current.on('streaming_started', () => {
+            console.log('✅ [STREAMING] Azure STT session started');
+        });
+
+        socketRef.current.on('streaming_stopped', () => {
+            console.log('⏹️ [STREAMING] Azure STT session stopped');
         });
 
         requestMicrophoneAccess();
@@ -218,118 +270,19 @@ const VoiceConversation = () => {
         }
     };
 
-    //   ISOLATED FROM REACT - No blocking
+    //   AZURE STREAMING MODE - Continuous audio streaming for real-time STT
     const setupMediaRecorder = (stream) => {
-        console.log(' Setting up MediaRecorder (React-isolated)...');
+        console.log('🎙️ [SETUP] Azure Streaming Mode (200ms chunks)...');
 
         mediaRecorderRef.current = new MediaRecorder(stream, {
             mimeType: 'audio/webm;codecs=opus',
             audioBitsPerSecond: 128000
         });
 
+        // Streaming mode: send small chunks continuously (200ms)
+        const CHUNK_INTERVAL = 200; // Very small chunks for real-time Azure STT
         let audioChunks = [];
-        const CHUNK_DURATION = 4000;
-        let recordingTimer = null;
-        let isProcessing = false;
-
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
-        const microphone = audioContext.createMediaStreamSource(stream);
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        microphone.connect(analyser);
-        analyser.fftSize = 256;
-
-        const SILENCE_THRESHOLD = 0.004;  // Lowered from 0.006 for better sensitivity
-        let lastLogTime = 0;  // For rate-limiting debug logs
-
-        function detectSpeech() {
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                sum += dataArray[i];
-            }
-            const average = sum / dataArray.length / 255;
-
-            // Log detection level every 500ms for debugging
-            const now = Date.now();
-            if (now - lastLogTime > 500) {
-                console.log(`🔊 [AUDIO LEVEL] ${(average * 100).toFixed(2)}% (threshold: ${(SILENCE_THRESHOLD * 100).toFixed(2)}%)`);
-                lastLogTime = now;
-            }
-
-            return average > SILENCE_THRESHOLD;
-        }
-
-        //   CRITICAL: Keep loop running continuously
-        let animationFrameId = null;
-
-        function checkVoiceActivity() {
-            if (isMutedRef.current) {
-                if (mediaRecorderRef.current.state === 'recording') {
-                    mediaRecorderRef.current.stop();
-                    audioChunks = [];
-                }
-                if (recordingTimer) {
-                    clearTimeout(recordingTimer);
-                    recordingTimer = null;
-                }
-                isProcessing = false;
-                animationFrameId = requestAnimationFrame(checkVoiceActivity);
-                return;
-            }
-
-            const speaking = detectSpeech();
-
-            if (speaking) {
-                if (mediaRecorderRef.current.state === 'inactive' && !isProcessing) {
-                    //   TRACK VOICE DETECTION TIME
-                    voiceDetectionTimeRef.current = Date.now();
-                    console.log('🎤 [VOICE DETECTED] Starting recording...');
-
-                    isProcessing = true;
-                    audioChunks = [];
-
-                    try {
-                        mediaRecorderRef.current.start(100);
-
-                        //   TRACK RECORDING START TIME
-                        recordingStartTimeRef.current = Date.now();
-                        console.log(`📍 [RECORDING STARTED] at ${new Date(recordingStartTimeRef.current).toLocaleTimeString()}.${recordingStartTimeRef.current % 1000}`);
-
-                        recordingTimer = setTimeout(() => {
-                            if (mediaRecorderRef.current.state === 'recording') {
-                                //   LOG SCHEDULED STOP TIME
-                                console.log(`⏰ [CHUNK TIMER] ${CHUNK_DURATION}ms reached, stopping in 200ms...`);
-
-                                setTimeout(() => {
-                                    mediaRecorderRef.current.stop();
-                                }, 300);
-                            }
-                        }, CHUNK_DURATION);
-
-                    } catch (error) {
-                        console.error('✗ Start failed:', error);
-                        isProcessing = false;
-                    }
-                } else if (speaking) {
-                    // Voice detected but can't start - log why
-                    const state = mediaRecorderRef.current.state;
-                    if (state !== 'inactive') {
-                        console.log(`⚠️ [BLOCKED] Voice detected but recorder state is '${state}'`);
-                    }
-                    if (isProcessing) {
-                        console.log(`⚠️ [BLOCKED] Voice detected but isProcessing=${isProcessing}`);
-                    }
-                }
-            }
-
-            //   CRITICAL: Always schedule next frame IMMEDIATELY
-            animationFrameId = requestAnimationFrame(checkVoiceActivity);
-        }
-
-        // Start the loop
-        animationFrameId = requestAnimationFrame(checkVoiceActivity);
+        let streamingSessionStarted = false;
 
         mediaRecorderRef.current.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -338,110 +291,89 @@ const VoiceConversation = () => {
         };
 
         mediaRecorderRef.current.onstop = () => {
-            //   CALCULATE RECORDING DURATION
-            if (recordingStartTimeRef.current) {
-                const recordingDuration = Date.now() - recordingStartTimeRef.current;
-                console.log(`[RECORDING STOPPED] Duration: ${recordingDuration}ms`);
+            if (audioChunks.length > 0 && !isMutedRef.current) {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
-                // Calculate total time from voice detection to stop
-                if (voiceDetectionTimeRef.current) {
-                    const totalDetectionTime = Date.now() - voiceDetectionTimeRef.current;
-                    console.log(` [TOTAL DETECTION TIME] ${totalDetectionTime}ms from voice detected to recording stopped`);
-                }
-            }
+                if (audioBlob.size > 1000) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64Audio = reader.result.split(',')[1];
 
-            if (recordingTimer) {
-                clearTimeout(recordingTimer);
-                recordingTimer = null;
-            }
-
-            if (audioChunks.length === 0 || isMutedRef.current) {
-                audioChunks = [];
-                isProcessing = false;  // FIXED: Set immediately, not in setTimeout
-                console.log(`🔓 [PROCESSING UNLOCKED] Ready for next recording`);
-                return;
-            }
-
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-
-            //   LOG BLOB SIZE AND PROCESSING START
-            const processingStartTime = Date.now();
-            console.log(` [BLOB CREATED] Size: ${audioBlob.size} bytes`);
-
-            // CRITICAL FIX: Reset IMMEDIATELY - don't delay with setTimeout
-            isProcessing = false;
-            console.log(`🔓 [PROCESSING UNLOCKED] Ready for next recording`);
-
-            if (audioBlob.size > 5000) {
-                //   Send in background - don't wait
-                const sendTime = Date.now();
-                const reader = new FileReader();
-
-                reader.onloadend = () => {
-                    const base64Audio = reader.result.split(',')[1];
-
-                    //   LOG ENCODING TIME
-                    const encodingTime = Date.now() - processingStartTime;
-                    console.log(`  [BASE64 ENCODED] Encoding took: ${encodingTime}ms`);
-
-                    if (socketRef.current?.connected) {
-                        //   LOG SENDING TIME
-                        console.log(`  [SENDING AUDIO] at ${new Date(sendTime).toLocaleTimeString()}.${sendTime % 1000}`);
-
-                        socketRef.current.emit('audio_stream', {
-                            audio_data: base64Audio,
-                            accent: currentAccent,
-                            gender: currentGender,
-                            timestamp: sendTime
+                        // Send streaming chunk to Azure STT backend
+                        socketRef.current.emit('audio_stream_chunk', {
+                            audio_data: base64Audio
                         });
 
-                        //   CALCULATE TOTAL PROCESSING TIME
-                        const totalProcessingTime = Date.now() - recordingStartTimeRef.current;
-                        console.log(`  [SENT TO SERVER] Total local processing: ${totalProcessingTime}ms`);
-
-                        // Store in array for averaging
-                        processingTimesRef.current.push(totalProcessingTime);
-                        if (processingTimesRef.current.length > 10) {
-                            processingTimesRef.current.shift(); // Keep only last 10
-                        }
-
-                        // Calculate average
-                        const avgProcessingTime = Math.round(
-                            processingTimesRef.current.reduce((a, b) => a + b, 0) / processingTimesRef.current.length
-                        );
-                        console.log(` [AVERAGE PROCESSING] ${avgProcessingTime}ms (last ${processingTimesRef.current.length} chunks)`);
-
-                        //   CRITICAL: Update stats in next tick to avoid blocking
-                        setTimeout(() => {
-                            setStats(prev => ({ ...prev, sent: prev.sent + 1 }));
-                        }, 0);
-                    }
-                };
-
-                reader.readAsDataURL(audioBlob);
-            } else {
-                console.log(`[SKIPPED] Audio too small: ${audioBlob.size} bytes`);
+                        setStats(prev => ({ ...prev, sent: prev.sent + 1 }));
+                        console.log(`📤 [SENT CHUNK] ${audioBlob.size} bytes`);
+                    };
+                    reader.readAsDataURL(audioBlob);
+                }
             }
-
             audioChunks = [];
-        };
 
-        mediaRecorderRef.current.onerror = (event) => {
-            console.error('MediaRecorder error:', event.error);
-            isProcessing = false;
-            if (recordingTimer) {
-                clearTimeout(recordingTimer);
-                recordingTimer = null;
+            // Continue recording if not muted
+            if (!isMutedRef.current && mediaRecorderRef.current.state === 'inactive') {
+                setTimeout(() => {
+                    if (!isMutedRef.current) {
+                        try {
+                            mediaRecorderRef.current.start();
+                            setTimeout(() => {
+                                if (mediaRecorderRef.current.state === 'recording') {
+                                    mediaRecorderRef.current.stop();
+                                }
+                            }, CHUNK_INTERVAL);
+                        } catch (e) {
+                            console.error('⚠️ [RESTART ERROR]:', e);
+                        }
+                    }
+                }, 10);
             }
         };
 
-        console.log(' Voice Detection active');
+        // Monitor mute state and manage streaming session
+        const streamingInterval = setInterval(() => {
+            if (!isMutedRef.current) {
+                // Start streaming session if not started
+                if (!streamingSessionStarted) {
+                    socketRef.current.emit('start_streaming', {});
+                    streamingSessionStarted = true;
+                    console.log('▶️ [STREAMING] Session started');
+                }
 
-        //   Return cleanup function
+                // Keep recording and sending chunks
+                if (mediaRecorderRef.current.state === 'inactive') {
+                    try {
+                        mediaRecorderRef.current.start();
+                        setTimeout(() => {
+                            if (mediaRecorderRef.current.state === 'recording') {
+                                mediaRecorderRef.current.stop();
+                            }
+                        }, CHUNK_INTERVAL);
+                    } catch (e) {
+                        console.error('⚠️ [START ERROR]:', e);
+                    }
+                }
+            } else if (isMutedRef.current) {
+                // Stop recording if muted
+                if (mediaRecorderRef.current.state === 'recording') {
+                    mediaRecorderRef.current.stop();
+                }
+
+                // Stop streaming session
+                if (streamingSessionStarted) {
+                    socketRef.current.emit('stop_streaming');
+                    streamingSessionStarted = false;
+                    console.log('⏹️ [STREAMING] Session stopped');
+                }
+            }
+        }, 50); // Check every 50ms for responsive audio
+
+        console.log('✅ [READY] Azure streaming recorder initialized');
+
+        // Return cleanup function
         return () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
+            clearInterval(streamingInterval);
         };
     };
 
@@ -648,6 +580,11 @@ const VoiceConversation = () => {
         if (socketRef.current && socketRef.current.connected) {
             socketRef.current.emit('change_accent', { accent: newAccent });
         }
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, accent: newAccent } : p
+            )
+        );
     };
 
     const handleGenderChange = (gender) => {
@@ -693,7 +630,7 @@ const VoiceConversation = () => {
                         </div>
                     </div>
 
-                    <div className="flex-1 text-center w-full lg:w-auto">
+                    <div className="flex-1 text-center w-full lg:w-auto mt-4">
                         <h1
                             className="text-xl lg:text-3xl"
                             style={{
@@ -738,6 +675,7 @@ const VoiceConversation = () => {
                             </defs>
                         </svg>
                     </div>
+
                     <div className="text-center mb-6 lg:mb-8">
                         <div className="flex items-center justify-center gap-2">
                             <p
@@ -758,7 +696,6 @@ const VoiceConversation = () => {
                             </p>
                         )}
                     </div>
-
 
                     <div className="flex items-center gap-3 lg:gap-4">
                         <button
@@ -820,7 +757,9 @@ const VoiceConversation = () => {
 
                                     <div className="text-center">
                                         <p className="text-sm font-medium text-gray-900">
-                                            {participant.username}{participant.username === username && ' (You)'}
+                                            {participant.username}
+                                            {participant.sid === roomDetails?.initiator_id && ' (Host)'}
+                                            {participant.username === username && ' (You)'}
                                         </p>
                                         <div className="flex flex-wrap gap-1 justify-center mt-2">
                                             <span className={`text-xs px-2 py-1 rounded ${participant.muted ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -838,7 +777,7 @@ const VoiceConversation = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 [data-username].speaking {
                     background: #e8f5e9 !important;
                     border: 2px solid #4caf50;

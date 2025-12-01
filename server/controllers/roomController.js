@@ -150,3 +150,46 @@ export const addMember = async (req, res) => {
         });
     }
 };
+
+
+//get room details
+export const getRoomDetails = async (req, res) => {
+    try {
+        const { room_code } = req.params;
+
+        if (!room_code) {
+            return res.status(400).json({
+                success: false,
+                message: "room_code is required",
+            });
+        }
+
+        const room = await Room.findOne({ room_code });
+
+        if (!room) {
+            return res.status(404).json({
+                success: false,
+                message: "Room not found",
+            });
+        }
+
+        const response = {
+            success: true,
+            room_code: room.room_code,
+            initiator_id: room.initiator_id,
+            initiator_name: room.initiator_name,
+            created_at: room.created_at,
+            members_joined: room.members.length,
+            members: room.members,
+        };
+
+        return res.status(200).json(response);
+
+    } catch (error) {
+        console.error("Get Room Details Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};

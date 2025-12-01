@@ -185,3 +185,58 @@ export const analyticsService = {
     }
   },
 };
+
+
+//create room
+export const createRoomService = async () => {
+  // Hit first API → get room code
+  const firstResponse = await axios.get("https://talkbrush.com/accent/create_room", {
+    withCredentials: true,
+  });
+
+  const roomCode = firstResponse.data?.room_code;
+
+  if (!roomCode) {
+    throw new Error("Room code not returned from GET API");
+  }
+
+  console.log("🎉 Room code received:", roomCode);
+
+  // Hit your POST API with that room code
+  const secondResponse = await axios.post(
+    USER_ENDPOINTS.CREATE_ROOM,
+    { room_code: roomCode },
+    { withCredentials: true }
+  );
+
+  console.log("📤 Room saved:", secondResponse.data);
+
+  // Return final response + room code if you need it
+  return {
+    room_code: roomCode,
+    ...secondResponse.data,
+  };
+};
+
+
+//join existed room
+export const joinRoomService = async (roomCode) => {
+  const response = await axios.post(
+    USER_ENDPOINTS.JOIN_ROOM,
+    { room_code: roomCode },
+    { withCredentials: true }
+  );
+  return response.data;
+
+}
+
+
+// get room details
+export const getRoomDetailsService = async (roomCode) => {
+  const response = await axios.get(
+    `${USER_ENDPOINTS.GET_ROOM_DETAILS}/${roomCode}/info`,
+    { withCredentials: true }
+  );
+
+  return response.data;
+};

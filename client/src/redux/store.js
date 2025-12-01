@@ -5,6 +5,8 @@ import toastReducer from "../features/toastSlice"
 import dashboardReducer from "../features/dashboardSlice";
 import activitiesReducer from '../features/activitiesSlice';
 import analyticsReducer from '../features/AnalyticsSlice';
+import roomReducer from "../features/roomSlice";
+
 
 
 export const store = configureStore({
@@ -15,6 +17,7 @@ export const store = configureStore({
         dashboard: dashboardReducer,
         activities: activitiesReducer,
         analytics: analyticsReducer,
+        room: roomReducer,
     }
 })
 

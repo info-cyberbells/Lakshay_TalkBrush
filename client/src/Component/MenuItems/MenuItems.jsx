@@ -136,8 +136,8 @@ const MenuItems = ({ onClose }) => {
             { name: "Manage Profile", icon: <UserCog size={20} />, path: "/manage-profile" },
             { name: "User Management", icon: <Users size={20} />, path: "/manage-users" },
             { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/manage-event" },
-            { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/convo-space" },
             { name: "Analytics", icon: <Icon>{icons.BarAnalytics}</Icon>, path: "/analytics" },
+            { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/convo-space" },
         ],
         user: [
             { name: "Dashboard", icon: <Home size={20} />, path: "/user-dashboard" },
@@ -169,10 +169,14 @@ const MenuItems = ({ onClose }) => {
                 </li>
             ))}
 
-            <li onClick={handleLogout} className="logout-item">
+            <li
+                onClick={handleLogout}
+                className="mt-6"
+            >
                 <LogOut size={20} />
                 <span>Logout</span>
             </li>
+
         </ul>
 
 

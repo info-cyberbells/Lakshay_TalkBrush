@@ -28,6 +28,8 @@ export const loginUser = async (req, res) => {
             { $set: { lastLogin: new Date() } }
         );
 
+        const host = `${req.protocol}://${req.get('host')}`;
+
         // Generate JWT token
         const token = jwt.sign(
             { id: user._id, email: user.email, type: user.type },
@@ -48,7 +50,7 @@ export const loginUser = async (req, res) => {
 
         //for local/ip teting for http
         // res.cookie("authToken", token, {
-        //     httpOnly: true,
+        //     httpOnly: false,
         //     secure: false,
         //     sameSite: "lax",
         //     maxAge,
@@ -62,6 +64,9 @@ export const loginUser = async (req, res) => {
                     email: user.email,
                     phoneNumber: user.phoneNumber,
                     type: user.type,
+                    profileImage: user.image
+                        ? `${host}/${user.image.replace(/^\/+/, "")}`
+                        : null
                 },
             });
 

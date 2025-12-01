@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Mic, Link2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { createRoomThunk } from "../../features/roomSlice";
 
 const ConvoSpace = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
-  // Backend URL
+  // Backend URLs
   const BACKEND_URL = "https://talkbrush.com/accent";
-  // const BACKEND_URL = "http://127.0.0.1:4444/accent";
-
+  const NODE_API_URL = "http://localhost:5000/api/accent";
 
   // Add your image URLs here
   const slides = [
@@ -34,7 +36,6 @@ const ConvoSpace = () => {
     },
   ];
 
-
   // Auto-slide every 6 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,40 +53,31 @@ const ConvoSpace = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  //  NEW: Create Room API Integration
   const handleStartConversation = async () => {
     setIsCreatingRoom(true);
 
-    try {
-      const response = await fetch(`${BACKEND_URL}/create_room`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include cookies for session
+    const result = await dispatch(createRoomThunk());
+
+    setIsCreatingRoom(false);
+
+    if (createRoomThunk.fulfilled.match(result)) {
+      const roomCode = result.payload.room_code;
+
+      const shareLink = `${window.location.origin}/?room=${roomCode}`;
+      console.log('📋 Share this link:', shareLink);
+
+      navigate(`/voice-conversation`, {
+        state: { roomCode },
+        replace: true
       });
-
-      const data = await response.json();
-
-      if (data.success && data.room_code) {
-        console.log('✅ Room created:', data.room_code);
-
-        // Navigate to room with code in URL (so link sharing works)
-        navigate(`/accent/room/${data.room_code}`);
-      } else {
-        alert('Failed to create room. Please try again.');
-      }
-    } catch (error) {
-      console.error(' Error creating room:', error);
-      alert('Could not connect to server. Please check if backend is running at http://localhost:4444');
-    } finally {
-      setIsCreatingRoom(false);
+    } else {
+      alert("Failed to create room. Please try again.");
     }
   };
 
+
+
   const handleCopyLink = () => {
-    // This will copy current page URL
-    // In real scenario, you'd create a room first then copy that link
     navigator.clipboard.writeText(window.location.href);
     alert("Link copied to clipboard!");
   };
@@ -96,7 +88,9 @@ const ConvoSpace = () => {
         {/* Left Section */}
         <div className="space-y-4 lg:space-y-6 mt-18 sm:mt-24 lg:mt-0">
           <h1 className="text-xl lg:text-4xl font-bold text-gray-900 leading-tight">
-            Start Conversation <br className="hidden lg:block"></br>with TalkBrush para <br className="hidden lg:block"></br>todos.
+            Start Conversations <br className="hidden lg:block" />
+            with TalkBrush for <br className="hidden lg:block" />
+            everyone, everywhere.
           </h1>
 
           <p className="text-sm leading-relaxed" style={{ color: "#5F6368" }}>
@@ -120,18 +114,19 @@ const ConvoSpace = () => {
           </div>
 
           <a
-            href="#"
+            href="/how-talkbrush-works"
+            target="blank"
             className="inline-block text-blue-600 hover:text-blue-700 font-medium"
           >
             Discover how TalkBrush works
           </a>
         </div>
 
-
         {/* Right Section */}
         <div className="relative mx-auto lg:ml-0 lg:pl-12 w-full max-w-md lg:max-w-none">
           {/* Image Slider Container */}
-          <div className="relative bg-gradient-to-br from-blue-100 to-blue-200 rounded-full overflow-hidden aspect-square shadow-lg w-full max-w-[280px] sm:max-w-sm mx-auto">            {/* Images */}
+          <div className="relative bg-gradient-to-br from-blue-100 to-blue-200 rounded-full overflow-hidden aspect-square shadow-lg w-full max-w-[280px] sm:max-w-sm mx-auto">
+            {/* Images */}
             {slides.map((slide, index) => (
               <div
                 key={index}

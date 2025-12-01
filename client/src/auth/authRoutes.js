@@ -24,6 +24,9 @@ export const USER_ENDPOINTS = {
 
   ADMIN_DASHBOARD_OVERVIEW: `${API_BASE_URL}/dashboard/overview`,
   GET_TYPE3_ANALYTICS: `${API_BASE_URL}/analysis/type3`,
+  CREATE_ROOM: `${API_BASE_URL}/accent/create-room`,
+  JOIN_ROOM: `${API_BASE_URL}/accent/add-member`,
+  GET_ROOM_DETAILS: `${API_BASE_URL}/accent/room`,
 
 
   GET_ALL_ACTIVITIES: `${API_BASE_URL}/activities/getAllActivities`,
