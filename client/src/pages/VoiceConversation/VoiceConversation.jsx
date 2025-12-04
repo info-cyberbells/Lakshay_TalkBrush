@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { Mic, Share2, Hand, Phone } from "lucide-react";
+import { Mic, Share2, Hand, Phone, MicOff, Crown, User } from "lucide-react";
 import io from "socket.io-client";
-import { getRoomDetailsThunk } from "../../features/roomSlice";
+import { getRoomDetailsThunk, leaveRoomThunk } from "../../features/roomSlice";
 import { useDispatch } from "react-redux";
+import RoomPreviewModal from "../RoomPreviewModal/RoomPreviewModal";
+
 
 
 const VoiceConversation = () => {
@@ -25,10 +27,10 @@ const VoiceConversation = () => {
     const isMutedRef = useRef(true);
     const playHeadTimeRef = useRef(0);
 
-    //   TIMING REFS FOR PERFORMANCE TRACKING
     const recordingStartTimeRef = useRef(null);
     const voiceDetectionTimeRef = useRef(null);
     const processingTimesRef = useRef([]);
+    const userProfilesRef = useRef({});
 
     // State Management
     const [isListening, setIsListening] = useState(true);
@@ -37,10 +39,13 @@ const VoiceConversation = () => {
     const [currentGender, setCurrentGender] = useState('male');
     const [handRaised, setHandRaised] = useState(false);
     const [participants, setParticipants] = useState([]);
-    const [username, setUsername] = useState(`Guest_${Math.random().toString(36).substr(2, 6)}`);
+    const [username, setUsername] = useState('');
     const [isConnected, setIsConnected] = useState(false);
     const [stats, setStats] = useState({ sent: 0, received: 0, latency: 0 });
     const [roomDetails, setRoomDetails] = useState(null);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+    const [userData, setUserData] = useState(null);
 
     //  Audio Queue System - matches backend processing
     const audioQueueRef = useRef([]);
@@ -76,23 +81,68 @@ const VoiceConversation = () => {
     }, [isListening]);
 
     useEffect(() => {
-        dispatch(getRoomDetailsThunk(roomCode)).then((response) => {
-            if (response.payload) {
-                setRoomDetails(response.payload);
-                setUsername(response.payload.initiator_name);
+        if (roomCode) {
+            dispatch(getRoomDetailsThunk(roomCode)).then((response) => {
+                if (response.payload) {
+                    setRoomDetails(response.payload);
+                    setUsername(response.payload.initiator_name);
 
-                const apiParticipants = response.payload.members.map(member => ({
-                    username: member.username,
-                    sid: member.user_id,
-                    muted: true,
-                    hand_raised: false,
-                    accent: 'american',
-                    gender: 'male'
-                }));
-                setParticipants(apiParticipants);
-            }
-        });
+                    setUserData({
+                        username: response.payload.initiator_name,
+                        user_id: response.payload.initiator_id
+                    });
+
+                    const profilesMap = {};
+                    response.payload.members.forEach(member => {
+                        profilesMap[member.user_id] = member.profile_image;
+                    });
+                    userProfilesRef.current = profilesMap;
+
+                    const apiParticipants = response.payload.members.map(member => ({
+                        username: member.username,
+                        sid: member.user_id,
+                        profile_image: member.profile_image,
+                        muted: true,
+                        hand_raised: false,
+                        accent: 'american',
+                        gender: 'male'
+                    }));
+                    setParticipants(apiParticipants);
+                }
+            });
+        }
     }, [dispatch, roomCode]);
+
+
+    useEffect(() => {
+        console.log('🔍 Join check:', { isConnected, userData, roomCode }); // ✅ ADD THIS
+
+        if (isConnected && userData && roomCode && socketRef.current) {
+            console.log('✅ Joining room with user:', userData.username, 'ID:', userData.user_id); // ✅ IMPROVED
+            socketRef.current.emit('join_room', {
+                room_code: roomCode,
+                username: userData.username,
+                user_id: userData.user_id
+            });
+        }
+    }, [isConnected, userData, roomCode]);
+
+    useEffect(() => {
+        const checkAuthAndShowModal = () => {
+            const cameFromShare = !location.state?.fromCreateRoom;
+            const hasJoinedRoom = sessionStorage.getItem(`joined_${roomCode}`);
+
+            if (cameFromShare && !hasJoinedRoom) {
+                setShowPreviewModal(true);
+            }
+
+            setIsCheckingAuth(false);
+        };
+
+        if (roomCode && roomDetails) {
+            checkAuthAndShowModal();
+        }
+    }, [roomCode, roomDetails, location.state, navigate]);
 
     // Initialize Audio Context
     useEffect(() => {
@@ -128,13 +178,8 @@ const VoiceConversation = () => {
 
         socketRef.current.on('connect', () => {
             console.log('✅ Connected to server - SID:', socketRef.current.id);
+            console.log('🔍 Current userData:', userData); // ✅ ADD THIS
             setIsConnected(true);
-
-            socketRef.current.emit('join_room', {
-                room_code: roomCode,
-                username: username,
-                user_id: roomDetails?.initiator_id
-            });
         });
 
         socketRef.current.on('disconnect', (reason) => {
@@ -144,14 +189,8 @@ const VoiceConversation = () => {
 
         //   NEW - Handle reconnection
         socketRef.current.on('reconnect', (attemptNumber) => {
-            console.log('   Reconnected after', attemptNumber, 'attempts');
+            console.log('🔄 Reconnected after', attemptNumber, 'attempts');
             setIsConnected(true);
-
-            // Rejoin room after reconnection
-            socketRef.current.emit('join_room', {
-                room_code: roomCode,
-                username: username
-            });
         });
 
         socketRef.current.on('reconnect_attempt', () => {
@@ -173,23 +212,89 @@ const VoiceConversation = () => {
         });
 
         socketRef.current.on('user_joined', (data) => {
-            console.log('   User joined:', data);
-            setParticipants(data.participants || []);
+            console.log('👤 User joined:', data);
+
+            // ✅ Fetch latest API data
+            dispatch(getRoomDetailsThunk(roomCode)).then((response) => {
+                if (response.payload) {
+                    // Update profiles ref
+                    response.payload.members.forEach(member => {
+                        userProfilesRef.current[member.user_id] = member.profile_image;
+                    });
+
+                    // ✅ IMPROVED: Keep existing participants and update their status
+                    setParticipants(prevParticipants => {
+                        // Get all API users
+                        const apiUserIds = response.payload.members.map(m => m.user_id);
+
+                        // Get all socket user IDs
+                        const socketUserIds = data.participants.map(p => p.sid);
+
+                        // Build updated participant list
+                        const updatedParticipants = apiUserIds.map(userId => {
+                            // Find socket data for this user
+                            const socketData = data.participants.find(p => p.sid === userId);
+
+                            // Find existing participant data
+                            const existingParticipant = prevParticipants.find(p => p.sid === userId);
+
+                            // Find API data
+                            const apiUser = response.payload.members.find(m => m.user_id === userId);
+
+                            // Merge all data sources (priority: socket > existing > api)
+                            return {
+                                username: apiUser.username,
+                                sid: userId,
+                                profile_image: apiUser.profile_image,
+                                muted: socketData ? socketData.muted : (existingParticipant ? existingParticipant.muted : true),
+                                hand_raised: socketData ? socketData.hand_raised : (existingParticipant ? existingParticipant.hand_raised : false),
+                                accent: socketData?.accent || existingParticipant?.accent || 'american',
+                                gender: socketData?.gender || existingParticipant?.gender || 'male'
+                            };
+                        });
+
+                        console.log('✅ Updated participants:', updatedParticipants);
+                        return updatedParticipants;
+                    });
+                }
+            });
         });
 
         socketRef.current.on('user_left', (data) => {
-            console.log('   User left:', data.username);
-            setParticipants(data.participants || []);
-        });
+            console.log('👋 User left:', data);
 
+            const leftUserId = data.user_id || data.sid;
+
+            setParticipants(prevParticipants =>
+                prevParticipants.filter(p => p.sid !== leftUserId)
+            );
+
+            console.log('✅ Removed user with ID:', leftUserId);
+        });
         socketRef.current.on('mute_status_changed', (data) => {
             console.log(' Mute status changed:', data);
-            setParticipants(data.participants || []);
+            setParticipants(prevParticipants => {
+                return prevParticipants.map(participant => {
+                    const socketParticipant = data.participants.find(p => p.sid === participant.sid);
+                    return socketParticipant ? {
+                        ...participant,
+                        muted: socketParticipant.muted
+                    } : participant;
+                });
+            });
         });
 
         socketRef.current.on('hand_status_changed', (data) => {
             console.log(' Hand status changed:', data);
-            setParticipants(data.participants || []);
+            setParticipants(prevParticipants => {
+                return prevParticipants.map(participant => {
+                    const socketParticipant = data.participants.find(p => p.sid === participant.sid);
+                    return socketParticipant ? {
+                        ...participant,
+                        hand_raised: socketParticipant.hand_raised
+                    } : participant;
+                });
+            });
         });
 
         socketRef.current.on('receive_audio', (data) => {
@@ -256,6 +361,7 @@ const VoiceConversation = () => {
     };
 
     //   AZURE STREAMING MODE - Continuous audio streaming for real-time STT
+    //   AZURE STREAMING MODE - Continuous audio streaming for real-time STT
     const setupMediaRecorder = (stream) => {
         console.log('🎙️ [SETUP] Azure Streaming Mode (200ms chunks)...');
 
@@ -268,6 +374,7 @@ const VoiceConversation = () => {
         const CHUNK_INTERVAL = 200; // Very small chunks for real-time Azure STT
         let audioChunks = [];
         let streamingSessionStarted = false;
+        let isRestarting = false; // ✅ NEW: Prevent concurrent restart attempts
 
         mediaRecorderRef.current.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -297,27 +404,15 @@ const VoiceConversation = () => {
             }
             audioChunks = [];
 
-            // Continue recording if not muted
-            if (!isMutedRef.current && mediaRecorderRef.current.state === 'inactive') {
-                setTimeout(() => {
-                    if (!isMutedRef.current) {
-                        try {
-                            mediaRecorderRef.current.start();
-                            setTimeout(() => {
-                                if (mediaRecorderRef.current.state === 'recording') {
-                                    mediaRecorderRef.current.stop();
-                                }
-                            }, CHUNK_INTERVAL);
-                        } catch (e) {
-                            console.error('⚠️ [RESTART ERROR]:', e);
-                        }
-                    }
-                }, 10);
-            }
+            // ✅ REMOVED: Don't restart here - let the interval handle it
+            // This was causing the conflict!
         };
 
-        // Monitor mute state and manage streaming session
+        // ✅ IMPROVED: Single source of truth for recording management
         const streamingInterval = setInterval(() => {
+            // Only proceed if not already in a restart operation
+            if (isRestarting) return;
+
             if (!isMutedRef.current) {
                 // Start streaming session if not started
                 if (!streamingSessionStarted) {
@@ -326,23 +421,34 @@ const VoiceConversation = () => {
                     console.log('▶️ [STREAMING] Session started');
                 }
 
-                // Keep recording and sending chunks
+                // ✅ FIXED: Better state checking before starting
                 if (mediaRecorderRef.current.state === 'inactive') {
+                    isRestarting = true; // ✅ Set flag to prevent concurrent attempts
+
                     try {
                         mediaRecorderRef.current.start();
+
+                        // Stop after CHUNK_INTERVAL
                         setTimeout(() => {
                             if (mediaRecorderRef.current.state === 'recording') {
                                 mediaRecorderRef.current.stop();
                             }
+                            isRestarting = false; // ✅ Reset flag after stop
                         }, CHUNK_INTERVAL);
+
                     } catch (e) {
                         console.error('⚠️ [START ERROR]:', e);
+                        isRestarting = false; // ✅ Reset flag on error
                     }
                 }
             } else if (isMutedRef.current) {
                 // Stop recording if muted
                 if (mediaRecorderRef.current.state === 'recording') {
-                    mediaRecorderRef.current.stop();
+                    try {
+                        mediaRecorderRef.current.stop();
+                    } catch (e) {
+                        console.error('⚠️ [STOP ERROR]:', e);
+                    }
                 }
 
                 // Stop streaming session
@@ -351,6 +457,8 @@ const VoiceConversation = () => {
                     streamingSessionStarted = false;
                     console.log('⏹️ [STREAMING] Session stopped');
                 }
+
+                isRestarting = false; // ✅ Reset flag when muted
             }
         }, 50); // Check every 50ms for responsive audio
 
@@ -359,6 +467,7 @@ const VoiceConversation = () => {
         // Return cleanup function
         return () => {
             clearInterval(streamingInterval);
+            isRestarting = false; // ✅ Clean up flag
         };
     };
 
@@ -507,12 +616,65 @@ const VoiceConversation = () => {
 
         console.log(` [MIC TOGGLE] ${newMutedState ? 'MUTED' : 'UNMUTED'}`);
 
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, muted: newMutedState } : p
+            )
+        );
+
         if (socketRef.current && socketRef.current.connected) {
             socketRef.current.emit('toggle_mute', { muted: newMutedState });
         }
     };
 
-    const handleEndCall = () => {
+    const handleCloseModal = () => {
+        setShowPreviewModal(false);
+    };
+
+    const handleJoinRoom = async () => {
+        console.log('🔄 User joined via modal, refetching room details...');
+
+        // ✅ Refetch room details to get updated members list
+        const response = await dispatch(getRoomDetailsThunk(roomCode));
+
+        if (response.payload) {
+            console.log('✅ Room details refetched:', response.payload);
+
+            // Update room details
+            setRoomDetails(response.payload);
+
+            // Update username if it changed
+            setUsername(response.payload.initiator_name);
+
+            setUserData({
+                username: response.payload.initiator_name,
+                user_id: response.payload.initiator_id
+            });
+
+            const profilesMap = {};
+            response.payload.members.forEach(member => {
+                profilesMap[member.user_id] = member.profile_image;
+            });
+            userProfilesRef.current = profilesMap;
+
+            const apiParticipants = response.payload.members.map(member => ({
+                username: member.username,
+                sid: member.user_id,
+                profile_image: member.profile_image,
+                muted: true,
+                hand_raised: false,
+                accent: 'american',
+                gender: 'male'
+            }));
+            setParticipants(apiParticipants);
+
+            console.log('✅ Updated participants after join:', apiParticipants);
+        }
+
+        setShowPreviewModal(false);
+    };
+
+    const handleEndCall = async () => {
         console.log(' [ENDING CALL]...');
 
         //   LOG FINAL STATISTICS
@@ -524,6 +686,13 @@ const VoiceConversation = () => {
                 processingTimesRef.current.reduce((a, b) => a + b, 0) / processingTimesRef.current.length
             )}ms`);
             console.log(`   • Average latency: ${stats.latency}ms`);
+        }
+
+        try {
+            await dispatch(leaveRoomThunk(roomCode));
+            console.log('✅ Left room via API');
+        } catch (error) {
+            console.error('❌ Leave room API error:', error);
         }
 
         if (socketRef.current && socketRef.current.connected) {
@@ -539,7 +708,24 @@ const VoiceConversation = () => {
 
         navigator.clipboard.writeText(shareLink).then(() => {
             console.log(` [LINK COPIED] ${shareLink}`);
-            alert("Room link copied! Share it with others to invite them to the call.");
+            const toast = document.createElement("div");
+            toast.className =
+                "fixed bottom-30 left-[40%] transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-full shadow-lg text-sm z-[9999] opacity-0 transition-opacity duration-300";
+
+            toast.innerText = "Link copied to clipboard";
+
+            document.body.appendChild(toast);
+
+            // Fade in
+            setTimeout(() => {
+                toast.style.opacity = "1";
+            }, 10);
+
+            // Remove after fade-out
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
         }).catch(err => {
             console.error('   Copy failed:', err);
         });
@@ -550,6 +736,12 @@ const VoiceConversation = () => {
         setHandRaised(newHandState);
 
         console.log(` [HAND ${newHandState ? 'RAISED' : 'LOWERED'}]`);
+
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, hand_raised: newHandState } : p
+            )
+        );
 
         if (socketRef.current && socketRef.current.connected) {
             socketRef.current.emit('raise_hand', { raised: newHandState });
@@ -583,186 +775,356 @@ const VoiceConversation = () => {
     };
 
     return (
-        <div
-            className="h-screen bg-gray-50 flex flex-col lg:flex-row lg:ml-[240px] lg:mt-[50px] lg:mr-[235px] lg:w-[calc(100%-240px)] overflow-hidden px-4 lg:px-0 pt-4 lg:pt-0"
-            style={{ fontFamily: "'Mia-Assistant-Vocal', sans-serif" }}
-        >
-            <div className="flex-1 flex flex-col">
-                <div className="border-gray-200 px-4 lg:px-8 py-4 lg:py-6 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 pt-16 lg:pt-4">
-                    <div className="flex items-center gap-4 w-full lg:w-auto justify-center lg:justify-start order-2 lg:order-1">
-                        <div className="relative inline-block">
-                            <select
-                                value={currentAccent}
-                                onChange={handleAccentChange}
-                                className="appearance-none px-3 lg:px-4 py-2 pr-10 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm lg:text-base cursor-pointer bg-white"
-                                style={{
-                                    fontFamily: "'Poppins', sans-serif",
-                                    color: "#333333",
-                                    minWidth: "180px"
-                                }}
-                            >
-                                {ACCENT_OPTIONS.map(accent => (
-                                    <option key={accent.value} value={accent.value}>
-                                        {accent.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                </svg>
+
+        <>
+            {showPreviewModal && (
+                <RoomPreviewModal
+                    roomCode={roomCode}
+                    roomDetails={roomDetails}
+                    onClose={handleCloseModal}
+                    onContinue={handleJoinRoom}
+                />
+            )}
+            {!isCheckingAuth && (
+                <div
+                    className="h-screen bg-gray-50 flex flex-col lg:flex-row lg:ml-[240px] lg:mt-[50px] lg:mr-[235px] lg:w-[calc(100%-240px)] overflow-hidden px-4 lg:px-0 pt-4 lg:pt-0"
+                    style={{ fontFamily: "'Mia-Assistant-Vocal', sans-serif" }}
+                >
+                    <div className="flex-1 flex flex-col">
+                        <div className="border-gray-200 px-4 lg:px-8 py-4 lg:py-6 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 pt-16 lg:pt-4">
+                            <div className="flex items-center gap-4 w-full lg:w-auto justify-center lg:justify-start order-2 lg:order-1">
+                                <div className="relative inline-block">
+                                    <p className="text-xs text-center w-full text-gray-500 mb-1 ml-1">
+                                        Change your accent
+                                    </p>
+                                    <select
+                                        value={currentAccent}
+                                        onChange={handleAccentChange}
+                                        className="appearance-none px-3 lg:px-4 py-2 pr-10 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm lg:text-base cursor-pointer bg-white"
+                                        style={{
+                                            fontFamily: "'Poppins', sans-serif",
+                                            color: "#333333",
+                                            minWidth: "180px"
+                                        }}
+                                    >
+                                        {ACCENT_OPTIONS.map(accent => (
+                                            <option key={accent.value} value={accent.value}>
+                                                {accent.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 text-center w-full lg:w-auto mt-4">
+
+                                {/* Better heading */}
+                                <h1
+                                    className="text-xl lg:text-3xl"
+                                    style={{
+                                        fontFamily: "'Hanken Grotesk', sans-serif",
+                                        fontWeight: 700,
+                                        color: "#000",
+                                    }}
+                                >
+                                    Accent Talk Room
+                                </h1>
+
+                                {/* Premium subtitle */}
+                                <p
+                                    className="text-sm lg:text-lg flex flex-wrap justify-center gap-2 mt-1"
+                                    style={{
+                                        fontFamily: "'Hanken Grotesk', sans-serif",
+                                        color: "#6d6d6d",
+                                    }}
+                                >
+                                    <span className="px-3 py-1 bg-gray-100 rounded-full font-medium">
+                                        Room • {roomCode.match(/.{1,3}/g).join("-")}
+                                    </span>
+
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
+                                        {isConnected ? "🟢 Live" : "🔴 Offline"}
+                                    </span>
+
+                                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                                        {stats.latency}ms
+                                    </span>
+
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                                        ↑{stats.sent} ↓{stats.received}
+                                    </span>
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-6 lg:py-0">
+                            <div className="relative w-full max-w-xl h-40 lg:h-64 flex items-center justify-center mb-6 lg:mb-8 overflow-hidden">
+                                <div
+                                    className="relative h-full flex"
+                                    style={{
+                                        animation: !isListening ? 'scrollRightToLeft 8s linear infinite' : 'none',
+                                        transform: isListening ? 'translateX(0)' : undefined
+                                    }}
+                                >
+                                    {/* First copy of image */}
+                                    <img
+                                        src="/line.png"
+                                        alt="Audio waves"
+                                        className="h-full object-contain flex-shrink-0 transition-opacity duration-300"
+                                        style={{
+                                            minWidth: '100%',
+                                            opacity: isListening ? 0.7 : 0.9
+                                        }}
+                                    />
+
+                                    {/* Second copy for seamless loop */}
+                                    <img
+                                        src="/line.png"
+                                        alt="Audio waves"
+                                        className="h-full object-contain flex-shrink-0 transition-opacity duration-300"
+                                        style={{
+                                            minWidth: '100%',
+                                            opacity: isListening ? 0.7 : 0.9
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="text-center mb-6 lg:mb-8">
+                                <div className="flex items-center justify-center gap-2">
+                                    <p
+                                        className="text-xl lg:text-3xl"
+                                        style={{ fontFamily: "'Turret Road', sans-serif", color: "#000000" }}
+                                    >
+                                        {isListening ? "Muted" : "Listening..."}
+                                    </p>
+                                    {!isListening && (
+                                        <Mic className="w-6 h-6 text-yellow-500" />
+                                    )}
+                                </div>
+
+                                {/* Hint appears only when muted */}
+                                {isListening && (
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        You’re muted — unmute yourself to speak.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 lg:gap-4">
+                                <button
+                                    onClick={handleMicToggle}
+                                    className={`w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-lg ${isListening ? "bg-gray-700 text-white hover:bg-gray-800" : "bg-white text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                    title={isListening ? "Unmute" : "Mute"}
+                                >
+                                    <Mic className="w-5 h-5 lg:w-6 lg:h-6" />
+                                </button>
+
+                                <button onClick={handleShare} className="w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg" title="Share">
+                                    <Share2 className="w-5 h-5 lg:w-6 lg:h-6 text-gray-700" />
+                                </button>
+
+                                <button
+                                    onClick={handleLike}
+                                    className={`w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-lg ${handRaised ? "bg-yellow-500 text-white hover:bg-yellow-600" : "bg-white text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                    title={handRaised ? "Lower Hand" : "Raise Hand"}
+                                >
+                                    <Hand className="w-5 h-5 lg:w-6 lg:h-6" />
+                                </button>
+
+                                <button onClick={handleEndCall} className="w-12 h-12 lg:w-14 lg:h-14 bg-red-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors shadow-lg" title="Leave">
+                                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-white rotate-[135deg]" />
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex-1 text-center w-full lg:w-auto mt-4">
-                        <h1
-                            className="text-xl lg:text-3xl"
-                            style={{
-                                fontFamily: "'Hanken Grotesk', sans-serif",
-                                fontWeight: 700,
-                                color: "#000000",
-                            }}
-                        >
-                            Mia - Assistant Vocal
-                        </h1>
-                        <p className="text-sm lg:text-xl" style={{
-                            fontFamily: "'Hanken Grotesk', sans-serif",
-                            color: "#868686",
-                        }}>
-                            Room: {roomCode} • {isConnected ? '🟢' : '🔴'} •  {stats.latency}ms • ↑{stats.sent} ↓{stats.received}
-                        </p>
-                    </div>
-                </div>
+                    <div className="w-full lg:w-80 text-center p-4 lg:p-6 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 max-h-[50vh] lg:max-h-none overflow-y-auto">
+                        <div className="font-medium mb-4 lg:mb-5 text-sm lg:text-base" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", fontFamily: "'Hanken Grotesk', sans-serif" }}>
+                            <span>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                            <span style={{ display: "inline-block", width: "1px", height: "24px", backgroundColor: "#000" }}></span>
+                            <span style={{ fontWeight: 600, fontFamily: "'Poppins', sans-serif", fontSize: "25px" }}>
+                                {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        </div>
+                        <div className="w-auto bg-white p-4 lg:p-6 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-4">Participants ({participants.length})</h3>
+                            {participants.length === 0 ? (
+                                <p className="text-gray-500 py-8">Waiting for participants...</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {/* HOST SECTION */}
+                                    {roomDetails && participants.filter(p => p.sid === roomDetails.initiator_id).length > 0 && (
+                                        <div className="mb-6">
+                                            <div className="flex items-center gap-2 mb-3 px-2">
+                                                <Crown className="w-4 h-4 text-yellow-600" />
+                                                <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Host</h4>
+                                            </div>
+                                            {participants
+                                                .filter(p => p.sid === roomDetails.initiator_id)
+                                                .map((participant, index) => {
+                                                    const displayImage = participant.profile_image ||
+                                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(participant.username)}&background=random&size=128`;
 
-                <div className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-6 lg:py-0">
-                    <div className="relative w-full max-w-xl h-40 lg:h-64 flex items-center justify-center mb-6 lg:mb-8">
-                        <svg className="w-full h-full" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
-                            <path d={`M 0 100 Q 100 ${70 + Math.sin(waveAnimation * 0.1) * 25} 200 100 T 400 100 T 600 100 T 800 100`} fill="none" stroke="url(#gradient1)" strokeWidth="2" opacity="0.8" strokeLinecap="round" />
-                            <path d={`M 0 100 Q 100 ${60 + Math.sin(waveAnimation * 0.12 + 0.5) * 30} 200 100 T 400 100 T 600 100 T 800 100`} fill="none" stroke="url(#gradient2)" strokeWidth="2.5" opacity="0.7" strokeLinecap="round" />
-                            <path d={`M 0 100 Q 100 ${50 + Math.sin(waveAnimation * 0.15 + 1) * 35} 200 100 T 400 100 T 600 100 T 800 100`} fill="none" stroke="url(#gradient3)" strokeWidth="2" opacity="0.6" strokeLinecap="round" />
-                            <defs>
-                                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#38BDF8" />
-                                    <stop offset="50%" stopColor="#A78BFA" />
-                                    <stop offset="100%" stopColor="#F472B6" />
-                                </linearGradient>
-                                <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#A78BFA" />
-                                    <stop offset="50%" stopColor="#EC4899" />
-                                    <stop offset="100%" stopColor="#FB923C" />
-                                </linearGradient>
-                                <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#60A5FA" />
-                                    <stop offset="50%" stopColor="#C084FC" />
-                                    <stop offset="100%" stopColor="#F9A8D4" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
+                                                    return (
+                                                        <div
+                                                            key={participant.sid || index}
+                                                            data-username={participant.username}
+                                                            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl transition-all border-2 border-blue-200"
+                                                        >
+                                                            <div className="relative flex-shrink-0">
+                                                                <img
+                                                                    src={displayImage}
+                                                                    alt={participant.username}
+                                                                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-400 shadow-sm"
+                                                                    onError={(e) => {
+                                                                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(participant.username)}&background=random&size=128`;
+                                                                    }}
+                                                                />
+                                                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                                                            </div>
 
-                    <div className="text-center mb-6 lg:mb-8">
-                        <div className="flex items-center justify-center gap-2">
-                            <p
-                                className="text-xl lg:text-3xl"
-                                style={{ fontFamily: "'Turret Road', sans-serif", color: "#000000" }}
-                            >
-                                {isListening ? "Muted" : "Listening..."}
-                            </p>
-                            {!isListening && (
-                                <Mic className="w-6 h-6 text-yellow-500" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                                                        {participant.username}
+                                                                    </p>
+                                                                    {participant.username === username && (
+                                                                        <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">You</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-start gap-1.5 mt-1.5">
+                                                                    {/* Column 1: Mute Status */}
+                                                                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium whitespace-nowrap ${participant.muted
+                                                                        ? 'bg-red-100 text-red-700'
+                                                                        : 'bg-green-100 text-green-700'
+                                                                        }`}>
+                                                                        {participant.muted ? (
+                                                                            <MicOff className="w-2.5 h-2.5" />
+                                                                        ) : (
+                                                                            <Mic className="w-2.5 h-2.5" />
+                                                                        )}
+                                                                        <span>{participant.muted ? 'Muted' : 'Live'}</span>
+                                                                    </div>
+
+                                                                    {/* Column 2: Hand + Accent stacked */}
+                                                                    <div className="flex flex-col gap-1">
+                                                                        {/* Hand Raised */}
+                                                                        {participant.hand_raised && (
+                                                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-yellow-100 text-yellow-700 whitespace-nowrap">
+                                                                                <Hand className="w-2.5 h-2.5" />
+                                                                                <span>Raised</span>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {/* Accent */}
+                                                                        <div className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-blue-100 text-blue-700 capitalize whitespace-nowrap">
+                                                                            {participant.accent.replace('_', ' ')}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                        </div>
+                                    )}
+
+                                    {/* PARTICIPANTS SECTION */}
+                                    {roomDetails && participants.filter(p => p.sid !== roomDetails.initiator_id).length > 0 && (
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3 px-2">
+                                                <User className="w-4 h-4 text-gray-600" />
+                                                <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                                    Members ({participants.filter(p => p.sid !== roomDetails.initiator_id).length})
+                                                </h4>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {participants
+                                                    .filter(p => p.sid !== roomDetails.initiator_id)
+                                                    .map((participant, index) => {
+                                                        const displayImage = participant.profile_image ||
+                                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(participant.username)}&background=random&size=128`;
+
+                                                        return (
+                                                            <div
+                                                                key={participant.sid || index}
+                                                                data-username={participant.username}
+                                                                className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl transition-all hover:bg-gray-100 border border-gray-200"
+                                                            >
+                                                                <div className="relative flex-shrink-0">
+                                                                    <img
+                                                                        src={displayImage}
+                                                                        alt={participant.username}
+                                                                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-300 shadow-sm"
+                                                                        onError={(e) => {
+                                                                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(participant.username)}&background=random&size=128`;
+                                                                        }}
+                                                                    />
+                                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                                                                </div>
+
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-sm font-semibold text-gray-900 truncate">
+                                                                            {participant.username}
+                                                                        </p>
+                                                                        {participant.username === username && (
+                                                                            <span className="text-xs bg-gray-500 text-white px-2 py-0.5 rounded-full">You</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex items-start gap-1.5 mt-1.5">
+                                                                        {/* Column 1: Mute Status */}
+                                                                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium whitespace-nowrap ${participant.muted
+                                                                            ? 'bg-red-100 text-red-700'
+                                                                            : 'bg-green-100 text-green-700'
+                                                                            }`}>
+                                                                            {participant.muted ? (
+                                                                                <MicOff className="w-2.5 h-2.5" />
+                                                                            ) : (
+                                                                                <Mic className="w-2.5 h-2.5" />
+                                                                            )}
+                                                                            <span>{participant.muted ? 'Muted' : 'Live'}</span>
+                                                                        </div>
+
+                                                                        {/* Column 2: Hand + Accent stacked */}
+                                                                        <div className="flex flex-col gap-1">
+                                                                            {/* Hand Raised */}
+                                                                            {participant.hand_raised && (
+                                                                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-yellow-100 text-yellow-700 whitespace-nowrap">
+                                                                                    <Hand className="w-2.5 h-2.5" />
+                                                                                    <span>Raised</span>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Accent */}
+                                                                            <div className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-100 text-purple-700 capitalize whitespace-nowrap">
+                                                                                {participant.accent.replace('_', ' ')}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
-
-                        {/* Hint appears only when muted */}
-                        {isListening && (
-                            <p className="text-sm text-gray-500 mt-2">
-                                You’re muted — unmute yourself to speak.
-                            </p>
-                        )}
                     </div>
 
-                    <div className="flex items-center gap-3 lg:gap-4">
-                        <button
-                            onClick={handleMicToggle}
-                            className={`w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-lg ${isListening ? "bg-gray-700 text-white hover:bg-gray-800" : "bg-white text-gray-700 hover:bg-gray-100"
-                                }`}
-                            title={isListening ? "Unmute" : "Mute"}
-                        >
-                            <Mic className="w-5 h-5 lg:w-6 lg:h-6" />
-                        </button>
-
-                        <button onClick={handleShare} className="w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg" title="Share">
-                            <Share2 className="w-5 h-5 lg:w-6 lg:h-6 text-gray-700" />
-                        </button>
-
-                        <button
-                            onClick={handleLike}
-                            className={`w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-lg ${handRaised ? "bg-yellow-500 text-white hover:bg-yellow-600" : "bg-white text-gray-700 hover:bg-gray-100"
-                                }`}
-                            title={handRaised ? "Lower Hand" : "Raise Hand"}
-                        >
-                            <Hand className="w-5 h-5 lg:w-6 lg:h-6" />
-                        </button>
-
-                        <button onClick={handleEndCall} className="w-12 h-12 lg:w-14 lg:h-14 bg-red-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors shadow-lg" title="Leave">
-                            <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-white rotate-[135deg]" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="w-full lg:w-80 text-center p-4 lg:p-6 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 max-h-[50vh] lg:max-h-none overflow-y-auto">
-                <div className="font-medium mb-4 lg:mb-5 text-sm lg:text-base" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", fontFamily: "'Hanken Grotesk', sans-serif" }}>
-                    <span>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                    <span style={{ display: "inline-block", width: "1px", height: "24px", backgroundColor: "#000" }}></span>
-                    <span style={{ fontWeight: 600, fontFamily: "'Poppins', sans-serif", fontSize: "25px" }}>
-                        {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                </div>
-
-                <div className="w-auto bg-white p-4 lg:p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-4">Participants ({participants.length})</h3>
-                    {participants.length === 0 ? (
-                        <p className="text-gray-500 py-8">Waiting for participants...</p>
-                    ) : (
-                        <div className="space-y-4">
-                            {participants.map((participant, index) => (
-                                <div
-                                    key={participant.sid || index}
-                                    data-username={participant.username}
-                                    className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-lg transition-all"
-                                >
-                                    <div className="relative">
-                                        <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                                            {participant.username.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
-                                    </div>
-
-                                    <div className="text-center">
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {participant.username}
-                                            {participant.sid === roomDetails?.initiator_id && ' (Host)'}
-                                            {participant.username === username && ' (You)'}
-                                        </p>
-                                        <div className="flex flex-wrap gap-1 justify-center mt-2">
-                                            <span className={`text-xs px-2 py-1 rounded ${participant.muted ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                {participant.muted ? '🔇' : '🔊'}
-                                            </span>
-                                            {participant.hand_raised && <span className="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700">✋</span>}
-                                            <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">🗣️ {participant.accent}</span>
-                                            <span className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700">{participant.gender === 'female' ? '👩' : '👨'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <style>{`
+                    <style>{`
                 [data-username].speaking {
                     background: #e8f5e9 !important;
                     border: 2px solid #4caf50;
@@ -772,8 +1134,18 @@ const VoiceConversation = () => {
                     0%, 100% { transform: scale(1); }
                     50% { transform: scale(1.02); }
                 }
+                    @keyframes scrollRightToLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
             `}</style>
-        </div>
+                </div>
+            )}
+        </>
     );
 };
 

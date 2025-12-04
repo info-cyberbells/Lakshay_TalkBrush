@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Mic, Link2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { createRoomThunk } from "../../features/roomSlice";
+import img1 from "/img1.png";
+import img2 from "/img2.jpg";
+import img4 from "/img4.jpg";
+import img5 from "/img5.jpg";
 
 const ConvoSpace = () => {
   const navigate = useNavigate();
@@ -10,30 +14,32 @@ const ConvoSpace = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
-  // Backend URLs
-  const BACKEND_URL = "https://talkbrush.com/accent";
-  const NODE_API_URL = "http://localhost:5000/api/accent";
-
   // Add your image URLs here
   const slides = [
     {
-      image: "https://images.pexels.com/photos/3182827/pexels-photo-3182827.jpeg",
+      image: img1,
       title: "Start a Conversation Instantly",
       description:
         "Create a private room and practice English accents with friends, colleagues, or anyone you invite.",
     },
     {
-      image: "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg",
+      image: img2,
       title: "Share Your Room Link",
       description:
         "Generate a unique join link and share it with others to start speaking together effortlessly.",
     },
     {
-      image: "https://images.pexels.com/photos/6457561/pexels-photo-6457561.jpeg",
-      title: "Experience Real-Time Accent Conversion",
+      image: img4,
+      title: "Practice Anytime, Anywhere",
       description:
-        "TalkBrush transforms voices in real time, helping you speak, learn, and enjoy different English accents naturally.",
+        "Join or create rooms on the go and improve your English speaking skills with flexible, on-demand conversations.",
     },
+    {
+      image: img5,
+      title: "Speak with Confidence",
+      description:
+        "Enhance your pronunciation and fluency through natural real-time voice interactions tailored to your accent goals.",
+    }
   ];
 
   // Auto-slide every 6 seconds
@@ -66,7 +72,10 @@ const ConvoSpace = () => {
       const shareLink = `${window.location.origin}/accent/room/${roomCode}`;
       console.log('📋 Share this link:', shareLink);
 
-      navigate(`/accent/room/${roomCode}`, { replace: true });
+      navigate(`/accent/room/${roomCode}`, {
+        replace: true,
+        state: { fromCreateRoom: true }
+      });
     } else {
       alert("Failed to create room. Please try again.");
     }
@@ -122,7 +131,7 @@ const ConvoSpace = () => {
         {/* Right Section */}
         <div className="relative mx-auto lg:ml-0 lg:pl-12 w-full max-w-md lg:max-w-none">
           {/* Image Slider Container */}
-          <div className="relative bg-gradient-to-br from-blue-100 to-blue-200 rounded-full overflow-hidden aspect-square shadow-lg w-full max-w-[280px] sm:max-w-sm mx-auto">
+          <div className="relative bg-gradient-to-br from-blue-100 to-blue-200 rounded-full overflow-hidden aspect-square  w-full max-w-[280px] sm:max-w-sm mx-auto">
             {/* Images */}
             {slides.map((slide, index) => (
               <div

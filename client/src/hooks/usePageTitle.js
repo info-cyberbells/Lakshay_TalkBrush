@@ -40,6 +40,10 @@ const routeConfig = {
     '/convo-space': {
         title: 'Convo Space',
     },
+    '/how-talkbrush-works': {
+        title: 'How TalkBrush Works',
+    },
+    
 };
 
 export const usePageTitle = () => {

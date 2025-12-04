@@ -27,6 +27,8 @@ export const USER_ENDPOINTS = {
   CREATE_ROOM: `${API_BASE_URL}/accent/create-room`,
   JOIN_ROOM: `${API_BASE_URL}/accent/add-member`,
   GET_ROOM_DETAILS: `${API_BASE_URL}/accent/room`,
+  LEAVE_ROOM: `${API_BASE_URL}/accent/leave-room`,
+
 
 
   GET_ALL_ACTIVITIES: `${API_BASE_URL}/activities/getAllActivities`,

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { createRoomService, joinRoomService, getRoomDetailsService } from "../auth/authServices";
+import { createRoomService, joinRoomService, getRoomDetailsService, leaveRoomService } from "../auth/authServices";
 
 
 export const createRoomThunk = createAsyncThunk(
@@ -38,6 +38,20 @@ export const getRoomDetailsThunk = createAsyncThunk(
         }
     }
 );
+
+
+export const leaveRoomThunk = createAsyncThunk(
+    "room/leaveRoom",
+    async (roomCode, { rejectWithValue }) => {
+        try {
+            const result = await leaveRoomService(roomCode);
+            return result;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
 
 
 const roomSlice = createSlice({
@@ -96,6 +110,23 @@ const roomSlice = createSlice({
             })
 
             .addCase(getRoomDetailsThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            //leave room
+            .addCase(leaveRoomThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+
+            .addCase(leaveRoomThunk.fulfilled, (state) => {
+                state.loading = false;
+                state.room_code = null;
+                state.roomDetails = null;
+            })
+
+            .addCase(leaveRoomThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

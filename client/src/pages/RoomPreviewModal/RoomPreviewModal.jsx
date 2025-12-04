@@ -1,11 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Users, Shield, ArrowRight, X } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { joinRoomThunk } from '../../features/roomSlice';
 
 const RoomPreviewModal = ({ roomCode, roomDetails, onClose, onContinue }) => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-
-    if (!roomDetails) return null;
 
     if (!roomDetails) {
         return (
@@ -16,6 +18,30 @@ const RoomPreviewModal = ({ roomCode, roomDetails, onClose, onContinue }) => {
             </div>
         );
     }
+
+    const userRole = localStorage.getItem('role');
+    const isLoggedIn = !!userRole;
+
+    const handleButtonClick = async () => {
+        if (isLoggedIn) {
+            try {
+                await dispatch(joinRoomThunk(roomCode));
+                console.log('✅ Joined room via API:', roomCode);
+                sessionStorage.setItem(`joined_${roomCode}`, 'true');
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                onContinue();
+            } catch (error) {
+                console.error('❌ Failed to join room:', error);
+                alert('Failed to join room. Please try again.');
+            }
+        } else {
+            localStorage.setItem('returnToRoom', roomCode);
+            navigate('/', { replace: true });
+        }
+    };
+
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
@@ -84,18 +110,20 @@ const RoomPreviewModal = ({ roomCode, roomDetails, onClose, onContinue }) => {
                     </div>
                 </div>
 
-                {/* Login Notice */}
-                <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-5">
-                    <ArrowRight size={15} className="text-yellow-800" />
-                    <p className="text-sm text-yellow-800">Login or create an account to continue</p>
-                </div>
+                {/* Login Notice - Show only if NOT logged in */}
+                {!isLoggedIn && (
+                    <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-5">
+                        <ArrowRight size={15} className="text-yellow-800" />
+                        <p className="text-sm text-yellow-800">Please login first to join this room</p>
+                    </div>
+                )}
 
                 {/* Continue Button */}
                 <button
-                    onClick={onContinue}
+                    onClick={handleButtonClick}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold cursor-pointer text-base hover:opacity-90 transition shadow-md"
                 >
-                    Continue to Login
+                    {isLoggedIn ? 'Join This Room' : 'Go to Login Page'}
                 </button>
 
             </div>

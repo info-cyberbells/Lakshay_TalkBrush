@@ -11,7 +11,7 @@ const conversationSchema = new mongoose.Schema({
     default: 0,
   },
   duration: {
-    type: Number, // in seconds
+    type: Number, 
     default: 0,
   },
   createdAt: {

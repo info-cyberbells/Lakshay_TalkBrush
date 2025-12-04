@@ -10,7 +10,7 @@ export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const roomCode = searchParams.get("room");
+  const roomCode = searchParams.get("room") || localStorage.getItem('returnToRoom');
   const { isLoading } = useSelector((state) => state.auth);
   const [isLogin, setIsLogin] = useState(true);
   const [fullName, setFullName] = useState("");
@@ -77,6 +77,7 @@ export default function Login() {
 
         setTimeout(() => {
           if (roomCode) {
+            localStorage.removeItem('returnToRoom');
             navigate(`/accent/room/${roomCode}`, { replace: true });
           } else {
             if (userRole === "1") {
@@ -251,6 +252,22 @@ export default function Login() {
           </div>
           <div className="right-panel">
             <div className="form-container">
+              {/* Room Indicator Banner */}
+              {roomCode && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                  color: 'white',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1rem',
+                  textAlign: 'center',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}>
+                  🎯 You'll join room: <strong>{roomCode}</strong> after login or signup
+                </div>
+              )}
               <div className="form-toggle">
                 <h2
                   className={isLogin ? "" : "active"}

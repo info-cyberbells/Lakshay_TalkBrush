@@ -240,3 +240,15 @@ export const getRoomDetailsService = async (roomCode) => {
 
   return response.data;
 };
+
+
+// leave room
+export const leaveRoomService = async (roomCode) => {
+  const response = await axios.post(
+    USER_ENDPOINTS.LEAVE_ROOM,
+    { room_code: roomCode },
+    { withCredentials: true }
+  );
+
+  return response.data;
+};

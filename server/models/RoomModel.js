@@ -7,31 +7,27 @@ const roomSchema = new mongoose.Schema({
         unique: true
     },
 
-    initiator_id: {
-        type: String,
-        default: "guest"
-    },
+    initiator_id: { type: String, default: "guest" },
+    initiator_name: { type: String, required: true },
 
-    initiator_name: {
-        type: String,
-        required: true
-    },
+    created_at: { type: Date, default: Date.now },
 
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
-
-    members_joined: {
-        type: Number,
-        default: 1
-    },
+    members_joined: { type: Number, default: 1 },
 
     members: [
         {
-            user_id: { type: String, default: "guest" },
+            user_id: String,
             username: String,
             joined_at: { type: Date, default: Date.now }
+        }
+    ],
+
+    activity_log: [
+        {
+            user_id: String,
+            username: String,
+            joined_at: Date,
+            left_at: Date
         }
     ]
 });
