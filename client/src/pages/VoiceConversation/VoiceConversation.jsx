@@ -324,6 +324,16 @@ const VoiceConversation = () => {
 
         return () => {
             if (socketRef.current) {
+                socketRef.current.off('connect');
+                socketRef.current.off('disconnect');
+                socketRef.current.off('user_joined');
+                socketRef.current.off('user_left');
+                socketRef.current.off('mute_status_changed');
+                socketRef.current.off('hand_status_changed');
+                socketRef.current.off('receive_audio');
+                socketRef.current.off('streaming_started');
+                socketRef.current.off('streaming_stopped');
+
                 socketRef.current.emit('leave_room', { room_code: roomCode });
                 socketRef.current.disconnect();
             }
@@ -332,7 +342,7 @@ const VoiceConversation = () => {
                 mediaRecorderRef.current.stop();
             }
         };
-    }, [roomCode, username, navigate]);
+    }, [roomCode, navigate, dispatch]);
 
     // Request Microphone Access
     const requestMicrophoneAccess = async () => {
@@ -451,27 +461,36 @@ const VoiceConversation = () => {
                     }
                 }
 
-                // Stop streaming session
+
                 if (streamingSessionStarted) {
                     socketRef.current.emit('stop_streaming');
                     streamingSessionStarted = false;
                     console.log('⏹️ [STREAMING] Session stopped');
                 }
 
-                isRestarting = false; // ✅ Reset flag when muted
+                isRestarting = false;
             }
-        }, 50); // Check every 50ms for responsive audio
+        }, 50);
 
         console.log('✅ [READY] Azure streaming recorder initialized');
 
-        // Return cleanup function
         return () => {
             clearInterval(streamingInterval);
-            isRestarting = false; // ✅ Clean up flag
+            isRestarting = false;
         };
     };
 
     const queueAudio = (audioData) => {
+        const isDuplicate = audioQueueRef.current.some(
+            item => item.timestamp === audioData.timestamp &&
+                item.username === audioData.username
+        );
+
+        if (isDuplicate) {
+            console.log('⚠️ [DUPLICATE BLOCKED] Audio already in queue');
+            return;
+        }
+
         const queueTime = Date.now();
         audioQueueRef.current.push({ ...audioData, queueTime });
         console.log(` [QUEUED] Position ${audioQueueRef.current.length} in queue`);
@@ -674,31 +693,17 @@ const VoiceConversation = () => {
         setShowPreviewModal(false);
     };
 
-    const handleEndCall = async () => {
+    const handleEndCall = () => {
         console.log(' [ENDING CALL]...');
-
-        //   LOG FINAL STATISTICS
-        if (processingTimesRef.current.length > 0) {
-            console.log(' [FINAL STATS]');
-            console.log(`   • Total chunks sent: ${stats.sent}`);
-            console.log(`   • Total chunks received: ${stats.received}`);
-            console.log(`   • Average processing time: ${Math.round(
-                processingTimesRef.current.reduce((a, b) => a + b, 0) / processingTimesRef.current.length
-            )}ms`);
-            console.log(`   • Average latency: ${stats.latency}ms`);
-        }
-
-        try {
-            await dispatch(leaveRoomThunk(roomCode));
-            console.log('✅ Left room via API');
-        } catch (error) {
-            console.error('❌ Leave room API error:', error);
-        }
 
         if (socketRef.current && socketRef.current.connected) {
             socketRef.current.emit('leave_room', { room_code: roomCode });
             socketRef.current.disconnect();
         }
+
+        dispatch(leaveRoomThunk(roomCode))
+            .then(() => console.log('✅ Left room via API'))
+            .catch(err => console.error('❌ Leave room API error:', err));
 
         navigate(-1);
     };
@@ -793,30 +798,32 @@ const VoiceConversation = () => {
                     <div className="flex-1 flex flex-col">
                         <div className="border-gray-200 px-4 lg:px-8 py-4 lg:py-6 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 pt-16 lg:pt-4">
                             <div className="flex items-center gap-4 w-full lg:w-auto justify-center lg:justify-start order-2 lg:order-1">
-                                <div className="relative inline-block">
+                                <div className="inline-block">
                                     <p className="text-xs text-center w-full text-gray-500 mb-1 ml-1">
                                         Change your accent
                                     </p>
-                                    <select
-                                        value={currentAccent}
-                                        onChange={handleAccentChange}
-                                        className="appearance-none px-3 lg:px-4 py-2 pr-10 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm lg:text-base cursor-pointer bg-white"
-                                        style={{
-                                            fontFamily: "'Poppins', sans-serif",
-                                            color: "#333333",
-                                            minWidth: "180px"
-                                        }}
-                                    >
-                                        {ACCENT_OPTIONS.map(accent => (
-                                            <option key={accent.value} value={accent.value}>
-                                                {accent.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
+                                    <div className="relative inline-block">
+                                        <select
+                                            value={currentAccent}
+                                            onChange={handleAccentChange}
+                                            className="appearance-none px-3 lg:px-4 py-2 pr-10 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm lg:text-base cursor-pointer bg-white"
+                                            style={{
+                                                fontFamily: "'Poppins', sans-serif",
+                                                color: "#333333",
+                                                minWidth: "180px"
+                                            }}
+                                        >
+                                            {ACCENT_OPTIONS.map(accent => (
+                                                <option key={accent.value} value={accent.value}>
+                                                    {accent.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
