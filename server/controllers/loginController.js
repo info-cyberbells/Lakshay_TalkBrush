@@ -60,6 +60,7 @@ export const loginUser = async (req, res) => {
             .json({
                 token,
                 user: {
+                     id: user._id, 
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber,

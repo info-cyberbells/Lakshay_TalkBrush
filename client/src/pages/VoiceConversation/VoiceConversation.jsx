@@ -14,6 +14,9 @@ const VoiceConversation = () => {
     const location = useLocation();
     const params = useParams();
 
+    const currentUserId = localStorage.getItem('userId');
+
+
     // Backend URL - Updated for Azure STT integration
     const BACKEND_URL = "https://talkbrush.com/accent";
     // const BACKEND_URL = "http://127.0.0.1:4444/accent";
@@ -334,7 +337,11 @@ const VoiceConversation = () => {
                 socketRef.current.off('streaming_started');
                 socketRef.current.off('streaming_stopped');
 
-                socketRef.current.emit('leave_room', { room_code: roomCode });
+                socketRef.current.emit('leave_room', {
+                    room_code: roomCode,
+                    user_id: userData?.user_id,
+                    username: userData?.username
+                });
                 socketRef.current.disconnect();
             }
 
@@ -635,14 +642,12 @@ const VoiceConversation = () => {
 
         console.log(` [MIC TOGGLE] ${newMutedState ? 'MUTED' : 'UNMUTED'}`);
 
-        setParticipants(prev =>
-            prev.map(p =>
-                p.username === username ? { ...p, muted: newMutedState } : p
-            )
-        );
-
         if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('toggle_mute', { muted: newMutedState });
+            socketRef.current.emit('toggle_mute', {
+                muted: newMutedState,
+                user_id: userData?.user_id,
+                username: userData?.username
+            });
         }
     };
 
@@ -697,10 +702,13 @@ const VoiceConversation = () => {
         console.log(' [ENDING CALL]...');
 
         if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('leave_room', { room_code: roomCode });
+            socketRef.current.emit('leave_room', {
+                room_code: roomCode,
+                user_id: userData?.user_id,
+                username: userData?.username
+            }); az
             socketRef.current.disconnect();
         }
-
         dispatch(leaveRoomThunk(roomCode))
             .then(() => console.log('✅ Left room via API'))
             .catch(err => console.error('❌ Leave room API error:', err));
@@ -742,17 +750,15 @@ const VoiceConversation = () => {
 
         console.log(` [HAND ${newHandState ? 'RAISED' : 'LOWERED'}]`);
 
-        setParticipants(prev =>
-            prev.map(p =>
-                p.username === username ? { ...p, hand_raised: newHandState } : p
-            )
-        );
 
         if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('raise_hand', { raised: newHandState });
+            socketRef.current.emit('raise_hand', {
+                raised: newHandState,
+                user_id: userData?.user_id,
+                username: userData?.username
+            });
         }
     };
-
     const handleAccentChange = (e) => {
         const newAccent = e.target.value;
         setCurrentAccent(newAccent);
@@ -760,24 +766,15 @@ const VoiceConversation = () => {
         console.log(` [ACCENT CHANGED] ${newAccent}`);
 
         if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('change_accent', { accent: newAccent });
+            socketRef.current.emit('change_accent', {
+                accent: newAccent,
+                user_id: userData?.user_id,
+                username: userData?.username
+            });
         }
-        setParticipants(prev =>
-            prev.map(p =>
-                p.username === username ? { ...p, accent: newAccent } : p
-            )
-        );
+
     };
 
-    const handleGenderChange = (gender) => {
-        setCurrentGender(gender);
-
-        console.log(` [GENDER CHANGED] ${gender}`);
-
-        if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('change_gender', { gender: gender });
-        }
-    };
 
     return (
 
