@@ -288,27 +288,7 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {/* Impressions */}
-                        <div className="lg:pl-8">
-                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                                <h3 className="text-sm font-medium text-gray-600 mb-2">Total Impressions</h3>
-                                <div className="text-4xl font-bold text-[#2D4CCA] mb-2">
-                                    {data.impression?.count.toLocaleString() || 0}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span
-                                        className={`text-lg font-bold ${(data.impression?.change || 0) >= 0
-                                            ? "text-green-600"
-                                            : "text-red-600"
-                                            }`}
-                                    >
-                                        {(data.impression?.change || 0) >= 0 ? "↑" : "↓"}
-                                        {Math.abs(data.impression?.change || 0)}%
-                                    </span>
-                                    <span className="text-sm text-gray-500">vs last period</span>
-                                </div>
-                            </div>
-                        </div>
+    
                     </section>
                 </div>
             </main>

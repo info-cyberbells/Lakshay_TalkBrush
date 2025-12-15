@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { Mic, Share2, Hand, Phone, MicOff, Crown, User } from "lucide-react";
+import { Mic, Share2, Hand, Phone, MicOff, Crown, User, Video, VideoOff } from "lucide-react";
 import io from "socket.io-client";
 import { getRoomDetailsThunk, leaveRoomThunk } from "../../features/roomSlice";
 import { useDispatch } from "react-redux";
@@ -14,12 +14,13 @@ const VoiceConversation = () => {
     const location = useLocation();
     const params = useParams();
 
-    const currentUserId = localStorage.getItem('userId');
-
-
     // Backend URL - Updated for Azure STT integration
     const BACKEND_URL = "https://talkbrush.com/accent";
-    // const BACKEND_URL = "http://127.0.0.1:4444/accent";
+
+    // Debug: Log environment variables
+    console.log('🔧 Environment Check:');
+    console.log('  VITE_Python_API_BASE_URL:', import.meta.env.VITE_Python_API_BASE_URL);
+    console.log('  Final BACKEND_URL:', BACKEND_URL);
 
     const roomCode = params.roomCode || location.state?.roomCode || null;
 
@@ -34,6 +35,13 @@ const VoiceConversation = () => {
     const voiceDetectionTimeRef = useRef(null);
     const processingTimesRef = useRef([]);
     const userProfilesRef = useRef({});
+    const hasJoinedRoomRef = useRef(false); // Track if already joined to prevent duplicates
+
+    // Video Refs
+    const localVideoRef = useRef(null);
+    const localStreamRef = useRef(null);
+    const peerConnectionsRef = useRef({});
+    const remoteVideosRef = useRef({});
 
     // State Management
     const [isListening, setIsListening] = useState(true);
@@ -49,11 +57,15 @@ const VoiceConversation = () => {
     const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [userData, setUserData] = useState(null);
+    const [videoEnabled, setVideoEnabled] = useState(false);
+    const [remoteStreams, setRemoteStreams] = useState({});
 
     //  Audio Queue System - matches backend processing
     const audioQueueRef = useRef([]);
     const isPlayingAudioRef = useRef(false);
+    const recentlyPlayedRef = useRef([]); // Track recently played to prevent duplicates
     const NATURAL_PAUSE_MS = 450; // Matches room.js for consistent playback
+    const DUPLICATE_WINDOW_MS = 10000; // 10 second window for duplicate detection
 
     const ACCENT_OPTIONS = [
         { value: 'american', label: 'American' },
@@ -88,12 +100,60 @@ const VoiceConversation = () => {
             dispatch(getRoomDetailsThunk(roomCode)).then((response) => {
                 if (response.payload) {
                     setRoomDetails(response.payload);
-                    setUsername(response.payload.initiator_name);
 
-                    setUserData({
-                        username: response.payload.initiator_name,
-                        user_id: response.payload.initiator_id
-                    });
+                    // ✅ FIXED: Get current user's ID from localStorage
+                    const currentUserId = localStorage.getItem('userId');
+
+                    console.log('🔍 DEBUG: Looking for current user...');
+                    console.log('🔍 localStorage userId:', currentUserId);
+                    console.log('🔍 Members from API:', response.payload.members.map(m => ({
+                        user_id: m.user_id,
+                        username: m.username
+                    })));
+
+                    // Find the current logged-in user in the members list
+                    const currentUser = response.payload.members.find(
+                        member => String(member.user_id) === String(currentUserId)
+                    );
+
+                    let newUserData;
+                    if (currentUser) {
+                        // User is a member of this room
+                        newUserData = {
+                            username: currentUser.username,
+                            user_id: currentUser.user_id
+                        };
+                        setUsername(currentUser.username);
+                        console.log('✅ Current user found:', currentUser.username, currentUser.user_id);
+                    } else {
+                        // Fallback: user might be the initiator or not in members yet
+                        newUserData = {
+                            username: response.payload.initiator_name,
+                            user_id: response.payload.initiator_id
+                        };
+                        setUsername(response.payload.initiator_name);
+                        console.log('⚠️ Using initiator as fallback:', response.payload.initiator_name);
+                        console.log('⚠️ No match found for userId:', currentUserId);
+                    }
+
+                    setUserData(newUserData);
+
+                    console.log('✅ ===== USER DATA LOADED =====');
+                    console.log('  username:', newUserData.username);
+                    console.log('  user_id:', newUserData.user_id);
+                    console.log('  Socket connected:', !!socketRef.current?.connected);
+                    console.log('==============================');
+
+                    // ✅ If socket is already connected, emit join_room immediately
+                    if (socketRef.current && socketRef.current.connected && !hasJoinedRoomRef.current) {
+                        console.log('✅ Socket already connected, emitting join_room now');
+                        socketRef.current.emit('join_room', {
+                            room_code: roomCode,
+                            username: newUserData.username,
+                            user_id: newUserData.user_id
+                        });
+                        hasJoinedRoomRef.current = true;
+                    }
 
                     const profilesMap = {};
                     response.payload.members.forEach(member => {
@@ -118,16 +178,36 @@ const VoiceConversation = () => {
 
 
     useEffect(() => {
-        console.log('🔍 Join check:', { isConnected, userData, roomCode }); // ✅ ADD THIS
+        console.log('🔍 ===== JOIN CHECK =====');
+        console.log('  isConnected:', isConnected);
+        console.log('  userData:', userData);
+        console.log('  roomCode:', roomCode);
+        console.log('  socketRef.current:', !!socketRef.current);
 
-        if (isConnected && userData && roomCode && socketRef.current) {
-            console.log('✅ Joining room with user:', userData.username, 'ID:', userData.user_id); // ✅ IMPROVED
+        if (isConnected && userData && roomCode && socketRef.current && !hasJoinedRoomRef.current) {
+            console.log('✅ ===== EMITTING JOIN_ROOM =====');
+            console.log('  username:', userData.username);
+            console.log('  user_id:', userData.user_id);
+            console.log('  room_code:', roomCode);
+
             socketRef.current.emit('join_room', {
                 room_code: roomCode,
                 username: userData.username,
                 user_id: userData.user_id
             });
+
+            hasJoinedRoomRef.current = true;
+
+            console.log('✅ join_room event emitted');
+            console.log('======================');
+        } else {
+            console.log('⚠️  Cannot join room yet - missing:');
+            if (!isConnected) console.log('   ❌ Socket not connected');
+            if (!userData) console.log('   ❌ User data not available');
+            if (!roomCode) console.log('   ❌ Room code not available');
+            if (!socketRef.current) console.log('   ❌ Socket ref not initialized');
         }
+        console.log('======================');
     }, [isConnected, userData, roomCode]);
 
     useEffect(() => {
@@ -163,55 +243,156 @@ const VoiceConversation = () => {
         }
 
         console.log('✅ Authenticated, joining room:', roomCode);
-        console.log(' Connecting to:', BACKEND_URL);
-        console.log(' Connecting to:', BACKEND_URL);
+        console.log('🔌 Connecting to:', BACKEND_URL);
+        console.log('🔌 Socket path: /accent/socket.io/');
+        console.log('🔌 Full URL will be:', `${BACKEND_URL}/socket.io/`);
 
         socketRef.current = io("https://talkbrush.com", {
             path: "/accent/socket.io/",
             transports: ["websocket", "polling"],
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 5,
-            timeout: 20000,
-            forceNew: true
+            withCredentials: true,
         });
+
+
+        console.log('🔌 Socket instance created, auto-connecting...');
+        console.log('🔌 Socket object:', socketRef.current);
+        console.log('🔌 Socket ID (before connect):', socketRef.current.id);
+        console.log('🔌 Socket connected (before connect):', socketRef.current.connected);
+
+        // ✅ Add timeout to detect connection failures
+        const connectionTimeout = setTimeout(() => {
+            if (!socketRef.current?.connected) {
+                console.error('⏰ ===== CONNECTION TIMEOUT =====');
+                console.error('⏰ Socket failed to connect within 5 seconds');
+                console.error('⏰ Socket state:', {
+                    connected: socketRef.current?.connected,
+                    disconnected: socketRef.current?.disconnected,
+                    id: socketRef.current?.id,
+                    transport: socketRef.current?.io?.engine?.transport?.name
+                });
+                console.error('================================');
+            }
+        }, 5000);
 
 
 
 
         socketRef.current.on('connect', () => {
+            console.log('✅ ===== SOCKET CONNECTED =====');
             console.log('✅ Connected to server - SID:', socketRef.current.id);
-            console.log('🔍 Current userData:', userData); // ✅ ADD THIS
+            console.log('🔍 Current userData:', userData);
+            console.log('🔍 Socket URL:', socketRef.current.io.uri);
+            console.log('✅ ===========================');
+
+            // Clear connection timeout
+            clearTimeout(connectionTimeout);
+
+            // Force set connected state
             setIsConnected(true);
+
+            // ✅ IMMEDIATELY emit join_room after connection
+            if (userData && roomCode && !hasJoinedRoomRef.current) {
+                console.log('✅ ===== IMMEDIATELY EMITTING JOIN_ROOM =====');
+                console.log('  username:', userData.username);
+                console.log('  user_id:', userData.user_id);
+                console.log('  room_code:', roomCode);
+
+                socketRef.current.emit('join_room', {
+                    room_code: roomCode,
+                    username: userData.username,
+                    user_id: userData.user_id
+                });
+
+                hasJoinedRoomRef.current = true;
+
+                console.log('✅ join_room event emitted immediately after connect');
+                console.log('======================');
+            }
+        });
+
+        socketRef.current.on('connect_error', (error) => {
+            console.error('❌ ===== CONNECTION ERROR =====');
+            console.error('❌ Full error object:', error);
+            console.error('❌ Error stringified:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            console.error('❌ Error message:', error?.message);
+            console.error('❌ Error type:', error?.type);
+            console.error('❌ Error description:', error?.description);
+            console.error('❌ Error data:', error?.data);
+            console.error('❌ Error context:', error?.context);
+            console.error('❌ Trying to connect to:', BACKEND_URL);
+            console.error('❌ Socket path:', '/accent/socket.io/');
+            console.error('❌ Socket transport:', socketRef.current?.io?.opts?.transports);
+            console.error('❌ Current transport:', socketRef.current?.io?.engine?.transport?.name);
+            console.error('❌ Error stack:', error?.stack);
+            console.error('==============================');
+            setIsConnected(false);
+
+            // Try to show user-friendly error
+            if (error?.message) {
+                console.error(`💡 Suggestion: ${getErrorSuggestion(error.message)}`);
+            }
+        });
+
+        // Helper function to provide error suggestions
+        function getErrorSuggestion(errorMessage) {
+            if (errorMessage.includes('timeout')) {
+                return 'The server is not responding. Please check if the backend server is running on port 4444.';
+            } else if (errorMessage.includes('CORS')) {
+                return 'CORS error detected. The backend server may not be configured to accept requests from this origin.';
+            } else if (errorMessage.includes('Network')) {
+                return 'Network error. Please check your internet connection or if the backend server is accessible.';
+            }
+            return 'Unknown error. Please check the console logs for more details.';
+        }
+
+        // Add listener for ANY error event
+        socketRef.current.onAny((eventName, ...args) => {
+            console.log(`📨 [SOCKET EVENT] ${eventName}:`, args);
         });
 
         socketRef.current.on('disconnect', (reason) => {
-            console.log('   Disconnected:', reason);
+            console.log('🔌 Disconnected:', reason);
             setIsConnected(false);
+            hasJoinedRoomRef.current = false; // Reset flag on disconnect
         });
 
-        //   NEW - Handle reconnection
+        //   Handle reconnection
         socketRef.current.on('reconnect', (attemptNumber) => {
             console.log('🔄 Reconnected after', attemptNumber, 'attempts');
             setIsConnected(true);
+
+            // ✅ Re-join room after reconnection (reset flag for reconnection)
+            if (userData && roomCode) {
+                console.log('🔄 Re-joining room after reconnection...');
+                hasJoinedRoomRef.current = false; // Reset flag to allow re-join
+                socketRef.current.emit('join_room', {
+                    room_code: roomCode,
+                    username: userData.username,
+                    user_id: userData.user_id
+                });
+                hasJoinedRoomRef.current = true;
+            }
         });
 
         socketRef.current.on('reconnect_attempt', () => {
-            console.log('   Attempting to reconnect...');
+            console.log('🔄 Attempting to reconnect...');
         });
 
         socketRef.current.on('reconnect_error', (error) => {
-            console.error('   Reconnection error:', error);
+            console.error('❌ Reconnection error:', error);
         });
 
         socketRef.current.on('reconnect_failed', () => {
-            console.error('   Reconnection failed after all attempts');
+            console.error('❌ Reconnection failed after all attempts');
             alert('Connection lost. Please refresh the page.');
         });
 
+        // Handle custom 'error' event from backend (e.g., room not found)
         socketRef.current.on('error', (data) => {
-            console.error('Socket error:', data);
-            alert('Error: ' + data.message);
+            console.error('❌ Backend error event:', data);
+            if (data && data.message) {
+                alert('Error: ' + data.message);
+            }
         });
 
         socketRef.current.on('user_joined', (data) => {
@@ -278,7 +459,8 @@ const VoiceConversation = () => {
             console.log(' Mute status changed:', data);
             setParticipants(prevParticipants => {
                 return prevParticipants.map(participant => {
-                    const socketParticipant = data.participants.find(p => p.sid === participant.sid);
+                    // Match by user_id instead of sid (sid changes on reconnect, user_id is stable)
+                    const socketParticipant = data.participants.find(p => String(p.user_id) === String(participant.sid));
                     return socketParticipant ? {
                         ...participant,
                         muted: socketParticipant.muted
@@ -290,11 +472,53 @@ const VoiceConversation = () => {
         socketRef.current.on('hand_status_changed', (data) => {
             console.log(' Hand status changed:', data);
             setParticipants(prevParticipants => {
+                console.log('🔍 [DEBUG] Current participants:', prevParticipants);
+                console.log('🔍 [DEBUG] Socket participants:', data.participants);
+
+                const updated = prevParticipants.map(participant => {
+                    // Match by user_id instead of sid (sid changes on reconnect, user_id is stable)
+                    const socketParticipant = data.participants.find(p => String(p.user_id) === String(participant.sid));
+
+                    if (socketParticipant) {
+                        console.log(`✅ [MATCH] Found match for ${participant.username} - hand_raised: ${socketParticipant.hand_raised}`);
+                        return {
+                            ...participant,
+                            hand_raised: socketParticipant.hand_raised
+                        };
+                    } else {
+                        console.log(`❌ [NO MATCH] No match for ${participant.username} (sid: ${participant.sid})`);
+                        return participant;
+                    }
+                });
+
+                console.log('✅ [UPDATED] New participants state:', updated);
+                return updated;
+            });
+        });
+
+        socketRef.current.on('accent_status_changed', (data) => {
+            console.log('🗣 Accent status changed:', data);
+            setParticipants(prevParticipants => {
                 return prevParticipants.map(participant => {
-                    const socketParticipant = data.participants.find(p => p.sid === participant.sid);
+                    // Match by user_id instead of sid (sid changes on reconnect, user_id is stable)
+                    const socketParticipant = data.participants.find(p => String(p.user_id) === String(participant.sid));
                     return socketParticipant ? {
                         ...participant,
-                        hand_raised: socketParticipant.hand_raised
+                        accent: socketParticipant.accent
+                    } : participant;
+                });
+            });
+        });
+
+        socketRef.current.on('gender_status_changed', (data) => {
+            console.log('👤 Gender status changed:', data);
+            setParticipants(prevParticipants => {
+                return prevParticipants.map(participant => {
+                    // Match by user_id instead of sid (sid changes on reconnect, user_id is stable)
+                    const socketParticipant = data.participants.find(p => String(p.user_id) === String(participant.sid));
+                    return socketParticipant ? {
+                        ...participant,
+                        gender: socketParticipant.gender
                     } : participant;
                 });
             });
@@ -323,6 +547,48 @@ const VoiceConversation = () => {
             console.log('⏹️ [STREAMING] Azure STT session stopped');
         });
 
+        // Video event handlers
+        socketRef.current.on('video_status_changed', (data) => {
+            console.log('📹 Video status changed:', data);
+            setParticipants(prevParticipants => {
+                return prevParticipants.map(participant => {
+                    // Match by user_id instead of sid (sid changes on reconnect, user_id is stable)
+                    const socketParticipant = data.participants.find(p => String(p.user_id) === String(participant.sid));
+                    return socketParticipant ? {
+                        ...participant,
+                        video_enabled: socketParticipant.video_enabled
+                    } : participant;
+                });
+            });
+
+            // If another user enabled video, request their stream
+            if (data.video_enabled && data.user_sid !== socketRef.current.id) {
+                console.log('📹 Requesting video from:', data.username);
+            }
+        });
+
+        socketRef.current.on('video_request', async (data) => {
+            console.log('📹 Video request from:', data.from_username);
+            if (localStreamRef.current && videoEnabled) {
+                await createPeerConnection(data.from_sid, true);
+            }
+        });
+
+        socketRef.current.on('video_offer', async (data) => {
+            console.log('📹 Received video offer from:', data.from_username);
+            await handleVideoOffer(data);
+        });
+
+        socketRef.current.on('video_answer', async (data) => {
+            console.log('📹 Received video answer from:', data.from_username);
+            await handleVideoAnswer(data);
+        });
+
+        socketRef.current.on('ice_candidate', async (data) => {
+            console.log('📹 Received ICE candidate from:', data.from_sid);
+            await handleIceCandidate(data);
+        });
+
         requestMicrophoneAccess();
 
         return () => {
@@ -333,21 +599,32 @@ const VoiceConversation = () => {
                 socketRef.current.off('user_left');
                 socketRef.current.off('mute_status_changed');
                 socketRef.current.off('hand_status_changed');
+                socketRef.current.off('accent_status_changed');
+                socketRef.current.off('gender_status_changed');
                 socketRef.current.off('receive_audio');
                 socketRef.current.off('streaming_started');
                 socketRef.current.off('streaming_stopped');
+                socketRef.current.off('video_status_changed');
+                socketRef.current.off('video_request');
+                socketRef.current.off('video_offer');
+                socketRef.current.off('video_answer');
+                socketRef.current.off('ice_candidate');
 
-                socketRef.current.emit('leave_room', {
-                    room_code: roomCode,
-                    user_id: userData?.user_id,
-                    username: userData?.username
-                });
+                socketRef.current.emit('leave_room', { room_code: roomCode });
                 socketRef.current.disconnect();
             }
 
             if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
                 mediaRecorderRef.current.stop();
             }
+
+            // Cleanup video streams
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+            }
+
+            // Close all peer connections
+            Object.values(peerConnectionsRef.current).forEach(pc => pc.close());
         };
     }, [roomCode, navigate, dispatch]);
 
@@ -488,17 +765,38 @@ const VoiceConversation = () => {
     };
 
     const queueAudio = (audioData) => {
-        const isDuplicate = audioQueueRef.current.some(
+        const now = Date.now();
+
+        // Clean up old entries from recently played (older than DUPLICATE_WINDOW_MS)
+        recentlyPlayedRef.current = recentlyPlayedRef.current.filter(
+            item => (now - item.playedAt) < DUPLICATE_WINDOW_MS
+        );
+
+        // Check if already in queue
+        const inQueue = audioQueueRef.current.some(
             item => item.timestamp === audioData.timestamp &&
                 item.username === audioData.username
         );
 
-        if (isDuplicate) {
+        if (inQueue) {
             console.log('⚠️ [DUPLICATE BLOCKED] Audio already in queue');
             return;
         }
 
-        const queueTime = Date.now();
+        // Check if recently played (by timestamp OR by text content within time window)
+        const recentlyPlayed = recentlyPlayedRef.current.some(
+            item => (
+                (item.timestamp === audioData.timestamp && item.username === audioData.username) ||
+                (item.text === audioData.text && item.username === audioData.username)
+            )
+        );
+
+        if (recentlyPlayed) {
+            console.log('⚠️ [DUPLICATE BLOCKED] Audio was recently played');
+            return;
+        }
+
+        const queueTime = now;
         audioQueueRef.current.push({ ...audioData, queueTime });
         console.log(` [QUEUED] Position ${audioQueueRef.current.length} in queue`);
 
@@ -530,6 +828,14 @@ const VoiceConversation = () => {
             const playStartTime = Date.now();
             await playAudioChunk(audioData);
             const playDuration = Date.now() - playStartTime;
+
+            // Track this audio as recently played to prevent duplicates
+            recentlyPlayedRef.current.push({
+                timestamp: audioData.timestamp,
+                username: audioData.username,
+                text: audioData.text,
+                playedAt: Date.now()
+            });
 
             //   LOG PLAYBACK DURATION
             console.log(` [PLAYBACK COMPLETE] Duration: ${playDuration}ms`);
@@ -642,11 +948,16 @@ const VoiceConversation = () => {
 
         console.log(` [MIC TOGGLE] ${newMutedState ? 'MUTED' : 'UNMUTED'}`);
 
-        if (socketRef.current && socketRef.current.connected) {
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, muted: newMutedState } : p
+            )
+        );
+
+        if (socketRef.current && socketRef.current.connected && userData) {
             socketRef.current.emit('toggle_mute', {
                 muted: newMutedState,
-                user_id: userData?.user_id,
-                username: userData?.username
+                user_id: userData.user_id
             });
         }
     };
@@ -667,13 +978,49 @@ const VoiceConversation = () => {
             // Update room details
             setRoomDetails(response.payload);
 
-            // Update username if it changed
-            setUsername(response.payload.initiator_name);
+            // ✅ FIXED: Get current user's ID from localStorage
+            const currentUserId = localStorage.getItem('userId');
 
-            setUserData({
-                username: response.payload.initiator_name,
-                user_id: response.payload.initiator_id
-            });
+            // Find the current logged-in user in the members list
+            const currentUser = response.payload.members.find(
+                member => String(member.user_id) === String(currentUserId)
+            );
+
+            let newUserData;
+            if (currentUser) {
+                // User is a member of this room
+                newUserData = {
+                    username: currentUser.username,
+                    user_id: currentUser.user_id
+                };
+                setUsername(currentUser.username);
+                console.log('✅ Current user found after join:', currentUser.username, currentUser.user_id);
+            } else {
+                // Fallback: user might be the initiator
+                newUserData = {
+                    username: response.payload.initiator_name,
+                    user_id: response.payload.initiator_id
+                };
+                setUsername(response.payload.initiator_name);
+                console.log('⚠️ Using initiator as fallback after join');
+            }
+
+            setUserData(newUserData);
+
+            // ✅ CRITICAL: Reset join flag and emit join_room with correct user data
+            if (socketRef.current && socketRef.current.connected) {
+                console.log('🔄 Resetting join flag and re-joining with correct user data...');
+                hasJoinedRoomRef.current = false;
+
+                socketRef.current.emit('join_room', {
+                    room_code: roomCode,
+                    username: newUserData.username,
+                    user_id: newUserData.user_id
+                });
+
+                hasJoinedRoomRef.current = true;
+                console.log('✅ Emitted join_room with correct user:', newUserData.username, newUserData.user_id);
+            }
 
             const profilesMap = {};
             response.payload.members.forEach(member => {
@@ -702,13 +1049,10 @@ const VoiceConversation = () => {
         console.log(' [ENDING CALL]...');
 
         if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('leave_room', {
-                room_code: roomCode,
-                user_id: userData?.user_id,
-                username: userData?.username
-            }); az
+            socketRef.current.emit('leave_room', { room_code: roomCode });
             socketRef.current.disconnect();
         }
+
         dispatch(leaveRoomThunk(roomCode))
             .then(() => console.log('✅ Left room via API'))
             .catch(err => console.error('❌ Leave room API error:', err));
@@ -750,31 +1094,260 @@ const VoiceConversation = () => {
 
         console.log(` [HAND ${newHandState ? 'RAISED' : 'LOWERED'}]`);
 
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, hand_raised: newHandState } : p
+            )
+        );
 
-        if (socketRef.current && socketRef.current.connected) {
+        if (socketRef.current && socketRef.current.connected && userData) {
             socketRef.current.emit('raise_hand', {
                 raised: newHandState,
-                user_id: userData?.user_id,
-                username: userData?.username
+                user_id: userData.user_id
             });
         }
     };
+
     const handleAccentChange = (e) => {
         const newAccent = e.target.value;
         setCurrentAccent(newAccent);
 
         console.log(` [ACCENT CHANGED] ${newAccent}`);
 
-        if (socketRef.current && socketRef.current.connected) {
+        if (socketRef.current && socketRef.current.connected && userData) {
             socketRef.current.emit('change_accent', {
                 accent: newAccent,
-                user_id: userData?.user_id,
-                username: userData?.username
+                user_id: userData.user_id
+            });
+        }
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, accent: newAccent } : p
+            )
+        );
+    };
+
+    const handleGenderChange = (gender) => {
+        setCurrentGender(gender);
+
+        console.log(` [GENDER CHANGED] ${gender}`);
+
+        if (socketRef.current && socketRef.current.connected && userData) {
+            socketRef.current.emit('change_gender', {
+                gender: gender,
+                user_id: userData.user_id
+            });
+        }
+    };
+
+    // Video Functions
+    const handleVideoToggle = async () => {
+        const newVideoState = !videoEnabled;
+        setVideoEnabled(newVideoState);
+
+        console.log(`📹 [VIDEO TOGGLE] ${newVideoState ? 'ENABLED' : 'DISABLED'}`);
+
+        if (newVideoState) {
+            // Enable video
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+
+                localStreamRef.current = stream;
+                if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = stream;
+                }
+
+                // Notify server
+                if (socketRef.current && socketRef.current.connected && userData) {
+                    socketRef.current.emit('toggle_video', {
+                        video_enabled: true,
+                        user_id: userData.user_id
+                    });
+                }
+
+                console.log('✅ Local video stream started');
+            } catch (error) {
+                console.error('❌ Error accessing camera:', error);
+                alert('Could not access camera. Please check permissions.');
+                setVideoEnabled(false);
+            }
+        } else {
+            // Disable video
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+                localStreamRef.current = null;
+            }
+
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = null;
+            }
+
+            // Close all peer connections
+            Object.values(peerConnectionsRef.current).forEach(pc => pc.close());
+            peerConnectionsRef.current = {};
+
+            // Clear remote streams
+            setRemoteStreams({});
+
+            // Notify server
+            if (socketRef.current && socketRef.current.connected && userData) {
+                socketRef.current.emit('toggle_video', {
+                    video_enabled: false,
+                    user_id: userData.user_id
+                });
+            }
+
+            console.log('⏹️ Local video stream stopped');
+        }
+
+        setParticipants(prev =>
+            prev.map(p =>
+                p.username === username ? { ...p, video_enabled: newVideoState } : p
+            )
+        );
+    };
+
+    const createPeerConnection = async (targetSid, isOfferer) => {
+        if (peerConnectionsRef.current[targetSid]) {
+            console.log('📹 Peer connection already exists for:', targetSid);
+            return peerConnectionsRef.current[targetSid];
+        }
+
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        const peerConnection = new RTCPeerConnection(configuration);
+        peerConnectionsRef.current[targetSid] = peerConnection;
+
+        // Add local stream tracks
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStreamRef.current);
             });
         }
 
+        // Handle ICE candidates
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate && socketRef.current) {
+                socketRef.current.emit('ice_candidate', {
+                    target_sid: targetSid,
+                    candidate: event.candidate.candidate,
+                    sdpMid: event.candidate.sdpMid,
+                    sdpMLineIndex: event.candidate.sdpMLineIndex
+                });
+            }
+        };
+
+        // Handle incoming remote stream
+        peerConnection.ontrack = (event) => {
+            console.log('📹 Received remote track from:', targetSid);
+            const [remoteStream] = event.streams;
+            setRemoteStreams(prev => ({
+                ...prev,
+                [targetSid]: remoteStream
+            }));
+        };
+
+        // Handle connection state changes
+        peerConnection.onconnectionstatechange = () => {
+            console.log(`📹 Connection state (${targetSid}):`, peerConnection.connectionState);
+            if (peerConnection.connectionState === 'disconnected' ||
+                peerConnection.connectionState === 'failed') {
+                delete peerConnectionsRef.current[targetSid];
+                setRemoteStreams(prev => {
+                    const newStreams = { ...prev };
+                    delete newStreams[targetSid];
+                    return newStreams;
+                });
+            }
+        };
+
+        // If we're the offerer, create and send offer
+        if (isOfferer) {
+            try {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                socketRef.current.emit('video_offer', {
+                    target_sid: targetSid,
+                    sdp: offer.sdp,
+                    type: offer.type
+                });
+
+                console.log('📹 Sent video offer to:', targetSid);
+            } catch (error) {
+                console.error('❌ Error creating offer:', error);
+            }
+        }
+
+        return peerConnection;
     };
 
+    const handleVideoOffer = async (data) => {
+        try {
+            const peerConnection = await createPeerConnection(data.from_sid, false);
+
+            await peerConnection.setRemoteDescription(
+                new RTCSessionDescription({ type: data.type, sdp: data.sdp })
+            );
+
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            socketRef.current.emit('video_answer', {
+                target_sid: data.from_sid,
+                sdp: answer.sdp,
+                type: answer.type
+            });
+
+            console.log('📹 Sent video answer to:', data.from_sid);
+        } catch (error) {
+            console.error('❌ Error handling video offer:', error);
+        }
+    };
+
+    const handleVideoAnswer = async (data) => {
+        try {
+            const peerConnection = peerConnectionsRef.current[data.from_sid];
+            if (peerConnection) {
+                await peerConnection.setRemoteDescription(
+                    new RTCSessionDescription({ type: data.type, sdp: data.sdp })
+                );
+                console.log('✅ Set remote description from answer');
+            }
+        } catch (error) {
+            console.error('❌ Error handling video answer:', error);
+        }
+    };
+
+    const handleIceCandidate = async (data) => {
+        try {
+            const peerConnection = peerConnectionsRef.current[data.from_sid];
+            if (peerConnection && data.candidate) {
+                await peerConnection.addIceCandidate(
+                    new RTCIceCandidate({
+                        candidate: data.candidate,
+                        sdpMid: data.sdpMid,
+                        sdpMLineIndex: data.sdpMLineIndex
+                    })
+                );
+                console.log('✅ Added ICE candidate');
+            }
+        } catch (error) {
+            console.error('❌ Error adding ICE candidate:', error);
+        }
+    };
 
     return (
 
@@ -851,7 +1424,17 @@ const VoiceConversation = () => {
                                         Room • {roomCode.match(/.{1,3}/g).join("-")}
                                     </span>
 
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
+                                    <span
+                                        className={`px-3 py-1 rounded-full font-medium cursor-pointer ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                                        onClick={() => {
+                                            console.log('🔍 Connection Status Debug:');
+                                            console.log('  isConnected:', isConnected);
+                                            console.log('  Socket exists:', !!socketRef.current);
+                                            console.log('  Socket connected:', socketRef.current?.connected);
+                                            console.log('  Socket ID:', socketRef.current?.id);
+                                        }}
+                                        title="Click to debug connection"
+                                    >
                                         {isConnected ? "🟢 Live" : "🔴 Offline"}
                                     </span>
 
@@ -869,6 +1452,57 @@ const VoiceConversation = () => {
                         </div>
 
                         <div className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-6 lg:py-0">
+                            {/* Video Grid Section */}
+                            {(videoEnabled || Object.keys(remoteStreams).length > 0) && (
+                                <div className="w-full max-w-4xl mb-6">
+                                    <div className={`grid gap-4 ${Object.keys(remoteStreams).length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                        {/* Local Video */}
+                                        {videoEnabled && (
+                                            <div className="relative bg-gray-900 rounded-xl overflow-hidden shadow-lg aspect-video">
+                                                <video
+                                                    ref={localVideoRef}
+                                                    autoPlay
+                                                    muted
+                                                    playsInline
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                                                    <p className="text-white text-sm font-medium flex items-center gap-2">
+                                                        <Video className="w-4 h-4" />
+                                                        {username} (You)
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Remote Videos */}
+                                        {Object.entries(remoteStreams).map(([sid, stream]) => {
+                                            const participant = participants.find(p => p.sid === sid);
+                                            return (
+                                                <div key={sid} className="relative bg-gray-900 rounded-xl overflow-hidden shadow-lg aspect-video">
+                                                    <video
+                                                        autoPlay
+                                                        playsInline
+                                                        className="w-full h-full object-cover"
+                                                        ref={(videoElement) => {
+                                                            if (videoElement && stream) {
+                                                                videoElement.srcObject = stream;
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                                                        <p className="text-white text-sm font-medium flex items-center gap-2">
+                                                            <Video className="w-4 h-4" />
+                                                            {participant?.username || 'Unknown'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="relative w-full max-w-xl h-40 lg:h-64 flex items-center justify-center mb-6 lg:mb-8 overflow-hidden">
                                 <div
                                     className="relative h-full flex"
@@ -930,6 +1564,23 @@ const VoiceConversation = () => {
                                     title={isListening ? "Unmute" : "Mute"}
                                 >
                                     <Mic className="w-5 h-5 lg:w-6 lg:h-6" />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        console.log('🎥 VIDEO BUTTON CLICKED!');
+                                        handleVideoToggle();
+                                    }}
+                                    className={`w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-lg ${videoEnabled ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-white text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                    title={videoEnabled ? "Turn Off Video" : "Turn On Video"}
+                                    style={{ border: '2px solid red', display: "none" }}
+                                >
+                                    {videoEnabled ? (
+                                        <Video className="w-5 h-5 lg:w-6 lg:h-6" />
+                                    ) : (
+                                        <VideoOff className="w-5 h-5 lg:w-6 lg:h-6" />
+                                    )}
                                 </button>
 
                                 <button onClick={handleShare} className="w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-lg" title="Share">
@@ -1034,6 +1685,14 @@ const VoiceConversation = () => {
                                                                         <div className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-blue-100 text-blue-700 capitalize whitespace-nowrap">
                                                                             {participant.accent.replace('_', ' ')}
                                                                         </div>
+
+                                                                        {/* Video Status */}
+                                                                        {participant.video_enabled && (
+                                                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-100 text-purple-700 whitespace-nowrap">
+                                                                                <Video className="w-2.5 h-2.5" />
+                                                                                <span>Video</span>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1114,6 +1773,14 @@ const VoiceConversation = () => {
                                                                             <div className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-100 text-purple-700 capitalize whitespace-nowrap">
                                                                                 {participant.accent.replace('_', ' ')}
                                                                             </div>
+
+                                                                            {/* Video Status */}
+                                                                            {participant.video_enabled && (
+                                                                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-green-100 text-green-700 whitespace-nowrap">
+                                                                                    <Video className="w-2.5 h-2.5" />
+                                                                                    <span>Video</span>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 </div>

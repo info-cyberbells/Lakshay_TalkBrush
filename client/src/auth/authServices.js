@@ -136,6 +136,17 @@ export const getDashboardService = async (type = "week") => {
 };
 
 
+//user dashbaord overview
+export const getUserDashboardService = async () => {
+  const response = await axios.get(
+    `${USER_ENDPOINTS.USER_DASHBOARD_OVERVIEW}`,
+    { withCredentials: true }
+  );
+  return response.data;
+};
+
+
+
 export const getActivitiesService = async () => {
   return axios.get(USER_ENDPOINTS.GET_ALL_ACTIVITIES, { withCredentials: true });
 };

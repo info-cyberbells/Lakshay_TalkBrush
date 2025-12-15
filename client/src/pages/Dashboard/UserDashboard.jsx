@@ -1,42 +1,35 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDashboardData } from "../../features/dashboardSlice";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { fetchUserDashboardData } from "../../features/dashboardSlice";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-
 
 const Dashboard = () => {
     const dispatch = useDispatch();
     const { data, loading } = useSelector((state) => state.dashboard);
     const navigate = useNavigate();
-    const [selectedType, setSelectedType] = React.useState("week");
+    const [selectedType, setSelectedType] = useState('week');
 
     useEffect(() => {
-        dispatch(fetchDashboardData(selectedType));
-    }, [dispatch, selectedType]);
+        dispatch(fetchUserDashboardData());
+    }, [dispatch]);
 
     const handleCardClick = (cardTitle) => {
-        if (cardTitle === "Total Admins") {
-            navigate('/manage-admins');
-        } else if (cardTitle === "Active Users") {
-            navigate('/manage-users');
+        if (cardTitle === "Total Rooms") {
+            navigate('/rooms');
+        } else if (cardTitle === "Rooms Today") {
+            navigate('/rooms');
+        } else if (cardTitle === "Last 7 Days") {
+            navigate('/analytics');
+        } else if (cardTitle === "Account Age") {
+            navigate('/profile');
         }
-        else if (cardTitle === "Conversations Today g") {
-            navigate('/analytics')
-        }
-        else if (cardTitle === "Avg Conversation Time g") {
-            navigate('/analytics')
-        }
-        // Add more conditions if needed for other cards
     };
-
 
     if (loading) {
         return (
             <div className="lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3 px-4 flex items-center justify-center h-screen">
-                {/* <div className="text-xl font-semibold">Loading...</div> */}
-                                             <div className="spinner"></div>
-
+                <div className="spinner"></div>
             </div>
         );
     }
@@ -51,32 +44,38 @@ const Dashboard = () => {
 
     const stats = [
         {
-            title: "Conversations Today",
-            value: data.conversationsToday || 0,
-            change: "+0%",
-            arrow: "↑"
+            title: "Total Rooms",
+            value: data.stats?.totalRooms || 0
         },
         {
-            title: "Avg Conversation Time",
-            value: `${data.avgConversationTime || 0} min`,
-            change: "+0%",
-            arrow: "↑"
+            title: "Rooms Today",
+            value: data.stats?.roomsToday || 0
+        },
+        {
+            title: "Last 7 Days",
+            value: data.stats?.roomsLast7Days || 0
+        },
+        {
+            title: "Account Age",
+            value: `${data.stats?.accountAgeDays || 0} days`
         }
     ];
 
-    // Transform data for Recharts
+    // Get chart labels based on screen size and selected type
     const getChartLabels = () => {
         const isSmallScreen = window.innerWidth < 600;
 
-        if (selectedType === 'week')
+        if (selectedType === 'week') {
             return isSmallScreen
                 ? ['M', 'T', 'W', 'T', 'F', 'S', 'S']
                 : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        }
 
-        if (selectedType === 'month')
+        if (selectedType === 'month') {
             return isSmallScreen
                 ? ['W1', 'W2', 'W3', 'W4']
                 : ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        }
 
         // YEARLY
         return isSmallScreen
@@ -84,34 +83,48 @@ const Dashboard = () => {
             : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     };
 
+    // Transform data for Recharts with proper labels
+    const chartLabels = getChartLabels();
 
-    const chartData = getChartLabels().map((label, index) => ({
-        name: label,
-        thisWeek: data.statistics?.thisWeekData[index] || 0,
-        lastWeek: data.statistics?.lastWeekData[index] || 0,
-    }));
+    // Get current day index (0 = Monday, 6 = Sunday)
+    const today = new Date();
+    const currentDayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1; // Convert Sunday from 0 to 6
 
-    const getPeriodLabel = (current = true) => {
-        if (selectedType === 'week') return current ? 'This Week' : 'Last Week';
-        if (selectedType === 'month') return current ? 'This Month' : 'Last Month';
-        return current ? 'This Year' : 'Last Year';
-    };
+    // Create chart data with zeros for all days and actual data for today
+    const chartData = chartLabels.map((label, index) => {
+        // If it's the current day and we have data, show it
+        const isToday = selectedType === 'week' && index === currentDayIndex;
+        const roomCount = isToday && data.chartData && data.chartData.length > 0 ? data.chartData[0] : 0;
+
+        return {
+            name: label,
+            rooms: roomCount,
+            lastWeek: 0 // API doesn't provide previous period data yet
+        };
+    });
 
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white border-2 border-gray-200 rounded-lg p-3 shadow-lg">
-                    <p className="text-sm font-semibold text-gray-800 mb-2">{payload[0].payload.name}</p>
-                    {payload.map((entry, index) => (
-                        <p key={index} className="text-sm" style={{ color: entry.color }}>
-                            {index === 0 ? getPeriodLabel(true) : getPeriodLabel(false)}: <span className="font-bold">{entry.value}</span>
-                        </p>
-                    ))}
+                <div className="bg-white border rounded p-2 shadow">
+                    <p className="font-semibold">{payload[0].payload.name}</p>
+                    <p className="text-blue-600">Rooms: {payload[0].value}</p>
                 </div>
             );
         }
         return null;
     };
+
+    // Calculate period stats
+    const calculatePeriodStats = () => {
+        const currentTotal = (data.chartData || []).reduce((sum, val) => sum + val, 0);
+        return {
+            current: currentTotal,
+            previous: 0 // API doesn't provide previous period data yet
+        };
+    };
+
+    const periodStats = calculatePeriodStats();
 
     return (
         <div className="lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3 px-4 lg:px-0 mt-4">
@@ -132,9 +145,6 @@ const Dashboard = () => {
                                 <h2 className="text-3xl font-bold text-gray-800">
                                     {stat.value}
                                 </h2>
-                                <p className="text-[12px] leading-[16px] font-semibold text-green-600">
-                                    {stat.change} {stat.arrow}
-                                </p>
                             </div>
                         </div>
                     ))}
@@ -143,46 +153,11 @@ const Dashboard = () => {
 
             {/* Main Chart Area */}
             <main className="mx-0 lg:mx-6 p-4 lg:p-6 border border-gray-200 rounded-2xl mt-5 bg-white shadow-sm">
-
                 <div className="mb-6">
-                    <div className="flex items-center bg-gray-100 rounded-xl p-1 w-fit">
-                        {["week", "month", "year"].map((type) => (
-                            <button
-                                key={type}
-                                onClick={() => setSelectedType(type)}
-                                className={`
-                flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all
-                ${selectedType === type
-                                        ? "bg-white shadow text-blue-600"
-                                        : "text-gray-600 hover:bg-white"}
-            `}
-                            >
-                                {/* Small SVG icon */}
-                                {type === "week" && (
-                                    <svg width="16" height="16" fill="currentColor" className="opacity-80 cursor-pointer">
-                                        <rect x="2" y="2" width="12" height="12" rx="3" />
-                                    </svg>
-                                )}
-                                {type === "month" && (
-                                    <svg width="16" height="16" fill="currentColor" className="opacity-80 cursor-pointer">
-                                        <path d="M2 4h12v2H2zM2 9h12v2H2zM2 14h12v2H2z" />
-                                    </svg>
-                                )}
-                                {type === "year" && (
-                                    <svg width="16" height="16" fill="currentColor" className="opacity-80 cursor-pointer">
-                                        <circle cx="8" cy="8" r="6" />
-                                    </svg>
-                                )}
-
-                                {type === "week" ? "Weekly" : type === "month" ? "Monthly" : "Yearly"}
-                            </button>
-                        ))}
-                    </div>
-
-                    <p className="text-sm text-gray-500">
-                        {selectedType === 'week' ? 'Weekly' : selectedType === 'month' ? 'Monthly' : 'Yearly'} comparison of user engagement
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">Room Activity</h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                        {selectedType === 'week' ? 'Weekly' : selectedType === 'month' ? 'Monthly' : 'Yearly'} comparison of room engagement
                     </p>
-
 
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4">
                         <div className="flex items-center gap-2">
@@ -199,8 +174,6 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </div>
-
-
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Chart */}
@@ -222,21 +195,29 @@ const Dashboard = () => {
                                         position: "insideBottom",
                                         offset: -25,
                                         style: { fontSize: "12px", fill: "#6B7280" }
-                                    }} />
+                                    }}
+                                />
                                 <YAxis
                                     stroke="#6B7280"
                                     style={{ fontSize: '14px' }}
-                                    label={{ value: 'Values', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fill: '#6B7280' } }} dx={-10}
+                                    label={{
+                                        value: 'Rooms Joined',
+                                        angle: -90,
+                                        position: 'insideLeft',
+                                        style: { fontSize: '12px', fill: '#6B7280' }
+                                    }}
+                                    dx={-10}
+                                    allowDecimals={false}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Line
                                     type="monotone"
-                                    dataKey="thisWeek"
+                                    dataKey="rooms"
                                     stroke="#2D4CCA"
                                     strokeWidth={3}
                                     dot={{ fill: '#2D4CCA', r: 5 }}
                                     activeDot={{ r: 7 }}
-                                    name="This Week"
+                                    name="This Period"
                                 />
                                 <Line
                                     type="monotone"
@@ -245,7 +226,7 @@ const Dashboard = () => {
                                     strokeWidth={3}
                                     dot={{ fill: '#F8C140', r: 5 }}
                                     activeDot={{ r: 7 }}
-                                    name="Last Week"
+                                    name="Last Period"
                                 />
                             </LineChart>
                         </ResponsiveContainer>
@@ -253,7 +234,7 @@ const Dashboard = () => {
 
                     {/* Side Stats */}
                     <section className="flex flex-col gap-8 w-full lg:w-auto">
-                        {/* Weekly Stats */}
+                        {/* Period Stats */}
                         <div className="lg:pl-8">
                             <h3 className="font-semibold text-lg mb-4 text-gray-800">
                                 {selectedType === 'week' ? 'Weekly' : selectedType === 'month' ? 'Monthly' : 'Yearly'} Summary
@@ -264,44 +245,82 @@ const Dashboard = () => {
                                         {selectedType === 'week' ? 'This Week' : selectedType === 'month' ? 'This Month' : 'This Year'}
                                     </p>
                                     <p className="font-bold text-3xl text-[#2D4CCA]">
-                                        +{data.stats?.thisPeriod || 0}%
+                                        {periodStats.current}
                                     </p>
+                                    <p className="text-xs text-gray-500 mt-1">Total Rooms</p>
                                 </div>
                                 <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
                                     <p className="text-sm text-gray-600 mb-1">
                                         {selectedType === 'week' ? 'Last Week' : selectedType === 'month' ? 'Last Month' : 'Last Year'}
                                     </p>
                                     <p className="font-bold text-3xl text-[#F8C140]">
-                                        +{data.stats?.lastPeriod || 0}%
+                                        {periodStats.previous}
                                     </p>
+                                    <p className="text-xs text-gray-500 mt-1">Total Rooms</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Impressions */}
-                        <div className="lg:pl-8">
-                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                                <h3 className="text-sm font-medium text-gray-600 mb-2">Total Impressions</h3>
-                                <div className="text-4xl font-bold text-[#2D4CCA] mb-2">
-                                    {data.impression?.count.toLocaleString() || 0}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span
-                                        className={`text-lg font-bold ${(data.impression?.change || 0) >= 0
-                                            ? "text-green-600"
-                                            : "text-red-600"
-                                            }`}
-                                    >
-                                        {(data.impression?.change || 0) >= 0 ? "↑" : "↓"}
-                                        {Math.abs(data.impression?.change || 0)}%
-                                    </span>
-                                    <span className="text-sm text-gray-500">vs last period</span>
-                                </div>
-                            </div>
-                        </div>
                     </section>
                 </div>
             </main>
+
+            {/* Upcoming Events Section */}
+            <section className="mx-0 lg:mx-6 p-4 lg:p-6 border border-gray-200 rounded-2xl mt-5 bg-white shadow-sm">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Upcoming Events</h2>
+
+                {data.events && data.events.totalUpcomingEvents > 0 ? (
+                    <div className="space-y-3">
+                        {data.events.upcomingEventsList.map((event) => {
+                            const eventDate = new Date(event.date);
+                            const formattedDate = eventDate.toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            });
+
+                            return (
+                                <div
+                                    key={event._id}
+                                    className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100 hover:shadow-md transition-shadow"
+                                >
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-lg text-gray-800">{event.fullName}</h3>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <span className="text-sm text-gray-600 flex items-center gap-1">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                {formattedDate}
+                                            </span>
+                                            <span className="text-sm text-gray-600 flex items-center gap-1">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {event.time}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="ml-4">
+                                        <span className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full">
+                                            Upcoming
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-1">No Events Found</h3>
+                        <p className="text-sm text-gray-500">You don't have any upcoming events scheduled</p>
+                    </div>
+                )}
+            </section>
         </div>
     );
 };

@@ -1,9 +1,45 @@
 
 import { User } from "../models/userModel.js";
+import { Room } from "../models/roomModel.js";
 
-const countInRange = () => {
-    return Math.floor(Math.random() * 10) + 1;
+const countInRange = async (start, end) => {
+    return await Room.countDocuments({
+        created_at: {
+            $gte: start,
+            $lte: end
+        }
+    });
 };
+
+const getUserStats = async (startDate, endDate) => {
+    const totalUsers = await User.countDocuments({ type: "3" });
+
+    const missingLoginUsers = await User.countDocuments({
+        type: "3",
+        $or: [
+            { lastLogin: { $exists: false } },
+            { lastLogin: null }
+        ]
+    });
+
+    const activeUsers = await User.countDocuments({
+        type: "3",
+        lastLogin: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    });
+
+    const inactiveUsers = totalUsers - activeUsers - missingLoginUsers;
+
+    return {
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        missingLoginUsers
+    };
+};
+
 
 
 export const getType3Analytics = async (req, res) => {
@@ -30,170 +66,114 @@ export const getType3Analytics = async (req, res) => {
                 windows.push({ start: new Date(currentStart), end, label });
 
                 currentStart = new Date(end);
-                currentStart.setMinutes(currentStart.getMinutes() + 1);
             }
 
             windows.reverse();
 
-            const results = windows.map((w) => ({
-                label: w.label,
-                count: countInRange(w.start, w.end),
-            }));
+            const results = await Promise.all(
+                windows.map(async (w) => ({
+                    label: w.label,
+                    count: await countInRange(w.start, w.end),
+                }))
+            );
 
-            const totalUsers = await User.countDocuments({ type: "3" });
-
-            const missingLoginUsers = await User.countDocuments({
-                type: "3",
-                $or: [
-                    { lastLogin: { $exists: false } },
-                    { lastLogin: null }
-                ]
-            });
-
-            const usersWithLogin = await User.countDocuments({
-                type: "3",
-                lastLogin: { $exists: true, $ne: null }
-            });
-
-            const activeUsers = await User.countDocuments({
-                type: "3",
-                lastLogin: { $gte: startDate },
-            });
-
-            const inactiveUsers = usersWithLogin - activeUsers;
-
+            const userStats = await getUserStats(startDate, now);
 
             return res.json({
                 status: true,
                 period,
-                totalUsers,
-                activeUsers,
-                inactiveUsers,
-                missingLoginUsers,
-                data: results,
+                ...userStats,
+                data: results
             });
+
         }
 
         // ----------------------------------------
         // 📌 2) WEEK (daily)
         // ----------------------------------------
         if (period === "week") {
-            const startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 6);
+            startDate.setHours(0, 0, 0, 0);
 
-            const results = [];
+            const windows = [];
 
             for (let i = 0; i < 7; i++) {
                 const dayStart = new Date(startDate);
                 dayStart.setDate(startDate.getDate() + i);
 
                 const dayEnd = new Date(dayStart);
-                dayEnd.setHours(23, 59, 59);
+                dayEnd.setHours(23, 59, 59, 999);
 
                 const label = `${dayStart.getDate()}/${dayStart.getMonth() + 1}`;
 
-                results.push({
-                    label,
-                    count: countInRange(dayStart, dayEnd),
-                });
+                windows.push({ start: dayStart, end: dayEnd, label });
             }
 
-            const totalUsers = await User.countDocuments({ type: "3" });
+            const results = await Promise.all(
+                windows.map(async (w) => ({
+                    label: w.label,
+                    count: await countInRange(w.start, w.end),
+                }))
+            );
 
-            const missingLoginUsers = await User.countDocuments({
-                type: "3",
-                $or: [
-                    { lastLogin: { $exists: false } },
-                    { lastLogin: null }
-                ]
-            });
+            results.reverse();
 
-            const usersWithLogin = await User.countDocuments({
-                type: "3",
-                lastLogin: { $exists: true, $ne: null }
-            });
-
-            const activeUsers = await User.countDocuments({
-                type: "3",
-                lastLogin: { $gte: startDate },
-            });
-
-            const inactiveUsers = usersWithLogin - activeUsers;
-
-
+            const userStats = await getUserStats(startDate, now);
 
             return res.json({
                 status: true,
                 period,
-                totalUsers,
-                activeUsers,
-                inactiveUsers,
-                missingLoginUsers,
-                data: results,
+                ...userStats,
+                data: results
             });
+
+
         }
+
 
         // ----------------------------------------
         // 📌 3) MONTH (6 windows × 5 days)
         // ----------------------------------------
         if (period === "month") {
-            const windows = [];
-            const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 29);
+            startDate.setHours(0, 0, 0, 0);
 
+            const windows = [];
             let currentStart = new Date(startDate);
 
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 6 && currentStart < now; i++) {
                 const end = new Date(currentStart);
-                end.setDate(end.getDate() + 5);
+                end.setDate(end.getDate() + 4);
+                end.setHours(23, 59, 59, 999);
 
                 const label = `${currentStart.getDate()}-${currentStart.getMonth() + 1} to ${end.getDate()}-${end.getMonth() + 1}`;
 
                 windows.push({ start: new Date(currentStart), end, label });
 
-                currentStart = new Date(end);
-                currentStart.setDate(currentStart.getDate() + 1);
+                currentStart.setDate(currentStart.getDate() + 5);
             }
 
             windows.reverse();
 
-            const results = windows.map((w) => ({
-                label: w.label,
-                count: countInRange(w.start, w.end),
-            }));
+            const results = await Promise.all(
+                windows.map(async (w) => ({
+                    label: w.label,
+                    count: await countInRange(w.start, w.end),
+                }))
+            );
 
-            const totalUsers = await User.countDocuments({ type: "3" });
-
-            const missingLoginUsers = await User.countDocuments({
-                type: "3",
-                $or: [
-                    { lastLogin: { $exists: false } },
-                    { lastLogin: null }
-                ]
-            });
-
-            const usersWithLogin = await User.countDocuments({
-                type: "3",
-                lastLogin: { $exists: true, $ne: null }
-            });
-
-            const activeUsers = await User.countDocuments({
-                type: "3",
-                lastLogin: { $gte: startDate },
-            });
-
-            const inactiveUsers = usersWithLogin - activeUsers;
-
-
+            const userStats = await getUserStats(startDate, now);
 
             return res.json({
                 status: true,
                 period,
-                totalUsers,
-                activeUsers,
-                inactiveUsers,
-                missingLoginUsers,
-                data: results,
+                ...userStats,
+                data: results
             });
         }
+
 
         // ----------------------------------------
         // 📌 4) YEAR (6 windows × 2 months)
@@ -201,16 +181,18 @@ export const getType3Analytics = async (req, res) => {
         if (period === "year") {
             const windows = [];
 
-            const startDate = new Date(now);
-            startDate.setFullYear(startDate.getFullYear() - 1);
+            let currentStart = new Date(now);
+            currentStart.setFullYear(currentStart.getFullYear() - 1);
+            currentStart.setHours(0, 0, 0, 0);
 
-            let currentStart = new Date(startDate);
-
-            for (let i = 0; i < 6; i++) {
-                const end = new Date(currentStart);
+            for (let i = 0; i < 6 && currentStart < now; i++) {
+                let end = new Date(currentStart);
                 end.setMonth(end.getMonth() + 2);
 
-                const label = `${String(currentStart.getDate()).padStart(2, "0")}-${String(currentStart.getMonth() + 1).padStart(2, "0")}-${currentStart.getFullYear()} - ${String(end.getDate()).padStart(2, "0")}-${String(end.getMonth() + 1).padStart(2, "0")}-${end.getFullYear()}`;
+                if (end > now) end = new Date(now);
+                end.setHours(23, 59, 59, 999);
+
+                const label = `${currentStart.getDate()}-${currentStart.getMonth() + 1}-${currentStart.getFullYear()} - ${end.getDate()}-${end.getMonth() + 1}-${end.getFullYear()}`;
 
                 windows.push({ start: new Date(currentStart), end, label });
 
@@ -220,44 +202,26 @@ export const getType3Analytics = async (req, res) => {
 
             windows.reverse();
 
-            const results = windows.map((w) => ({
-                label: w.label,
-                count: countInRange(w.start, w.end),
-            }));
+            const results = await Promise.all(
+                windows.map(async (w) => ({
+                    label: w.label,
+                    count: await countInRange(w.start, w.end),
+                }))
+            );
 
-            const totalUsers = await User.countDocuments({ type: "3" });
+            const startDate = new Date(now);
+            startDate.setFullYear(startDate.getFullYear() - 1);
 
-            const missingLoginUsers = await User.countDocuments({
-                type: "3",
-                $or: [
-                    { lastLogin: { $exists: false } },
-                    { lastLogin: null }
-                ]
-            });
-
-            const usersWithLogin = await User.countDocuments({
-                type: "3",
-                lastLogin: { $exists: true, $ne: null }
-            });
-
-            const activeUsers = await User.countDocuments({
-                type: "3",
-                lastLogin: { $gte: startDate },
-            });
-
-            const inactiveUsers = usersWithLogin - activeUsers;
-
+            const userStats = await getUserStats(startDate, now);
 
             return res.json({
                 status: true,
                 period,
-                totalUsers,
-                activeUsers,
-                inactiveUsers,
-                missingLoginUsers,
-                data: results,
+                ...userStats,
+                data: results
             });
         }
+
 
         return res.status(400).json({ status: false, message: "Invalid period" });
     } catch (err) {

@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from 'cookie-parser'
 import path from 'path';
-
+import { startNotificationJob } from './notification.js';
 import { connectDB } from "./config/db.js";
 import { userRouter } from "./routes/userRoute.js";
 import { eventRouter } from "./routes/eventRoutes.js";
@@ -12,6 +12,7 @@ import { dashboardRouter } from "./routes/dashboardRoute.js";
 import activityRoutes from "./routes/activityRoutes.js";
 import analysisRoutes from "./routes/analysisRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
+import { notificationRoutes } from "./routes/notificationRoutes.js";
 
 import { activityMiddleware } from "./utils/activityMiddelware.js";
 
@@ -44,9 +45,11 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/activities", activityRoutes);
 app.use("/api/analysis", analysisRoutes);
 app.use("/api/accent", roomRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 connectDB();
+startNotificationJob();
 
 
 const PORT = process.env.PORT || 5000;

@@ -122,8 +122,8 @@ const Analytics = () => {
                     {loading && (
                         <div className="flex justify-center items-center h-32">
                             {/* <div className=" rounded-full h-8 w-8 border-b-2 border-gray-900"></div>  */}
-                       
-                             <div className="spinner -mt-28"></div>
+
+                            <div className="spinner -mt-28"></div>
                         </div>
                     )}
 
@@ -138,13 +138,22 @@ const Analytics = () => {
                                     </div>
 
                                     {/* Stacked bar */}
-                                    <div className="flex-1 flex h-10 rounded-full overflow-hidden bg-gray-100">
-                                        <div
-                                            className="bg-[#4338ca] transition-all duration-300"
-                                            style={{ width: `${data.values[0]}%` }}
-                                            title={`Conversations: ${data.count}`}
-                                        ></div>
+                                    <div className="flex-1 h-10 rounded-full overflow-hidden bg-gray-100 relative">
+                                        {data.count > 0 ? (
+                                            <div
+                                                className="bg-[#4338ca] h-full flex items-center justify-center text-white text-sm font-semibold transition-all duration-300"
+                                                style={{ width: `${data.values[0]}%` }}
+                                                title={`Rooms created: ${data.count}`}
+                                            >
+                                                {data.count} {data.count === 1 ? "room" : "rooms"}
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                0 rooms
+                                            </div>
+                                        )}
                                     </div>
+
 
                                 </div>
                             ))}

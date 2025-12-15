@@ -30,6 +30,8 @@ export const USER_ENDPOINTS = {
   LEAVE_ROOM: `${API_BASE_URL}/accent/leave-room`,
 
 
+  USER_DASHBOARD_OVERVIEW: `${API_BASE_URL}/dashboard/student-overview`,
+
 
   GET_ALL_ACTIVITIES: `${API_BASE_URL}/activities/getAllActivities`,
   GET_ALL_USER_ACTIVITIES: `${API_BASE_URL}/activities/getUserActivities`,
