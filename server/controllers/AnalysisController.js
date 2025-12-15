@@ -1,6 +1,6 @@
 
 import { User } from "../models/userModel.js";
-import { Room } from "../models/roomModel.js";
+import { Room } from "../models/RoomModel.js";
 
 const countInRange = async (start, end) => {
     return await Room.countDocuments({

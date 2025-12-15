@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
-import { Room } from "../models/roomModel.js";
+import { Room } from "../models/RoomModel.js";
 import Event from "../models/eventModel.js";
 
 export const getDashboardOverview = async (req, res) => {
