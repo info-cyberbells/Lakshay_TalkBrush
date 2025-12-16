@@ -5,7 +5,7 @@ import { User } from "../models/userModel.js";
 // Login Controller
 export const loginUser = async (req, res) => {
     try {
-        let { email, password } = req.body;
+        let { email, password, rememberMe } = req.body;
 
         if (email) {
             email = email.trim().toLowerCase();
@@ -30,37 +30,40 @@ export const loginUser = async (req, res) => {
 
         const host = `${req.protocol}://${req.get('host')}`;
 
+        const tokenExpiry = rememberMe ? "30d" : "7d";
+        const cookieMaxAge = rememberMe
+            ? 30 * 24 * 60 * 60 * 1000
+            : 7 * 24 * 60 * 60 * 1000;
+
         // Generate JWT token
         const token = jwt.sign(
             { id: user._id, email: user.email, type: user.type },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+            { expiresIn: tokenExpiry }
         );
-
-        const maxAge = 7 * 24 * 60 * 60 * 1000;
 
         // for live https deployment
         res.cookie("authToken", token, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            maxAge,
+            maxAge: cookieMaxAge,
         })
 
 
-        //for local/ip teting for http
-        // res.cookie("authToken", token, {
-        //     httpOnly: false,
-        //     secure: false,
-        //     sameSite: "lax",
-        //     maxAge,
-        // })
+            //for local/ip teting for http
+            // res.cookie("authToken", token, {
+            //     httpOnly: false,
+            //     secure: false,
+            //     sameSite: "lax",
+            //     maxAge,
+            // })
 
             .status(200)
             .json({
                 token,
                 user: {
-                     id: user._id, 
+                    id: user._id,
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber,

@@ -143,7 +143,7 @@ const MenuItems = ({ onClose }) => {
             { name: "Dashboard", icon: <Home size={20} />, path: "/user-dashboard" },
             { name: "Manage Profile", icon: <UserCog size={20} />, path: "/manage-profile" },
             { name: "Events", icon: <Icon>{icons.Calendar}</Icon>, path: "/events" },
-            // { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/voice-conversation" },
+            { name: "Convo Space", icon: <MessageSquare size={20} />, path: "/convo-space" },
         ],
     };
     const type = role === '1' ? 'superadmin' : role === '2' ? 'admin' : 'user';

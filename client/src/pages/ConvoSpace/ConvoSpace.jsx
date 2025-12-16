@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Mic, Link2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createRoomThunk } from "../../features/roomSlice";
+import { createRoomThunk, getRoomDetailsThunk } from "../../features/roomSlice";
 import img1 from "/img1.png";
 import img2 from "/img2.jpg";
 import img4 from "/img4.jpg";
@@ -13,6 +13,9 @@ const ConvoSpace = () => {
   const dispatch = useDispatch();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [joinRoomCode, setJoinRoomCode] = useState('');
+  const [isJoiningRoom, setIsJoiningRoom] = useState(false);
+
 
   // Add your image URLs here
   const slides = [
@@ -81,12 +84,35 @@ const ConvoSpace = () => {
     }
   };
 
+  const handleJoinRoom = async (code) => {
+    const trimmedCode = code.trim();
 
+    if (!trimmedCode || trimmedCode.length !== 8) {
+      alert('Please enter a valid 8-character room code');
+      return;
+    }
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link copied to clipboard!");
+    setIsJoiningRoom(true);
+
+    try {
+      const result = await dispatch(getRoomDetailsThunk(trimmedCode));
+
+      if (getRoomDetailsThunk.fulfilled.match(result)) {
+        navigate(`/accent/room/${trimmedCode}`);
+      } else {
+        alert('Room not found. Please check the room code and try again.');
+        setJoinRoomCode('');
+      }
+    } catch (error) {
+      console.error('Error joining room:', error);
+      alert('Room not found. Please check the room code and try again.');
+      setJoinRoomCode('');
+    } finally {
+      setIsJoiningRoom(false);
+    }
   };
+
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 lg:ml-[240px] lg:mt-[50px] lg:mr-[250px] lg:w-[calc(100%-240px)] pt-3">
@@ -117,6 +143,34 @@ const ConvoSpace = () => {
               <Mic className="w-5 h-5" />
               {isCreatingRoom ? 'Creating Room...' : 'Start Conversation'}
             </button>
+
+            {/* Join Room Section */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter Room Code"
+                value={joinRoomCode}
+                onChange={(e) => {
+                  // Only allow alphanumeric characters, max 8
+                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                  if (value.length <= 8) {
+                    setJoinRoomCode(value);
+                  }
+                }}
+                maxLength={8}
+                className="px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm lg:text-base transition-colors bg-white"
+                disabled={isJoiningRoom}
+              />
+              <button
+                onClick={() => handleJoinRoom(joinRoomCode)}
+                disabled={joinRoomCode.length !== 8 || isJoiningRoom}
+                className={`flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md cursor-pointer text-sm lg:text-base whitespace-nowrap ${(joinRoomCode.length !== 8 || isJoiningRoom) ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+              >
+                <Link2 className="w-5 h-5" />
+                {isJoiningRoom ? 'Joining...' : 'Join Room'}
+              </button>
+            </div>
           </div>
 
           <a
