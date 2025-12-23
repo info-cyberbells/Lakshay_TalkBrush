@@ -65,7 +65,19 @@ function AppContent() {
     );
   }
 
-  const showNavbar = location.pathname !== '/';
+
+  const showNavbar = (() => {
+    if (location.pathname === '/') return false;
+
+    const userId = localStorage.getItem('userId');
+    const publicRoutes = ['/privacy-policy', '/terms-and-conditions', '/contact-us'];
+
+    if (publicRoutes.includes(location.pathname)) {
+      return !!userId;
+    }
+
+    return true;
+  })();
 
   return (
     <div className="app-container">
@@ -85,7 +97,7 @@ function AppContent() {
         <Route path='/analytics' element={<Analytics />} />
         <Route path="/accent/room/:roomCode" element={<VoiceConversation />} />
         <Route path="/terms-and-conditions" element={<TermsConditions />} />
-        <Route path="/privacy-and-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/contact-us" element={<Contactus />} />
         <Route path="/how-talkbrush-works" element={<HowTalkBrushWorks />} />
 

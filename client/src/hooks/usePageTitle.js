@@ -43,7 +43,10 @@ const routeConfig = {
     '/how-talkbrush-works': {
         title: 'How TalkBrush Works',
     },
-    
+    '/privacy-policy': {
+        title: 'Privacy Policy',
+    },
+
 };
 
 export const usePageTitle = () => {
